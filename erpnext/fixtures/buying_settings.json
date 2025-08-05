@@ -1,0 +1,32 @@
+[
+ {
+  "allow_multiple_items": 1,
+  "allow_zero_qty_in_purchase_order": 0,
+  "allow_zero_qty_in_request_for_quotation": 0,
+  "allow_zero_qty_in_supplier_quotation": 0,
+  "auto_create_purchase_receipt": 0,
+  "auto_create_subcontracting_order": 0,
+  "backflush_raw_materials_of_subcontract_based_on": "BOM",
+  "bill_for_rejected_quantity_in_purchase_invoice": 1,
+  "blanket_order_allowance": 0.0,
+  "buying_price_list": "Standard Buying",
+  "disable_last_purchase_rate": 0,
+  "docstatus": 0,
+  "doctype": "Buying Settings",
+  "maintain_same_rate": 0,
+  "maintain_same_rate_action": "Stop",
+  "modified": "2025-07-29 08:46:00.026435",
+  "name": "Buying Settings",
+  "over_transfer_allowance": 0.0,
+  "po_required": "No",
+  "pr_required": "No",
+  "project_update_frequency": "Each Transaction",
+  "role_to_override_stop_action": null,
+  "set_landed_cost_based_on_purchase_invoice_rate": 0,
+  "set_valuation_rate_for_rejected_materials": 0,
+  "show_pay_button": 1,
+  "supp_master_name": "Supplier Name",
+  "supplier_group": null,
+  "use_transaction_date_exchange_rate": 0
+ }
+]

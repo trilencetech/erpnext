@@ -11,6 +11,9 @@
   },
   {
    "card": "Active Suppliers"
+  },
+  {
+   "card": "Stock Sell View"
   }
  ],
  "charts": [
@@ -31,16 +34,16 @@
    "width": "Full"
   }
  ],
- "creation": "2020-07-20 21:01:02.541065",
+ "creation": "2025-07-24 16:58:24.968434",
  "dashboard_name": "Buying",
  "docstatus": 0,
  "doctype": "Dashboard",
  "idx": 0,
- "is_default": 1,
+ "is_default": 0,
  "is_standard": 1,
- "modified": "2020-07-22 12:48:38.112744",
+ "modified": "2025-08-04 15:15:42.480494",
  "modified_by": "Administrator",
  "module": "Buying",
  "name": "Buying",
- "owner": "Administrator"
+ "owner": "skpatelfn@gmail.com"
 }

@@ -64,6 +64,7 @@
   "has_serial_no",
   "serial_no_series",
   "variants_section",
+  "section_break_tmlr",
   "variant_of",
   "variant_based_on",
   "attributes",
@@ -77,6 +78,7 @@
   "section_break_avcp",
   "item_defaults",
   "purchasing_tab",
+  "section_break_hpbt",
   "purchase_uom",
   "min_order_qty",
   "safety_stock",
@@ -95,6 +97,7 @@
   "column_break_59",
   "customs_tariff_number",
   "sales_details",
+  "section_break_iulb",
   "sales_uom",
   "grant_commission",
   "is_sales_item",
@@ -103,12 +106,15 @@
   "customer_details",
   "customer_items",
   "item_tax_section_break",
+  "section_break_jsyy",
   "taxes",
   "quality_tab",
+  "section_break_coqz",
   "inspection_required_before_purchase",
   "quality_inspection_template",
   "inspection_required_before_delivery",
   "manufacturing",
+  "section_break_bshb",
   "include_item_in_manufacturing",
   "is_sub_contracted_item",
   "default_bom",
@@ -174,6 +180,7 @@
    "search_index": 1
   },
   {
+   "default": "Kg",
    "fieldname": "stock_uom",
    "fieldtype": "Link",
    "ignore_user_permissions": 1,
@@ -198,6 +205,7 @@
    "default": "0",
    "fieldname": "allow_alternative_item",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Allow Alternative Item"
   },
   {
@@ -223,12 +231,14 @@
    "depends_on": "eval:(doc.__islocal&&doc.is_stock_item && !doc.has_serial_no && !doc.has_batch_no)",
    "fieldname": "opening_stock",
    "fieldtype": "Float",
+   "hidden": 1,
    "label": "Opening Stock"
   },
   {
    "depends_on": "is_stock_item",
    "fieldname": "valuation_rate",
    "fieldtype": "Currency",
+   "hidden": 1,
    "label": "Valuation Rate"
   },
   {
@@ -236,6 +246,7 @@
    "depends_on": "eval:doc.__islocal",
    "fieldname": "standard_rate",
    "fieldtype": "Currency",
+   "hidden": 1,
    "label": "Standard Selling Rate"
   },
   {
@@ -296,6 +307,7 @@
   {
    "fieldname": "sb_barcodes",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Barcodes"
   },
   {
@@ -377,6 +389,7 @@
    "depends_on": "is_stock_item",
    "fieldname": "reorder_section",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Auto re-order",
    "options": "fa fa-rss"
   },
@@ -408,6 +421,7 @@
    "depends_on": "eval:doc.is_stock_item",
    "fieldname": "serial_nos_and_batches",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Serial Nos and Batches"
   },
   {
@@ -489,6 +503,7 @@
    "description": "If this item has variants, then it cannot be selected in sales orders etc.",
    "fieldname": "has_variants",
    "fieldtype": "Check",
+   "hidden": 1,
    "in_standard_filter": 1,
    "label": "Has Variants"
   },
@@ -581,6 +596,7 @@
    "depends_on": "eval:!doc.is_fixed_asset",
    "fieldname": "supplier_details",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Supplier Details"
   },
   {
@@ -606,6 +622,7 @@
    "collapsible": 1,
    "fieldname": "foreign_trade_details",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Foreign Trade Details"
   },
   {
@@ -686,6 +703,7 @@
    "depends_on": "eval:!doc.is_fixed_asset",
    "fieldname": "customer_details",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Customer Details"
   },
   {
@@ -786,6 +804,7 @@
    "depends_on": "eval:!doc.__islocal && !doc.is_fixed_asset",
    "fieldname": "over_delivery_receipt_allowance",
    "fieldtype": "Float",
+   "hidden": 1,
    "label": "Over Delivery/Receipt Allowance (%)",
    "oldfieldname": "tolerance",
    "oldfieldtype": "Currency"
@@ -794,6 +813,7 @@
    "depends_on": "eval:!doc.__islocal && !doc.is_fixed_asset",
    "fieldname": "over_billing_allowance",
    "fieldtype": "Float",
+   "hidden": 1,
    "label": "Over Billing Allowance (%)"
   },
   {
@@ -801,6 +821,7 @@
    "depends_on": "is_fixed_asset",
    "fieldname": "auto_create_assets",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Auto Create Assets on Purchase"
   },
   {
@@ -827,6 +848,7 @@
    "depends_on": "auto_create_assets",
    "fieldname": "is_grouped_asset",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Create Grouped Asset"
   },
   {
@@ -838,6 +860,7 @@
   {
    "fieldname": "inventory_settings_section",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Inventory Settings"
   },
   {
@@ -875,13 +898,44 @@
   },
   {
    "fieldname": "section_break_avcp",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "hidden": 1
   },
   {
    "collapsible": 1,
    "fieldname": "deferred_accounting_section",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Deferred Accounting"
+  },
+  {
+   "fieldname": "section_break_tmlr",
+   "fieldtype": "Section Break",
+   "hidden": 1
+  },
+  {
+   "fieldname": "section_break_hpbt",
+   "fieldtype": "Section Break",
+   "hidden": 1
+  },
+  {
+   "fieldname": "section_break_iulb",
+   "fieldtype": "Section Break",
+   "hidden": 1
+  },
+  {
+   "fieldname": "section_break_jsyy",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_coqz",
+   "fieldtype": "Section Break",
+   "hidden": 1
+  },
+  {
+   "fieldname": "section_break_bshb",
+   "fieldtype": "Section Break",
+   "hidden": 1
   }
  ],
  "icon": "fa fa-tag",
@@ -889,7 +943,7 @@
  "image_field": "image",
  "links": [],
  "make_attachments_public": 1,
- "modified": "2025-02-03 23:43:57.253667",
+ "modified": "2025-08-03 19:53:54.786572",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Item",
@@ -953,7 +1007,7 @@
    "share": 1
   }
  ],
- "quick_entry": 1,
+ "row_format": "Dynamic",
  "search_fields": "item_name,description,item_group,customer_code",
  "show_name_in_global_search": 1,
  "show_preview_popup": 1,

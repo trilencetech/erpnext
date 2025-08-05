@@ -1,0 +1,40 @@
+[
+ {
+  "allow_guest": 0,
+  "api_method": null,
+  "cron_format": null,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Server Script",
+  "doctype_event": "After Save (Submitted Document)",
+  "enable_rate_limit": 0,
+  "event_frequency": "All",
+  "modified": "2025-08-05 11:04:00.036154",
+  "module": "Selling",
+  "name": "Update_Item_Price_Customer",
+  "rate_limit_count": 5,
+  "rate_limit_seconds": 86400,
+  "reference_doctype": "Item Group Rate Master",
+  "script": "frappe.call(\"erpnext.selling.doctype.item_group_rate_master.item_group_rate_master.update_item_prices_from_group_rate\", docname=doc.name)",
+  "script_type": "DocType Event"
+ },
+ {
+  "allow_guest": 0,
+  "api_method": null,
+  "cron_format": null,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Server Script",
+  "doctype_event": "After Save",
+  "enable_rate_limit": 0,
+  "event_frequency": "All",
+  "modified": "2025-08-05 11:45:00.834027",
+  "module": "Selling",
+  "name": "Update_Item_Group_Rate_Master",
+  "rate_limit_count": 5,
+  "rate_limit_seconds": 86400,
+  "reference_doctype": "Item Group",
+  "script": "frappe.call(\"erpnext.selling.doctype.item_group_rate_master.item_group_rate_master.apply_rate_change_to_group\", item_group=doc.name,rate_delta=doc.price)",
+  "script_type": "DocType Event"
+ }
+]

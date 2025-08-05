@@ -1,0 +1,24 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Item Group Rate Master",
+  "enabled": 0,
+  "modified": "2025-08-05 10:17:33.274495",
+  "module": "Selling",
+  "name": "Item_Group_Rate_Master",
+  "script": "frappe.ui.form.on('Item Group Rate Master', {\n\titem_group: function(frm) {\n        if (frm.doc.item_group) {\n            frappe.call({\n                method: 'frappe.client.get_value',\n                args: {\n                    doctype: 'Item Group',\n                    filters: {\n                        name: frm.doc.item_group\n                    },\n                    fieldname: 'price'\n                },\n                callback: function(r) {\n                    if (r.message) {\n                        price_total=frm.doc.price_master + r.message.price\n                        frm.set_value('price_master', price_total);\n                    }\n                }\n            });\n        }\n    }\n})",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Sales Order",
+  "enabled": 0,
+  "modified": "2025-08-05 10:01:47.450917",
+  "module": "Selling",
+  "name": "Sale_order_Item_Price",
+  "script": "frappe.ui.form.on('Sales Order Item', {\n  item_code: function(frm, cdt, cdn) {\n    console.log(\"Test\")  \n    let row = locals[cdt][cdn];\n    frappe.call({\n      method: 'frappe.client.get_list',\n      args: {\n        doctype: 'Item',\n        filters: { name: row.item_code },\n        fields: ['item_group']\n      },\n      callback: function(r) {\n        if (r.message && r.message.length > 0) {\n          let item_group = r.message[0].item_group;\n          frappe.call({\n            method: 'frappe.client.get_value',\n            args: {\n              doctype: 'Item Group Rate Master',\n              filters: {\n                item_group_master: item_group,\n                customer_master: frm.doc.customer\n                },\n              fieldname: 'price_master'\n            },\n            callback: function(res) {\n              if (res.message) {\n                  console.log(res.message)\n                frappe.model.set_value(cdt, cdn, 'rate', res.message.price_master);\n              }\n            }\n          });\n        }\n      }\n    });\n  }\n});\n\n\nfrappe.ui.form.on('Sales Order Item', {\n\trefresh(frm) {\n\t\t// your code here\n\t}\n})",
+  "view": "Form"
+ }
+]

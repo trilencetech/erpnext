@@ -14,6 +14,7 @@
   "parent_item_group",
   "is_group",
   "image",
+  "price",
   "column_break_5",
   "defaults",
   "item_group_defaults",
@@ -79,6 +80,7 @@
   {
    "fieldname": "item_group_defaults",
    "fieldtype": "Table",
+   "hidden": 1,
    "label": "Item Group Defaults",
    "options": "Item Default"
   },
@@ -90,6 +92,7 @@
   {
    "fieldname": "taxes",
    "fieldtype": "Table",
+   "hidden": 1,
    "label": "Taxes",
    "options": "Item Tax"
   },
@@ -127,6 +130,12 @@
    "options": "Item Group",
    "print_hide": 1,
    "report_hide": 1
+  },
+  {
+   "fieldname": "price",
+   "fieldtype": "Currency",
+   "label": "Price Modification",
+   "precision": "0"
   }
  ],
  "icon": "fa fa-sitemap",
@@ -135,7 +144,7 @@
  "is_tree": 1,
  "links": [],
  "max_attachments": 3,
- "modified": "2024-01-30 14:08:38.485616",
+ "modified": "2025-08-05 11:48:40.325533",
  "modified_by": "Administrator",
  "module": "Setup",
  "name": "Item Group",
@@ -202,9 +211,11 @@
    "share": 1
   }
  ],
+ "row_format": "Dynamic",
  "search_fields": "parent_item_group",
  "show_name_in_global_search": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

@@ -58,6 +58,7 @@
   "email_id",
   "tax_tab",
   "taxation_section",
+  "gstin",
   "tax_id",
   "column_break_21",
   "tax_category",
@@ -73,18 +74,21 @@
   "column_break_54",
   "loyalty_program_tier",
   "sales_team_tab",
+  "section_break_tdva",
   "sales_team",
   "sales_team_section",
   "default_sales_partner",
   "column_break_66",
   "default_commission_rate",
   "settings_tab",
+  "section_break_hqdp",
   "so_required",
   "dn_required",
   "column_break_53",
   "is_frozen",
   "disabled",
   "portal_users_tab",
+  "section_break_kixf",
   "portal_users"
  ],
  "fields": [
@@ -125,6 +129,7 @@
    "depends_on": "eval:doc.customer_type != 'Company'",
    "fieldname": "gender",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "Gender",
    "options": "Gender"
   },
@@ -147,6 +152,7 @@
   {
    "fieldname": "lead_name",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "From Lead",
    "no_copy": 1,
    "oldfieldname": "lead_name",
@@ -170,6 +176,7 @@
   {
    "fieldname": "account_manager",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "Account Manager",
    "options": "User"
   },
@@ -187,6 +194,7 @@
   {
    "fieldname": "territory",
    "fieldtype": "Link",
+   "hidden": 1,
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Territory",
@@ -245,6 +253,7 @@
   {
    "fieldname": "default_price_list",
    "fieldtype": "Link",
+   "hidden": 1,
    "ignore_user_permissions": 1,
    "label": "Default Price List",
    "options": "Price List"
@@ -338,6 +347,7 @@
   {
    "fieldname": "default_receivable_accounts",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Default Accounts"
   },
   {
@@ -350,6 +360,7 @@
   {
    "fieldname": "credit_limit_section",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Credit Limit and Payment Terms"
   },
   {
@@ -363,6 +374,7 @@
    "collapsible_depends_on": "customer_details",
    "fieldname": "more_info",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "More Information",
    "oldfieldtype": "Section Break",
    "options": "fa fa-file-text"
@@ -431,7 +443,8 @@
    "collapsible": 1,
    "collapsible_depends_on": "sales_team",
    "fieldname": "sales_team_section",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "hidden": 1
   },
   {
    "fieldname": "sales_team",
@@ -471,12 +484,14 @@
   {
    "fieldname": "tax_withholding_category",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "Tax Withholding Category",
    "options": "Tax Withholding Category"
   },
   {
    "fieldname": "opportunity_name",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "From Opportunity",
    "no_copy": 1,
    "options": "Opportunity",
@@ -528,6 +543,7 @@
    "collapsible": 1,
    "fieldname": "loyalty_points_tab",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Loyalty Points"
   },
   {
@@ -549,6 +565,7 @@
    "collapsible_depends_on": "is_internal_customer",
    "fieldname": "internal_customer_section",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Internal Customer"
   },
   {
@@ -577,10 +594,31 @@
   {
    "fieldname": "prospect_name",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "From Prospect",
    "no_copy": 1,
    "options": "Prospect",
    "print_hide": 1
+  },
+  {
+   "fieldname": "gstin",
+   "fieldtype": "Data",
+   "label": "GSTIN"
+  },
+  {
+   "fieldname": "section_break_tdva",
+   "fieldtype": "Section Break",
+   "hidden": 1
+  },
+  {
+   "fieldname": "section_break_hqdp",
+   "fieldtype": "Section Break",
+   "hidden": 1
+  },
+  {
+   "fieldname": "section_break_kixf",
+   "fieldtype": "Section Break",
+   "hidden": 1
   }
  ],
  "icon": "fa fa-user",
@@ -594,7 +632,7 @@
    "link_fieldname": "party"
   }
  ],
- "modified": "2024-06-17 03:24:59.612974",
+ "modified": "2025-07-28 15:41:15.873625",
  "modified_by": "Administrator",
  "module": "Selling",
  "name": "Customer",
@@ -671,9 +709,10 @@
    "role": "Accounts Manager"
   }
  ],
- "quick_entry": 1,
+ "row_format": "Dynamic",
  "search_fields": "customer_group,territory, mobile_no,primary_address",
  "show_name_in_global_search": 1,
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

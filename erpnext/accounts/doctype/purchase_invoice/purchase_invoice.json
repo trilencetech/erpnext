@@ -501,6 +501,7 @@
    "collapsible": 1,
    "fieldname": "currency_and_price_list",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Currency and Price List",
    "options": "fa fa-tag"
   },
@@ -559,6 +560,7 @@
   {
    "fieldname": "sec_warehouse",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "hide_border": 1,
    "label": "Items"
   },
@@ -626,6 +628,7 @@
    "collapsible": 1,
    "fieldname": "pricing_rule_details",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Pricing Rules"
   },
   {
@@ -640,6 +643,7 @@
    "collapsible_depends_on": "supplied_items",
    "fieldname": "raw_materials_supplied",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Raw Materials Supplied"
   },
   {
@@ -710,6 +714,7 @@
   {
    "fieldname": "taxes_section",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "hide_border": 1,
    "label": "Taxes and Charges",
    "oldfieldtype": "Section Break",
@@ -759,6 +764,7 @@
    "collapsible": 1,
    "fieldname": "sec_tax_breakup",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Tax Breakup"
   },
   {
@@ -1133,6 +1139,7 @@
    "collapsible_depends_on": "eval:(!doc.is_return)",
    "fieldname": "payment_schedule_section",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Payment Terms"
   },
   {
@@ -1154,6 +1161,7 @@
   {
    "fieldname": "terms_section_break",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Terms and Conditions",
    "options": "fa fa-legal"
   },
@@ -1301,6 +1309,7 @@
    "collapsible": 1,
    "fieldname": "subscription_section",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Subscription",
    "print_hide": 1
   },
@@ -1346,6 +1355,7 @@
    "collapsible": 1,
    "fieldname": "accounting_dimensions_section",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Accounting Dimensions "
   },
   {
@@ -1442,6 +1452,7 @@
    "collapsible": 1,
    "fieldname": "accounting_details_section",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Accounting Details",
    "print_hide": 1
   },
@@ -1497,6 +1508,7 @@
    "collapsible_depends_on": "tax_withheld_vouchers",
    "fieldname": "tax_withheld_vouchers_section",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Tax Withheld Vouchers"
   },
   {
@@ -1577,6 +1589,7 @@
    "collapsible": 1,
    "fieldname": "additional_info_section",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Additional Info",
    "oldfieldtype": "Section Break",
    "options": "fa fa-file-text",
@@ -1650,7 +1663,7 @@
  "idx": 204,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-09 16:49:22.175081",
+ "modified": "2025-07-29 09:04:01.000456",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Purchase Invoice",

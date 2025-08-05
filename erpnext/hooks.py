@@ -20,6 +20,21 @@ add_to_apps_screen = [
 	}
 ]
 
+fixtures = [
+    {"doctype": "Buying Settings"},
+    {"doctype": "Client Script"},
+    {"doctype": "Server Script"},
+    {"doctype": "Role"},
+    {"doctype": "Role Profile"},
+    {"doctype": "Custom DocPerm"},
+    {"doctype": "Email Template"},
+    {"doctype": "Print Format"},
+    {"doctype": "Web Page"},
+    {"doctype": "Custom HTML Block"}
+]
+
+
+
 develop_version = "15.x.x-develop"
 
 app_include_js = "erpnext.bundle.js"
