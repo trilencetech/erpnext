@@ -19,6 +19,7 @@ class SalesOrderItem(Document):
 		additional_notes: DF.Text | None
 		against_blanket_order: DF.Check
 		amount: DF.Currency
+		available_stock: DF.Float
 		base_amount: DF.Currency
 		base_net_amount: DF.Currency
 		base_net_rate: DF.Currency

@@ -3,6 +3,7 @@
 
 
 import frappe
+import requests
 from frappe import _, msgprint, throw
 from frappe.contacts.doctype.address.address import get_address_display
 from frappe.model.mapper import get_mapped_doc
@@ -2839,3 +2840,100 @@ def check_if_return_invoice_linked_with_payment_entry(self):
 			message += " " + ", ".join(payment_entries_link) + " "
 			message += _("to unallocate the amount of this Return Invoice before cancelling it.")
 			frappe.throw(message)
+
+from frappe.utils.pdf import get_pdf
+from frappe import _
+import frappe
+
+def generate_invoice_pdf(invoice_name):
+    html = frappe.get_print('Sales Invoice', invoice_name, print_format='GST Tax Invoice')
+    pdf = get_pdf(html)
+    return pdf
+
+
+@frappe.whitelist()
+def upload_pdf_to_whatsapp(pdf_bytes, access_token, phone_number_id):
+    url = f"https://graph.facebook.com/v22.0/{phone_number_id}/media"
+    headers = {
+       "Authorization": f"Bearer {access_token}"
+        
+    }
+    
+    files = {
+    "file": ("invoice.pdf", pdf_bytes, "application/pdf"),
+	"type": "document"
+	}
+    data = {
+    "messaging_product": "whatsapp",
+    "type": "document"
+	}
+
+    upload_response = requests.post(url, headers=headers, files=files,data=data)
+    return upload_response.json().get("id")
+
+@frappe.whitelist()
+def send_text_message(access_token,customer_doc, phone_number_id, invoice_name,media_id):
+	
+	
+    message_url = f"https://graph.facebook.com/v22.0/{phone_number_id}/messages"
+    mobileNo=f"{customer_doc.mobile_no}"
+    #frappe.msgprint("customer_phone:::"+mobileNo)
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json"
+    }
+    
+    
+    payload = {
+    "messaging_product": "whatsapp",
+    "to": mobileNo,
+    "type": "template",
+    "template": {
+        "name": "invoice_notification",
+        "language": { "code": "en" },
+        "components": [
+			{
+                    "type": "header",
+                    "parameters": [
+                        {
+                            "type": "document",
+                            "document": {
+                                "id": media_id,
+                                "filename": f"Invoice_{invoice_name}.pdf"
+                            }
+                        }
+                    ]
+                },
+            {
+                "type": "body",
+                "parameters": [
+                    { "type": "text", "text": invoice_name }
+                ]
+            }
+        ]
+    }
+}
+
+    response = requests.post(message_url, headers=headers, json=payload)
+    frappe.msgprint("response:::"+str(response.json()))
+    return response.json()
+
+
+@frappe.whitelist()
+def send_invoice_whatsapp(invoice_name):
+	settings = frappe.get_single("WhatsApp Settings")
+	access_token = settings.get_password("token")
+	phone_number_id= settings.phone_id
+	pdf = generate_invoice_pdf(invoice_name)
+	
+	media_id = upload_pdf_to_whatsapp(pdf, access_token, phone_number_id)
+	#frappe.msgprint("Media ID::"+str(media_id))
+    # Send text message first
+	doc = frappe.get_doc("Sales Invoice", invoice_name)
+	customer_doc = frappe.get_doc("Customer", doc.customer)
+	
+	send_text_message( access_token,customer_doc, phone_number_id, invoice_name,media_id)
+
+    
+	
+

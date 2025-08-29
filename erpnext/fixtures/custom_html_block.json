@@ -1,1 +1,13 @@
-[]
+[
+ {
+  "docstatus": 0,
+  "doctype": "Custom HTML Block",
+  "html": "<div class=\"menu-grid\">\n  <div class=\"menu-item\">\n    <div class=\"menu-icon\">🛒</div>\n    <a href=\"/app/purchase-order\" target=\"_blank\">Purchase Order List</a>\n  </div>\n  <div class=\"menu-item\">\n    <div class=\"menu-icon\">📥</div>\n    <a href=\"/app/purchase-invoice\" target=\"_blank\">Purchase Invoice List</a>\n  </div>\n  <div class=\"menu-item\">\n    <div class=\"menu-icon\">💳</div>\n    <a href=\"/app/payment-entry\" target=\"_blank\">Payment Entry</a>\n  </div>\n  <div class=\"menu-item\">\n    <div class=\"menu-icon\">📥</div>\n    <a href=\"/app/sales-invoice\" target=\"_blank\">Sales Invoices</a>\n  </div>\n\n</div>\n",
+  "modified": "2025-08-22 09:17:07.799525",
+  "name": "Purchase and Selling Menu",
+  "private": 0,
+  "roles": [],
+  "script": null,
+  "style": ".menu-grid {\n  display: grid;\n  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));\n  gap: 16px;\n  margin-top: 10px;\n}\n.menu-item {\n  background: #f5f7fa;\n  border: 1px solid #d1d8dd;\n  border-radius: 8px;\n  padding: 12px;\n  text-align: center;\n  transition: all 0.2s ease;\n}\n.menu-item:hover {\n  background: #e0ecff;\n  border-color: #4a90e2;\n}\n.menu-item a {\n  text-decoration: none;\n  color: #333;\n  font-weight: 600;\n  display: block;\n}\n.menu-icon {\n  font-size: 24px;\n  margin-bottom: 6px;\n  color: #4a90e2;\n}"
+ }
+]

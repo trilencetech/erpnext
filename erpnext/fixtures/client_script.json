@@ -2,6 +2,17 @@
  {
   "docstatus": 0,
   "doctype": "Client Script",
+  "dt": "Sales Invoice",
+  "enabled": 1,
+  "modified": "2025-08-25 09:15:14.628147",
+  "module": "Selling",
+  "name": "Sales_Invoice_Cust_Button",
+  "script": "frappe.ui.form.on('Sales Invoice', {\n    refresh: function(frm) {\n        if (frm.doc.docstatus === 1) {  // Only show when submitted\n            frm.add_custom_button('Send via WhatsApp', () => {\n                \n                frappe.call({\n                    method: 'erpnext.accounts.doctype.sales_invoice.sales_invoice.send_invoice_whatsapp',\n                    args: {\n                      invoice_name: frm.doc.name\n                     \n                    },\n                    callback: function(r) {\n                        console.log(r.message)\n                        frappe.msgprint(r.message === 'success'\n                            ? 'WhatsApp message sent successfully!'\n                            : 'Failed to send WhatsApp message.');\n                    }\n                });\n            });\n        }\n    }\n});\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
   "dt": "Item Group Rate Master",
   "enabled": 0,
   "modified": "2025-08-05 10:17:33.274495",
@@ -14,11 +25,11 @@
   "docstatus": 0,
   "doctype": "Client Script",
   "dt": "Sales Order",
-  "enabled": 0,
-  "modified": "2025-08-05 10:01:47.450917",
+  "enabled": 1,
+  "modified": "2025-08-08 08:49:08.186545",
   "module": "Selling",
   "name": "Sale_order_Item_Price",
-  "script": "frappe.ui.form.on('Sales Order Item', {\n  item_code: function(frm, cdt, cdn) {\n    console.log(\"Test\")  \n    let row = locals[cdt][cdn];\n    frappe.call({\n      method: 'frappe.client.get_list',\n      args: {\n        doctype: 'Item',\n        filters: { name: row.item_code },\n        fields: ['item_group']\n      },\n      callback: function(r) {\n        if (r.message && r.message.length > 0) {\n          let item_group = r.message[0].item_group;\n          frappe.call({\n            method: 'frappe.client.get_value',\n            args: {\n              doctype: 'Item Group Rate Master',\n              filters: {\n                item_group_master: item_group,\n                customer_master: frm.doc.customer\n                },\n              fieldname: 'price_master'\n            },\n            callback: function(res) {\n              if (res.message) {\n                  console.log(res.message)\n                frappe.model.set_value(cdt, cdn, 'rate', res.message.price_master);\n              }\n            }\n          });\n        }\n      }\n    });\n  }\n});\n\n\nfrappe.ui.form.on('Sales Order Item', {\n\trefresh(frm) {\n\t\t// your code here\n\t}\n})",
+  "script": "frappe.ui.form.on('Sales Order Item', {\n  item_code: function(frm, cdt, cdn) {\n    let row = locals[cdt][cdn];\n    if (row.item_code ) {\n      frappe.call({\n        method: \"frappe.client.get_value\",\n        args: {\n          doctype: \"Bin\",\n          filters: {\n            item_code: row.item_code\n            \n          },\n          fieldname: \"actual_qty\"\n        },\n        callback: function(r) {\n            console.log(\"r.message.actual_qty::\"+r.message.actual_qty)\n          if (r.message) {\n            frappe.model.set_value(cdt, cdn, \"available_stock\", r.message.actual_qty);\n          } else {\n            frappe.model.set_value(cdt, cdn, \"available_stock\", 0);\n          }\n        }\n      });\n    }\n  },\n  \n});\n\n\n",
   "view": "Form"
  }
 ]

@@ -8,6 +8,7 @@
  "engine": "InnoDB",
  "field_order": [
   "item_code",
+  "available_stock",
   "customer_item_code",
   "ensure_delivery_based_on_produced_serial_no",
   "is_stock_item",
@@ -354,7 +355,7 @@
    "precision": "2"
   },
   {
-   "columns": 2,
+   "columns": 1,
    "depends_on": "eval: doc.type != \"\"",
    "fieldname": "rate",
    "fieldtype": "Currency",
@@ -966,18 +967,30 @@
    "label": "Project",
    "options": "Project",
    "search_index": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "available_stock",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Avail. Stock",
+   "non_negative": 1,
+   "print_hide": 1,
+   "read_only": 1,
+   "width": "100px"
   }
  ],
  "idx": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-02-28 09:45:44.934947",
+ "modified": "2025-08-08 18:40:07.109666",
  "modified_by": "Administrator",
  "module": "Selling",
  "name": "Sales Order Item",
  "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

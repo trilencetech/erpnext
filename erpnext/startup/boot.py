@@ -54,9 +54,10 @@ def boot_session(bootinfo):
 
 		party_account_types = frappe.db.sql(""" select name, ifnull(account_type, '') from `tabParty Type`""")
 		bootinfo.party_account_types = frappe._dict(party_account_types)
-
 		bootinfo.sysdefaults.demo_company = frappe.db.get_single_value("Global Defaults", "demo_company")
-
+		settings = frappe.get_single("WhatsApp Settings")
+		bootinfo.whatsapp_access_token = settings.token
+		bootinfo.whatsapp_phone_number_id = settings.phone_id
 
 def update_page_info(bootinfo):
 	bootinfo.page_info.update(
@@ -77,3 +78,4 @@ def bootinfo(bootinfo):
 		employee = frappe.db.get_value("Employee", {"user_id": bootinfo["user"]["name"]}, "name")
 		if employee:
 			bootinfo["user"]["employee"] = employee
+

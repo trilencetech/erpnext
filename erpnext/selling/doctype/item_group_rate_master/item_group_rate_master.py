@@ -35,6 +35,7 @@ def update_item_prices_from_group_rate(docname):
             "price_list": price_list,
             "customer": customer
         })
+        
         if existing:
             item_price_doc = frappe.get_doc("Item Price", existing[0].name)
             old_price_rate = item_price_doc.price_list_rate
@@ -48,13 +49,15 @@ def update_item_prices_from_group_rate(docname):
             create_version_log("Item Price",existing[0].name,changed_price_json)
             frappe.db.commit()
         else:
-            frappe.get_doc({
+            item_price_doc=frappe.get_doc({
                 "doctype": "Item Price",
                 "item_code": item.name,
                 "price_list": price_list,
                 "price_list_rate": rate,
                 "customer": customer
-            }).insert()
+            })
+            item_price_doc.insert()
+            frappe.db.commit()
 @frappe.whitelist()
 def apply_rate_change_to_group(item_group, rate_delta):
     rate_delta = float(rate_delta)
