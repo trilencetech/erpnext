@@ -31,8 +31,7 @@ fixtures = [
     {"doctype": "Email Template"},
     {"doctype": "Print Format"},
     {"doctype": "Web Page"},
-    {"doctype": "Custom HTML Block"},
-    {"doctype":"Workspace"}
+    {"doctype": "Custom HTML Block"}
 ]
 
 

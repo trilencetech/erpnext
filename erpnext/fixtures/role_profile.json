@@ -125,6 +125,93 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2025-09-02 17:11:55.218306",
+  "name": "Gajanand Account Admin",
+  "role_profile": "Gajanand Account Admin",
+  "roles": [
+   {
+    "parent": "Gajanand Account Admin",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Accounts Manager"
+   },
+   {
+    "parent": "Gajanand Account Admin",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Customer"
+   },
+   {
+    "parent": "Gajanand Account Admin",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Purchase Manager"
+   },
+   {
+    "parent": "Gajanand Account Admin",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Sales Manager"
+   },
+   {
+    "parent": "Gajanand Account Admin",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Stock Manager"
+   },
+   {
+    "parent": "Gajanand Account Admin",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "WhatsApp Manager"
+   },
+   {
+    "parent": "Gajanand Account Admin",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Item Manager"
+   },
+   {
+    "parent": "Gajanand Account Admin",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Dashboard Manager"
+   },
+   {
+    "parent": "Gajanand Account Admin",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Report Manager"
+   },
+   {
+    "parent": "Gajanand Account Admin",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Purchase Master Manager"
+   },
+   {
+    "parent": "Gajanand Account Admin",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Purchase User"
+   },
+   {
+    "parent": "Gajanand Account Admin",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Sales Master Manager"
+   },
+   {
+    "parent": "Gajanand Account Admin",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Gajanand Account Admin"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
   "modified": "2025-08-29 09:40:38.710091",
   "name": "GajanandAccountant",
   "role_profile": "GajanandAccountant",
