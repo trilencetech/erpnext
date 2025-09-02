@@ -26,7 +26,7 @@ fixtures = [
     {"doctype": "Server Script"},
     {"doctype": "Role"},
     {"doctype": "Role Profile"},
-    {"doctype": "Module§ Profile"},
+    {"doctype": "Module Profile"},
     {"doctype": "Custom DocPerm"},
     {"doctype": "Email Template"},
     {"doctype": "Print Format"},

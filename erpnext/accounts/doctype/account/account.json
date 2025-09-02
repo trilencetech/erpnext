@@ -13,6 +13,8 @@
   "disabled",
   "account_name",
   "account_number",
+  "ifsc_code",
+  "branch",
   "is_group",
   "company",
   "root_type",
@@ -185,13 +187,27 @@
    "fieldname": "disabled",
    "fieldtype": "Check",
    "label": "Disable"
+  },
+  {
+   "fieldname": "ifsc_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "IFSC Code"
+  },
+  {
+   "fieldname": "branch",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Branch"
   }
  ],
  "icon": "fa fa-money",
  "idx": 1,
  "is_tree": 1,
  "links": [],
- "modified": "2024-08-19 15:19:11.095045",
+ "modified": "2025-09-02 09:14:42.417787",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Account",
@@ -246,6 +262,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "search_fields": "account_number",
  "show_name_in_global_search": 1,
  "sort_field": "modified",
