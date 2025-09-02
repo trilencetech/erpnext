@@ -2915,7 +2915,7 @@ def send_text_message(access_token,customer_doc, phone_number_id, invoice_name,m
 }
 
     response = requests.post(message_url, headers=headers, json=payload)
-    frappe.msgprint("response:::"+str(response.json()))
+    #frappe.msgprint("response:::"+str(response.json()))
     return response.json()
 
 
