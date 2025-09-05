@@ -14,23 +14,10 @@
   "docstatus": 0,
   "doctype": "Custom HTML Block",
   "html": "\n<div class=\"erp-grid\">\n  <a href=\"/app/item\" target=\"_blank\" class=\"erp-tile\">\n    <div class=\"erp-icon\">📦</div>\n    <div class=\"erp-label\">Item</div>\n  </a>\n  <a href=\"/app/item-group\" target=\"_blank\" class=\"erp-tile\">\n    <div class=\"erp-icon\">🗂️</div>\n    <div class=\"erp-label\">Item Group</div>\n  </a>\n  <a href=\"/app/item-group-rate-master\" target=\"_blank\" class=\"erp-tile\">\n    <div class=\"erp-icon\">🏷️</div>\n    <div class=\"erp-label\">Rate Master</div>\n  </a>\n  <a href=\"/app/customer\" target=\"_blank\" class=\"erp-tile\">\n    <div class=\"erp-icon\">👤</div>\n    <div class=\"erp-label\">Customer</div>\n  </a>\n  <a href=\"/app/supplier\" target=\"_blank\" class=\"erp-tile\">\n    <div class=\"erp-icon\">🚚</div>\n    <div class=\"erp-label\">Supplier</div>\n  </a>\n</div>\n",
-  "modified": "2025-09-05 19:38:43.668693",
+  "modified": "2025-09-05 19:52:24.443605",
   "name": "Item Group Menu Master",
   "private": 0,
-  "roles": [
-   {
-    "parent": "Item Group Menu Master",
-    "parentfield": "roles",
-    "parenttype": "Custom HTML Block",
-    "role": "Gajanand Account Admin"
-   },
-   {
-    "parent": "Item Group Menu Master",
-    "parentfield": "roles",
-    "parenttype": "Custom HTML Block",
-    "role": "GajanandAccount"
-   }
-  ],
+  "roles": [],
   "script": "",
   "style": ".erp-grid {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 16px;\n  font-family: Arial, sans-serif;\n}\n.erp-tile {\n  width: 160px;\n  height: 140px;\n  background: #f4f6f8;\n  border-radius: 8px;\n  text-align: center;\n  padding: 16px;\n  box-shadow: 0 2px 6px rgba(0,0,0,0.1);\n  transition: 0.2s ease;\n}\n.erp-tile:hover {\n  background: #e2e6ea;\n  transform: translateY(-2px);\n}\n.erp-icon {\n  font-size: 32px;\n  margin-bottom: 12px;\n  display: block;\n}\n.erp-label {\n  font-weight: bold;\n  color: #333;\n  text-decoration: none;\n}"
  }
