@@ -14535,8 +14535,22 @@
  },
  {
   "charts": [],
-  "content": "[{\"id\":\"QV5_MJr7E0\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Purchase and Selling Order Management</span>\",\"col\":12}},{\"id\":\"IM-QyIcLfD\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Purchase and Selling Menu\",\"col\":12}},{\"id\":\"jXqwFgnoN-\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Item and Customer/Supplier Management</b></span>\",\"col\":12}},{\"id\":\"qcsxn58Y1g\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Item Group Menu Master\",\"col\":12}},{\"id\":\"5wd9Dq9yBZ\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Accounting Data Report</b></span>\",\"col\":12}},{\"id\":\"r1nJzX0SGd\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"General Ledger\",\"col\":3}},{\"id\":\"LBb4WmRaVB\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Balance Sheet\",\"col\":3}},{\"id\":\"NncQkxfr39\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer Ledger\",\"col\":3}},{\"id\":\"oHjfALQ4HV\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Profit and Loss Statement\",\"col\":3}}]",
+  "content": "[{\"id\":\"QV5_MJr7E0\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Purchase Management</span>\",\"col\":12}},{\"id\":\"IM-QyIcLfD\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Purchase and Selling Menu\",\"col\":12}},{\"id\":\"BTo4iSd-Br\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Sales Management</b></span>\",\"col\":12}},{\"id\":\"JlOLhj4rkg\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Sale Management\",\"col\":12}},{\"id\":\"g9TMg7nNSf\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Payment Entries</b></span>\",\"col\":12}},{\"id\":\"nAI7wMUuL6\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Payment Entries\",\"col\":12}},{\"id\":\"jXqwFgnoN-\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Item and Customer/Supplier Management</b></span>\",\"col\":12}},{\"id\":\"qcsxn58Y1g\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Item Group Menu Master\",\"col\":12}},{\"id\":\"5wd9Dq9yBZ\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Accounting Data Report</b></span>\",\"col\":12}},{\"id\":\"r1nJzX0SGd\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"General Ledger\",\"col\":3}},{\"id\":\"LBb4WmRaVB\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Balance Sheet\",\"col\":3}},{\"id\":\"NncQkxfr39\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer Ledger\",\"col\":3}},{\"id\":\"oHjfALQ4HV\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Profit and Loss Statement\",\"col\":3}}]",
   "custom_blocks": [
+   {
+    "custom_block_name": "Sale Management",
+    "label": "Sale Management",
+    "parent": "Gajanand Enterprise",
+    "parentfield": "custom_blocks",
+    "parenttype": "Workspace"
+   },
+   {
+    "custom_block_name": "Payment Entries",
+    "label": "Payment Entries",
+    "parent": "Gajanand Enterprise",
+    "parentfield": "custom_blocks",
+    "parenttype": "Workspace"
+   },
    {
     "custom_block_name": "Purchase and Selling Menu",
     "label": "Purchase and Selling Menu",
@@ -14561,7 +14575,7 @@
   "is_hidden": 0,
   "label": "Gajanand Enterprise",
   "links": [],
-  "modified": "2025-09-05 19:49:44.344089",
+  "modified": "2025-09-06 17:49:49.279567",
   "module": null,
   "name": "Gajanand Enterprise",
   "number_cards": [],

@@ -11,6 +11,8 @@
   "fg_item_qty",
   "item_code",
   "supplier_part_no",
+  "size",
+  "mm",
   "item_name",
   "brand",
   "product_bundle",
@@ -927,6 +929,30 @@
    "no_copy": 1,
    "non_negative": 1,
    "read_only": 1
+  },
+  {
+   "fetch_from": "fg_item.size",
+   "fieldname": "size",
+   "fieldtype": "Float",
+   "in_global_search": 1,
+   "in_list_view": 1,
+   "label": "Size",
+   "oldfieldname": "item_name",
+   "oldfieldtype": "Data",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "fg_item.mm",
+   "fieldname": "mm",
+   "fieldtype": "Float",
+   "in_global_search": 1,
+   "in_list_view": 1,
+   "label": "MM",
+   "oldfieldname": "item_name",
+   "oldfieldtype": "Data",
+   "precision": "2",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
@@ -934,7 +960,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-03-13 17:27:44.468602",
+ "modified": "2025-09-06 15:33:16.694884",
  "modified_by": "Administrator",
  "module": "Buying",
  "name": "Purchase Order Item",

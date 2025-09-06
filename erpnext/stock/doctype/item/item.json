@@ -13,6 +13,8 @@
   "details",
   "naming_series",
   "item_code",
+  "size",
+  "mm",
   "item_name",
   "item_group",
   "stock_uom",
@@ -936,6 +938,24 @@
    "fieldname": "section_break_bshb",
    "fieldtype": "Section Break",
    "hidden": 1
+  },
+  {
+   "bold": 1,
+   "fieldname": "size",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Size (Inch)",
+   "oldfieldname": "item_code",
+   "oldfieldtype": "Data"
+  },
+  {
+   "bold": 1,
+   "fieldname": "mm",
+   "fieldtype": "Data",
+   "label": "MM",
+   "oldfieldname": "item_code",
+   "oldfieldtype": "Data"
   }
  ],
  "icon": "fa fa-tag",
@@ -943,7 +963,7 @@
  "image_field": "image",
  "links": [],
  "make_attachments_public": 1,
- "modified": "2025-08-03 19:53:54.786572",
+ "modified": "2025-09-06 14:44:21.301674",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Item",

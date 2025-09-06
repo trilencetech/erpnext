@@ -31,5 +31,71 @@
   "name": "Sale_order_Item_Price",
   "script": "frappe.ui.form.on('Sales Order Item', {\n  item_code: function(frm, cdt, cdn) {\n    let row = locals[cdt][cdn];\n    if (row.item_code ) {\n      frappe.call({\n        method: \"frappe.client.get_value\",\n        args: {\n          doctype: \"Bin\",\n          filters: {\n            item_code: row.item_code\n            \n          },\n          fieldname: \"actual_qty\"\n        },\n        callback: function(r) {\n            console.log(\"r.message.actual_qty::\"+r.message.actual_qty)\n          if (r.message) {\n            frappe.model.set_value(cdt, cdn, \"available_stock\", r.message.actual_qty);\n          } else {\n            frappe.model.set_value(cdt, cdn, \"available_stock\", 0);\n          }\n        }\n      });\n    }\n  },\n  \n});\n\n\n",
   "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Item",
+  "enabled": 1,
+  "modified": "2025-09-06 15:28:03.132892",
+  "module": "Stock",
+  "name": "Item_Size_MM",
+  "script": "frappe.ui.form.on(\"Item\", {\n  size: function(frm) {\n    if (frm.doc.size) {\n      frm.set_value(\"mm\", frm.doc.size * 25.4);\n    }\n  }\n});\n\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Purchase Order",
+  "enabled": 1,
+  "modified": "2025-09-06 16:59:32.820033",
+  "module": "Stock",
+  "name": "Purchase_Sale_Item_Size_MM",
+  "script": "frappe.ui.form.on(\"Purchase Order Item\", {\n  item_code: function(frm, cdt, cdn) {\n    let row = locals[cdt][cdn];\n    if (row.item_code) {\n      frappe.call({\n        method: \"frappe.client.get\",\n        args: {\n          doctype: \"Item\",\n          name: row.item_code\n        },\n        callback: function(r) {\n          if (r.message) {\n            frappe.model.set_value(cdt, cdn, \"size\", r.message.size);\n            frappe.model.set_value(cdt, cdn, \"mm\", r.message.mm);\n          }\n        }\n      });\n    }\n  }\n});\n\nfrappe.ui.form.on(\"Purchase Receipt Item\", {\n  item_code: function(frm, cdt, cdn) {\n      console.log(\"Test\")\n    let row = locals[cdt][cdn];\n    if (row.item_code) {\n      frappe.call({\n        method: \"frappe.client.get\",\n        args: {\n          doctype: \"Item\",\n          name: row.item_code\n        },\n        callback: function(r) {\n          if (r.message) {\n            frappe.model.set_value(cdt, cdn, \"size\", r.message.size);\n            frappe.model.set_value(cdt, cdn, \"mm\", r.message.mm);\n          }\n        }\n      });\n    }\n  }\n});\n\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Sales Order",
+  "enabled": 1,
+  "modified": "2025-09-06 17:18:36.688165",
+  "module": "Selling",
+  "name": "Sales_Order_Item_Size_MM",
+  "script": "frappe.ui.form.on(\"Sales Order Item\", {\n  item_code: function(frm, cdt, cdn) {\n    let row = locals[cdt][cdn];\n    if (row.item_code) {\n      frappe.call({\n        method: \"frappe.client.get\",\n        args: {\n          doctype: \"Item\",\n          name: row.item_code\n        },\n        callback: function(r) {\n          if (r.message) {\n            frappe.model.set_value(cdt, cdn, \"size\", r.message.size);\n            frappe.model.set_value(cdt, cdn, \"mm\", r.message.mm);\n          }\n        }\n      });\n    }\n  }\n});\n\nfrappe.ui.form.on(\"Sales Invoice Item\", {\n  item_code: function(frm, cdt, cdn) {\n    let row = locals[cdt][cdn];\n    if (row.item_code) {\n      frappe.call({\n        method: \"frappe.client.get\",\n        args: {\n          doctype: \"Item\",\n          name: row.item_code\n        },\n        callback: function(r) {\n          if (r.message) {\n            frappe.model.set_value(cdt, cdn, \"size\", r.message.size);\n            frappe.model.set_value(cdt, cdn, \"mm\", r.message.mm);\n          }\n        }\n      });\n    }\n  }\n});\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Purchase Receipt",
+  "enabled": 1,
+  "modified": "2025-09-06 17:17:10.347172",
+  "module": "Stock",
+  "name": "Purchase_Receipt_Size_MM",
+  "script": "frappe.ui.form.on(\"Purchase Receipt Item\", {\n  item_code: function(frm, cdt, cdn) {\n      console.log(\"Test\")\n    let row = locals[cdt][cdn];\n    if (row.item_code) {\n      frappe.call({\n        method: \"frappe.client.get\",\n        args: {\n          doctype: \"Item\",\n          name: row.item_code\n        },\n        callback: function(r) {\n          if (r.message) {\n            frappe.model.set_value(cdt, cdn, \"size\", r.message.size);\n            frappe.model.set_value(cdt, cdn, \"mm\", r.message.mm);\n          }\n        }\n      });\n    }\n  }\n});\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Purchase Invoice",
+  "enabled": 1,
+  "modified": "2025-09-06 17:18:07.037018",
+  "module": "Stock",
+  "name": "Purchase_Invoice_Size_MM",
+  "script": "frappe.ui.form.on(\"Purchase Invoice Item\", {\n  item_code: function(frm, cdt, cdn) {\n      console.log(\"Test\")\n    let row = locals[cdt][cdn];\n    if (row.item_code) {\n      frappe.call({\n        method: \"frappe.client.get\",\n        args: {\n          doctype: \"Item\",\n          name: row.item_code\n        },\n        callback: function(r) {\n          if (r.message) {\n            frappe.model.set_value(cdt, cdn, \"size\", r.message.size);\n            frappe.model.set_value(cdt, cdn, \"mm\", r.message.mm);\n          }\n        }\n      });\n    }\n  }\n});\n\n\nfrappe.ui.form.on('Purchase Invoice Item', {\n\trefresh(frm) {\n\t\t// your code here\n\t}\n})",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Sales Invoice",
+  "enabled": 1,
+  "modified": "2025-09-06 17:20:02.901515",
+  "module": "Selling",
+  "name": "Sales_Invoice_Item_Size_MM",
+  "script": "frappe.ui.form.on(\"Sales Invoice Item\", {\n  item_code: function(frm, cdt, cdn) {\n    let row = locals[cdt][cdn];\n    if (row.item_code) {\n      frappe.call({\n        method: \"frappe.client.get\",\n        args: {\n          doctype: \"Item\",\n          name: row.item_code\n        },\n        callback: function(r) {\n          if (r.message) {\n            frappe.model.set_value(cdt, cdn, \"size\", r.message.size);\n            frappe.model.set_value(cdt, cdn, \"mm\", r.message.mm);\n          }\n        }\n      });\n    }\n  }\n});\n\n\nfrappe.ui.form.on('Sales Invoice Item', {\n\trefresh(frm) {\n\t\t// your code here\n\t}\n})",
+  "view": "Form"
  }
 ]

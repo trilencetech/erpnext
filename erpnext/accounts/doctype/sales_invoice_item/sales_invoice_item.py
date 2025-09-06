@@ -59,6 +59,7 @@ class SalesInvoiceItem(Document):
 		item_tax_template: DF.Link | None
 		margin_rate_or_amount: DF.Float
 		margin_type: DF.Literal["", "Percentage", "Amount"]
+		mm: DF.Float
 		net_amount: DF.Currency
 		net_rate: DF.Currency
 		page_break: DF.Check
@@ -83,6 +84,7 @@ class SalesInvoiceItem(Document):
 		service_end_date: DF.Date | None
 		service_start_date: DF.Date | None
 		service_stop_date: DF.Date | None
+		size: DF.Float
 		so_detail: DF.Data | None
 		stock_qty: DF.Float
 		stock_uom: DF.Link | None

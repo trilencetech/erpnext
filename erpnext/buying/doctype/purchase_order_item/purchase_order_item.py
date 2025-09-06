@@ -59,6 +59,7 @@ class PurchaseOrderItem(Document):
 		margin_type: DF.Literal["", "Percentage", "Amount"]
 		material_request: DF.Link | None
 		material_request_item: DF.Data | None
+		mm: DF.Float
 		net_amount: DF.Currency
 		net_rate: DF.Currency
 		page_break: DF.Check
@@ -81,6 +82,7 @@ class PurchaseOrderItem(Document):
 		sales_order_item: DF.Data | None
 		sales_order_packed_item: DF.Data | None
 		schedule_date: DF.Date
+		size: DF.Float
 		stock_qty: DF.Float
 		stock_uom: DF.Link
 		stock_uom_rate: DF.Currency

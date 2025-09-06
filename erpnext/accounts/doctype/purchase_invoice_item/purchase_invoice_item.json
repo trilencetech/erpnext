@@ -22,6 +22,8 @@
   "received_qty",
   "qty",
   "rejected_qty",
+  "size",
+  "mm",
   "col_break2",
   "uom",
   "conversion_factor",
@@ -979,12 +981,25 @@
    "fieldtype": "Currency",
    "label": "Distributed Discount Amount",
    "options": "currency"
+  },
+  {
+   "fieldname": "size",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Size",
+   "precision": "2"
+  },
+  {
+   "fieldname": "mm",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "MM"
   }
  ],
  "idx": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-29 09:47:54.623113",
+ "modified": "2025-09-06 15:51:05.100441",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Purchase Invoice Item",

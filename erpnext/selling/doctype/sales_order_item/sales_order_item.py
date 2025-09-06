@@ -57,6 +57,7 @@ class SalesOrderItem(Document):
 		margin_type: DF.Literal["", "Percentage", "Amount"]
 		material_request: DF.Link | None
 		material_request_item: DF.Data | None
+		mm: DF.Float
 		net_amount: DF.Currency
 		net_rate: DF.Currency
 		ordered_qty: DF.Float
@@ -81,6 +82,7 @@ class SalesOrderItem(Document):
 		rate_with_margin: DF.Currency
 		reserve_stock: DF.Check
 		returned_qty: DF.Float
+		size: DF.Float
 		stock_qty: DF.Float
 		stock_reserved_qty: DF.Float
 		stock_uom: DF.Link | None

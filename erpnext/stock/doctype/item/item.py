@@ -118,6 +118,7 @@ class Item(Document):
 		lead_time_days: DF.Int
 		max_discount: DF.Float
 		min_order_qty: DF.Float
+		mm: DF.Data | None
 		naming_series: DF.Literal["STO-ITEM-.YYYY.-"]
 		no_of_months: DF.Int
 		no_of_months_exp: DF.Int
@@ -133,6 +134,7 @@ class Item(Document):
 		sample_quantity: DF.Int
 		serial_no_series: DF.Data | None
 		shelf_life_in_days: DF.Int
+		size: DF.Data | None
 		standard_rate: DF.Currency
 		stock_uom: DF.Link
 		supplier_items: DF.Table[ItemSupplier]

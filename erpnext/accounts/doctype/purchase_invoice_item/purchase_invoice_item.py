@@ -55,6 +55,7 @@ class PurchaseInvoiceItem(Document):
 		margin_type: DF.Literal["", "Percentage", "Amount"]
 		material_request: DF.Link | None
 		material_request_item: DF.Data | None
+		mm: DF.Float
 		net_amount: DF.Currency
 		net_rate: DF.Currency
 		page_break: DF.Check
@@ -87,6 +88,7 @@ class PurchaseInvoiceItem(Document):
 		service_end_date: DF.Date | None
 		service_start_date: DF.Date | None
 		service_stop_date: DF.Date | None
+		size: DF.Float
 		stock_qty: DF.Float
 		stock_uom: DF.Link | None
 		stock_uom_rate: DF.Currency

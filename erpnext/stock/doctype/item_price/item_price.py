@@ -48,7 +48,6 @@ class ItemPrice(Document):
 		self.validate_from_to_dates("valid_from", "valid_upto")
 		self.update_price_list_details()
 		self.update_item_details()
-		self.check_duplicates()
 		self.validate_item_template()
 
 	def validate_item(self):
