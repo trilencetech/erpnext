@@ -1416,3 +1416,30 @@ def get_child_warehouses(warehouse):
 	from erpnext.stock.doctype.warehouse.warehouse import get_child_warehouses
 
 	return get_child_warehouses(warehouse)
+
+@frappe.whitelist()
+def create_item_prices_from_group_rate(docname):
+
+	doc = frappe.get_doc("Item", docname)
+	item_group = doc.item_group
+	item_name = doc.name
+	rate_masters = frappe.get_all("Item Group Rate Master",
+        filters={"item_group_master": item_group},
+        fields=["customer_master", "price_master"]
+    )
+	for rm in rate_masters:
+        # Check if Item Price already exists
+		exists = frappe.db.exists("Item Price", {
+            "item_code": item_name,
+            "customer": rm.customer
+        })
+		if not exists:
+			item_doc=frappe.get_doc({
+                "doctype": "Item Price",
+                "item_code": item_name,
+                "price_list": "Standard Selling",  # or your custom list
+                "customer": rm.customer_master,
+                "price_list_rate": rm.price_master
+            })
+			item_doc.insert(ignore_permissions=True)
+			frappe.db.commit()

@@ -2,8 +2,8 @@
  {
   "docstatus": 0,
   "doctype": "Custom HTML Block",
-  "html": "<div class=\"menu-grid\">\n  <div class=\"menu-item\">\n    <div class=\"menu-icon\">📥</div>\n    <a href=\"/app/purchase-invoice\" target=\"_blank\">Purchase Invoice List</a>\n  </div>\n  <div class=\"menu-item\">\n    <div class=\"menu-icon\">💳</div>\n    <a href=\"/app/payment-entry\" target=\"_blank\">Payment Entry</a>\n  </div>\n  <div class=\"menu-item\">\n    <div class=\"menu-icon\">📥</div>\n    <a href=\"/app/sales-invoice\" target=\"_blank\">Sales Invoices</a>\n  </div>\n  <div class=\"menu-item\">\n    <div class=\"menu-icon\">🛒</div>\n    <a href=\"/app/journal-entry\" target=\"_blank\">Journal Entry</a>\n  </div>\n\n</div>\n",
-  "modified": "2025-09-04 09:03:51.020628",
+  "html": "<div class=\"menu-grid\">\n  <div class=\"menu-item\">\n    <div class=\"menu-icon\">📥</div>\n    <a href=\"/app/purchase-order\" target=\"_blank\">Purchase Order List</a>\n  </div>\n  <div class=\"menu-item\">\n    <div class=\"menu-icon\">📥</div>\n    <a href=\"/app/purchase-invoice\" target=\"_blank\">Purchase Invoice List</a>\n  </div>\n  <div class=\"menu-item\">\n    <div class=\"menu-icon\">💳</div>\n    <a href=\"/app/payment-entry\" target=\"_blank\">Payment Entry</a>\n  </div>\n  <div class=\"menu-item\">\n    <div class=\"menu-icon\">📥</div>\n    <a href=\"/app/sales-order\" target=\"_blank\">Sales Orders</a>\n  </div>\n  <div class=\"menu-item\">\n    <div class=\"menu-icon\">📥</div>\n    <a href=\"/app/sales-invoice\" target=\"_blank\">Sales Invoices</a>\n  </div>\n  <div class=\"menu-item\">\n    <div class=\"menu-icon\">🛒</div>\n    <a href=\"/app/journal-entry\" target=\"_blank\">Journal Entry</a>\n  </div>\n\n</div>\n",
+  "modified": "2025-09-06 14:11:54.561830",
   "name": "Purchase and Selling Menu",
   "private": 0,
   "roles": [],
@@ -13,8 +13,8 @@
  {
   "docstatus": 0,
   "doctype": "Custom HTML Block",
-  "html": "\n<div class=\"erp-grid\">\n  <a href=\"/app/item\" target=\"_blank\" class=\"erp-tile\">\n    <div class=\"erp-icon\">📦</div>\n    <div class=\"erp-label\">Item</div>\n  </a>\n  <a href=\"/app/item-group\" target=\"_blank\" class=\"erp-tile\">\n    <div class=\"erp-icon\">🗂️</div>\n    <div class=\"erp-label\">Item Group</div>\n  </a>\n  <a href=\"/app/item-group-rate-master\" target=\"_blank\" class=\"erp-tile\">\n    <div class=\"erp-icon\">🏷️</div>\n    <div class=\"erp-label\">Rate Master</div>\n  </a>\n  <a href=\"/app/customer\" target=\"_blank\" class=\"erp-tile\">\n    <div class=\"erp-icon\">👤</div>\n    <div class=\"erp-label\">Customer</div>\n  </a>\n  <a href=\"/app/supplier\" target=\"_blank\" class=\"erp-tile\">\n    <div class=\"erp-icon\">🚚</div>\n    <div class=\"erp-label\">Supplier</div>\n  </a>\n</div>\n",
-  "modified": "2025-09-05 19:52:24.443605",
+  "html": "\n<div class=\"erp-grid\">\n  <a href=\"/app/item\" target=\"_blank\" class=\"erp-tile\">\n    <div class=\"erp-icon\">📦</div>\n    <div class=\"erp-label\">Item</div>\n  </a>\n  <a href=\"/app/item-group\" target=\"_blank\" class=\"erp-tile\">\n    <div class=\"erp-icon\">🗂️</div>\n    <div class=\"erp-label\">Item Group</div>\n  </a>\n  <a href=\"/app/item-group-rate-master\" target=\"_blank\" class=\"erp-tile\">\n    <div class=\"erp-icon\">🏷️</div>\n    <div class=\"erp-label\">Rate Master</div>\n  </a>\n  <a href=\"/app/customer\" target=\"_blank\" class=\"erp-tile\">\n    <div class=\"erp-icon\">👤</div>\n    <div class=\"erp-label\">Customer</div>\n  </a>\n  <a href=\"/app/supplier\" target=\"_blank\" class=\"erp-tile\">\n    <div class=\"erp-icon\">🚚</div>\n    <div class=\"erp-label\">Supplier</div>\n  </a>\n  <a href=\"/app/item-price\" target=\"_blank\" class=\"erp-tile\">\n    <div class=\"erp-icon\">₹</div>\n    <div class=\"erp-label\">Item Price</div>\n  </a>\n  \n</div>\n",
+  "modified": "2025-09-06 14:15:42.968502",
   "name": "Item Group Menu Master",
   "private": 0,
   "roles": [],
