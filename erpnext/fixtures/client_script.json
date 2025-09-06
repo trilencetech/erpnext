@@ -4,10 +4,10 @@
   "doctype": "Client Script",
   "dt": "Sales Invoice",
   "enabled": 1,
-  "modified": "2025-08-25 09:15:14.628147",
+  "modified": "2025-09-06 09:17:18.031464",
   "module": "Selling",
   "name": "Sales_Invoice_Cust_Button",
-  "script": "frappe.ui.form.on('Sales Invoice', {\n    refresh: function(frm) {\n        if (frm.doc.docstatus === 1) {  // Only show when submitted\n            frm.add_custom_button('Send via WhatsApp', () => {\n                \n                frappe.call({\n                    method: 'erpnext.accounts.doctype.sales_invoice.sales_invoice.send_invoice_whatsapp',\n                    args: {\n                      invoice_name: frm.doc.name\n                     \n                    },\n                    callback: function(r) {\n                        console.log(r.message)\n                        frappe.msgprint(r.message === 'success'\n                            ? 'WhatsApp message sent successfully!'\n                            : 'Failed to send WhatsApp message.');\n                    }\n                });\n            });\n        }\n    }\n});\n",
+  "script": "frappe.ui.form.on('Sales Invoice', {\n    refresh: function(frm) {\n        if (frm.doc.docstatus === 1) {  // Only show when submitted\n            frm.add_custom_button('Send via WhatsApp', () => {\n                \n                frappe.call({\n                    method: 'erpnext.accounts.doctype.sales_invoice.sales_invoice.send_invoice_whatsapp',\n                    args: {\n                      invoice_name: frm.doc.name\n                     \n                    },\n                    callback: function(r) {\n                        console.log(r.message_status)\n                        frappe.msgprint(\"Whatsapp Message Sent Successfully\")\n                    }\n                });\n            });\n        }\n    }\n});\n",
   "view": "Form"
  },
  {
