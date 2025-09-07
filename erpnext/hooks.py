@@ -23,7 +23,6 @@ add_to_apps_screen = [
 fixtures = [
     {"doctype": "Buying Settings"},
     {"doctype": "Stock Settings"},
-    {"doctype": "Price List"},
     {"doctype": "Accounts Settings"},
     {"doctype": "Client Script"},
     {"doctype": "Server Script"},
