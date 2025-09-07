@@ -565,7 +565,6 @@
    "collapsible_depends_on": "is_internal_customer",
    "fieldname": "internal_customer_section",
    "fieldtype": "Section Break",
-   "hidden": 1,
    "label": "Internal Customer"
   },
   {
@@ -632,7 +631,7 @@
    "link_fieldname": "party"
   }
  ],
- "modified": "2025-07-28 15:41:15.873625",
+ "modified": "2025-09-07 16:34:20.173446",
  "modified_by": "Administrator",
  "module": "Selling",
  "name": "Customer",

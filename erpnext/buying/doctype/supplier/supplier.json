@@ -141,14 +141,12 @@
    "default": "0",
    "fieldname": "is_internal_supplier",
    "fieldtype": "Check",
-   "hidden": 1,
    "label": "Is Internal Supplier"
   },
   {
    "depends_on": "is_internal_supplier",
    "fieldname": "represents_company",
    "fieldtype": "Link",
-   "hidden": 1,
    "ignore_user_permissions": 1,
    "label": "Represents Company",
    "options": "Company"
@@ -234,7 +232,6 @@
    "depends_on": "represents_company",
    "fieldname": "companies",
    "fieldtype": "Table",
-   "hidden": 1,
    "label": "Allowed To Transact With",
    "options": "Allowed To Transact With"
   },
@@ -514,7 +511,7 @@
    "link_fieldname": "party"
   }
  ],
- "modified": "2025-07-28 17:42:50.862232",
+ "modified": "2025-09-07 16:33:46.041328",
  "modified_by": "Administrator",
  "module": "Buying",
  "name": "Supplier",
