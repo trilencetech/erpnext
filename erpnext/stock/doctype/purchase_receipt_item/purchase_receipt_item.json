@@ -34,6 +34,7 @@
   "conversion_factor",
   "retain_sample",
   "sample_quantity",
+  "roll_weights",
   "tracking_section",
   "received_stock_qty",
   "col_break_tracking_section",
@@ -1168,12 +1169,18 @@
    "precision": "2",
    "print_width": "100px",
    "width": "100px"
+  },
+  {
+   "fieldname": "roll_weights",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Roll Weight"
   }
  ],
  "idx": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-09-06 15:47:10.382659",
+ "modified": "2025-09-26 10:43:37.114206",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Purchase Receipt Item",

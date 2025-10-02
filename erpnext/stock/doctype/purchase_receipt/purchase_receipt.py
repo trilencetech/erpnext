@@ -225,6 +225,38 @@ class PurchaseReceipt(BuyingController):
 					},
 				]
 			)
+	def before_submit(self):
+		new_items = []
+		for item in self.items:
+			roll_weights = item.get("roll_weights")
+			if roll_weights:
+				weights = [float(w.strip()) for w in item.roll_weights.split(",") if w.strip()]
+				total_weight = sum(weights)
+				if total_weight != item.qty:
+					frappe.throw(f"Roll weights total ({total_weight}) does not match item qty ({item.qty})")
+				for rw in weights:
+					new_items.append(frappe.get_doc({
+					"doctype": "Purchase Receipt Item",
+                    "item_code": item.get("item_code"),
+					"item_tax_rate":item.get("item_tax_rate"),
+					"taxable_value":item.get("taxable_value"),
+					"item_name":item.get("item_name"),
+					"rate": item.get("rate"),
+					"amount": rw * item.get("rate"),
+                    "qty": rw,
+                    "uom": item.get("uom"),
+                    "rate": item.get("rate"),
+					"size": item.get("size"),
+					"mm":item.get("mm"),
+					"warehouse": item.get("warehouse"),
+					"stock_uom":item.get("stock_uom"),
+				    "conversion_factor": item.get("conversion_factor"),
+                    "parenttype": "Purchase Receipt",
+                    "parent": self.name,
+                    "parentfield": "items"
+                }))
+				item.qty = 0  # prevent double-counting
+				self.items.extend(new_items)
 
 	def before_validate(self):
 		from erpnext.stock.doctype.putaway_rule.putaway_rule import apply_putaway_rule
@@ -742,8 +774,9 @@ class PurchaseReceipt(BuyingController):
 				and d.rejected_warehouse
 				and d.rejected_warehouse not in warehouse_with_no_account
 			):
+				
 				warehouse_with_no_account.append(d.warehouse or d.rejected_warehouse)
-
+				
 			if d.is_fixed_asset and d.landed_cost_voucher_amount:
 				self.update_assets(d, d.valuation_rate)
 
@@ -755,12 +788,12 @@ class PurchaseReceipt(BuyingController):
 
 				make_item_asset_inward_gl_entry(d, stock_value_diff, stock_asset_account_name)
 
-		if warehouse_with_no_account:
-			frappe.msgprint(
-				_("No accounting entries for the following warehouses")
-				+ ": \n"
-				+ "\n".join(warehouse_with_no_account)
-			)
+		#if warehouse_with_no_account:
+		#	frappe.msgprint(
+		#		_("No accounting entries for the following warehouses")
+		#		+ ": \n"
+		#		+ "\n".join(warehouse_with_no_account)
+		#	)
 
 	def add_provisional_gl_entry(
 		self, item, gl_entries, posting_date, provisional_account, reverse=0, item_amount=None
@@ -1484,3 +1517,5 @@ def make_lcv(doctype, docname):
 	landed_cost_voucher.get_items_from_purchase_receipts()
 
 	return landed_cost_voucher.as_dict()
+
+

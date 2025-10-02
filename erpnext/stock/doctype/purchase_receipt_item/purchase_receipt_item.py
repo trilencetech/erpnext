@@ -90,6 +90,7 @@ class PurchaseReceiptItem(Document):
 		return_qty_from_rejected_warehouse: DF.Check
 		returned_qty: DF.Float
 		rm_supp_cost: DF.Currency
+		roll_weights: DF.SmallText | None
 		sales_incoming_rate: DF.Currency
 		sales_order: DF.Link | None
 		sales_order_item: DF.Data | None

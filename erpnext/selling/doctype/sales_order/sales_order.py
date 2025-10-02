@@ -1865,3 +1865,58 @@ def get_work_order_items(sales_order, for_raw_material_request=0):
 @frappe.whitelist()
 def get_stock_reservation_status():
 	return frappe.db.get_single_value("Stock Settings", "enable_stock_reservation")
+
+@frappe.whitelist()
+def get_individual_stock_entries_1():
+    return frappe.db.sql("""
+        SELECT 
+            sle.item_code,
+            item.item_name,
+            sle.actual_qty,
+            sle.valuation_rate,
+            sle.batch_no,
+            sle.serial_no,
+            item.stock_uom,
+			item.size,
+			item.mm
+        FROM `tabStock Ledger Entry` sle
+        JOIN `tabItem` item ON sle.item_code = item.name
+        WHERE sle.actual_qty > 0
+        AND sle.docstatus = 1
+        ORDER BY sle.posting_date DESC, sle.posting_time DESC
+    """, as_dict=True)
+
+@frappe.whitelist()
+def get_individual_stock_entries(customer=None):
+    if not customer:
+        frappe.throw("Customer is required to fetch selling rates.")
+    
+    # Get customer's default selling price list
+    price_list = frappe.db.get_value("Customer", customer, "default_price_list") or "Standard Selling"
+
+    return frappe.db.sql("""
+        SELECT 
+            sle.item_code,
+            item.item_name,
+            sle.warehouse,
+            sle.actual_qty,
+            sle.valuation_rate,
+            sle.batch_no,
+            sle.serial_no,
+            item.stock_uom,
+			item.size,
+			item.mm,			 
+            (
+                SELECT price_list_rate 
+                FROM `tabItem Price` 
+                WHERE item_code = sle.item_code 
+                AND selling = 1 
+                AND price_list = %s
+                ORDER BY modified DESC LIMIT 1
+            ) AS item_price
+        FROM `tabStock Ledger Entry` sle
+        JOIN `tabItem` item ON sle.item_code = item.name
+        WHERE sle.actual_qty > 0
+        AND sle.docstatus = 1
+        ORDER BY sle.posting_date DESC, sle.posting_time DESC
+    """, (price_list,), as_dict=True)
