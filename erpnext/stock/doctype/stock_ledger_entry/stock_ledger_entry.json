@@ -14,6 +14,7 @@
   "posting_datetime",
   "is_adjustment_entry",
   "auto_created_serial_and_batch_bundle",
+  "display_stock",
   "column_break_6",
   "voucher_type",
   "voucher_no",
@@ -352,6 +353,13 @@
    "fieldtype": "Datetime",
    "label": "Posting Datetime",
    "search_index": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "display_stock",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Display Stock"
   }
  ],
  "grid_page_length": 50,
@@ -361,7 +369,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-22 12:37:41.304109",
+ "modified": "2025-10-09 10:45:19.458945",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Stock Ledger Entry",
@@ -382,6 +390,7 @@
    "role": "Accounts Manager"
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []

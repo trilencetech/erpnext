@@ -47,6 +47,7 @@ class StockLedgerEntry(Document):
 		batch_no: DF.Data | None
 		company: DF.Link | None
 		dependant_sle_voucher_detail_no: DF.Data | None
+		display_stock: DF.Check
 		fiscal_year: DF.Data | None
 		has_batch_no: DF.Check
 		has_serial_no: DF.Check

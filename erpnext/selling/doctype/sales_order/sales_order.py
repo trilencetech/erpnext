@@ -1866,28 +1866,9 @@ def get_work_order_items(sales_order, for_raw_material_request=0):
 def get_stock_reservation_status():
 	return frappe.db.get_single_value("Stock Settings", "enable_stock_reservation")
 
-@frappe.whitelist()
-def get_individual_stock_entries_1():
-    return frappe.db.sql("""
-        SELECT 
-            sle.item_code,
-            item.item_name,
-            sle.actual_qty,
-            sle.valuation_rate,
-            sle.batch_no,
-            sle.serial_no,
-            item.stock_uom,
-			item.size,
-			item.mm
-        FROM `tabStock Ledger Entry` sle
-        JOIN `tabItem` item ON sle.item_code = item.name
-        WHERE sle.actual_qty > 0
-        AND sle.docstatus = 1
-        ORDER BY sle.posting_date DESC, sle.posting_time DESC
-    """, as_dict=True)
 
 @frappe.whitelist()
-def get_individual_stock_entries(customer=None):
+def get_individual_stock_entries(customer=None,company=None):
     if not customer:
         frappe.throw("Customer is required to fetch selling rates.")
     
@@ -1916,7 +1897,7 @@ def get_individual_stock_entries(customer=None):
             ) AS item_price
         FROM `tabStock Ledger Entry` sle
         JOIN `tabItem` item ON sle.item_code = item.name
-        WHERE sle.actual_qty > 0
-        AND sle.docstatus = 1
+        WHERE sle.actual_qty > 0 AND sle.display_stock != 1
+        AND sle.docstatus = 1 AND sle.company = %s
         ORDER BY sle.posting_date DESC, sle.posting_time DESC
-    """, (price_list,), as_dict=True)
+    """, (price_list,company,), as_dict=True)
