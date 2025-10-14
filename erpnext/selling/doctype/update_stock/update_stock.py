@@ -47,3 +47,19 @@ class UpdateStock(Document):
             for entry in sle:
                 frappe.db.set_value("Stock Ledger Entry",
                                     entry.name, "display_stock", 0)
+
+
+def get_permission_query_conditions(user):
+    settings = frappe.get_cached_doc(
+        "Custom Control Settings", "Custom Control Settings")
+    if not settings.enable_unbilled_stock_access:
+        return "1=0"  # hide all entries
+
+
+def has_permission(doc=None, ptype="read", user=None):
+    settings = frappe.get_cached_doc(
+        "Custom Control Settings", "Custom Control Settings")
+    frappe.msgprint("Settings:"+settings)
+    if ptype == "create" and not settings.enable_unbilled_stock_access:
+        return False
+    return True
