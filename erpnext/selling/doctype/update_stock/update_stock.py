@@ -59,7 +59,6 @@ def get_permission_query_conditions(user):
 def has_permission(doc=None, ptype="read", user=None):
     settings = frappe.get_cached_doc(
         "Custom Control Settings", "Custom Control Settings")
-    frappe.msgprint("Settings:"+settings)
     if ptype == "create" and not settings.enable_unbilled_stock_access:
         return False
     return True
