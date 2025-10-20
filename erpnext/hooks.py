@@ -42,7 +42,7 @@ develop_version = "15.x.x-develop"
 
 app_include_js = "erpnext.bundle.js"
 app_include_css = "erpnext.bundle.css"
-web_include_js = "erpnext-web.bundle.js"
+web_include_js = {"erpnext-web.bundle.js", "public/js/stock_report_dialog.js"}
 web_include_css = "erpnext-web.bundle.css"
 email_css = "email_erpnext.bundle.css"
 
@@ -55,6 +55,8 @@ doctype_js = {
     "Sales Order": "public/js/stock_selector.js",
     "Sales Invoice": "public/js/stock_selector.js",
     "Update Stock": "public/js/stock_selector.js",
+    "Report": "public/js/stock_report_dialog.js",
+    "Custom HTML Block": "public/js/stock_report_dialog.js"
 }
 doctype_list_js = {
     "Code List": [
@@ -518,7 +520,8 @@ default_mail_footer = """
 	</span>
 """
 
-get_translated_dict = {("doctype", "Global Defaults")                       : "frappe.geo.country_info.get_translated_dict"}
+get_translated_dict = {("doctype", "Global Defaults")
+                        : "frappe.geo.country_info.get_translated_dict"}
 
 bot_parsers = [
     "erpnext.utilities.bot.FindItemBot",

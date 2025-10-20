@@ -1,0 +1,62 @@
+from frappe import _
+import frappe
+
+
+def execute(filters=None):
+    columns = get_columns()
+    data = get_data(filters)
+    return columns, data
+
+
+def get_columns():
+    return [
+        {"label": _("Item"), "fieldname": "item_name",
+         "fieldtype": "Data", "width": 300},
+        {"label": _("Size"), "fieldname": "size",
+         "fieldtype": "Data", "width": 180},
+        {"label": _("Qty"), "fieldname": "actual_qty",
+         "fieldtype": "Float", "width": 180},
+        {"label": _("Supplier"), "fieldname": "supplier_name",
+         "fieldtype": "Link", "options": "Supplier", "width": 300},
+        {"label": _("Purchase Date"), "fieldname": "posting_date",
+         "fieldtype": "Data",  "width": 200}
+    ]
+
+
+def get_data(filters):
+    conditions = []
+    values = {}
+
+    if filters.get("company"):
+        conditions.append("sle.company = %(company)s")
+        values["company"] = filters["company"]
+
+    if filters.get("item_name"):
+        conditions.append("item.item_name LIKE %(item_name)s")
+        values["item_name"] = f"%{filters['item_name']}%"
+
+    if filters.get("size"):
+        conditions.append("item.size LIKE %(size)s")
+        values["size"] = f"%{filters['size']}%"
+
+    if filters.get("qty"):
+        conditions.append("CAST(sle.actual_qty AS CHAR) LIKE %(qty)s")
+        values["qty"] = f"{filters['qty']}%"
+
+    query = f"""
+        SELECT 
+            item.item_name,
+            sle.actual_qty,
+            item.size,
+            pr.supplier AS supplier_name,
+            sle.posting_date
+        FROM `tabStock Ledger Entry` sle
+        JOIN `tabItem` item ON sle.item_code = item.name
+        LEFT JOIN `tabPurchase Receipt` pr ON pr.name = sle.voucher_no
+        WHERE sle.actual_qty > 0
+          AND sle.docstatus = 1
+          AND sle.voucher_type = 'Purchase Receipt'
+          {"AND " + " AND ".join(conditions) if conditions else ""}
+        ORDER BY sle.posting_date DESC, sle.posting_time DESC
+    """
+    return frappe.db.sql(query, values, as_dict=True)
