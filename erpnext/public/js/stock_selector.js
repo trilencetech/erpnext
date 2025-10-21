@@ -40,6 +40,12 @@ gajanand.stock_selector.show_stock_dialog = function (frm) {
                     },
                     {
                         fieldtype: "Float",
+                        label: "Exact Size (Inch)",
+                        fieldname: "search_size",
+                        setTimeout: () => filter_stock()
+                    },
+                    {
+                        fieldtype: "Float",
                         label: "Exact Quantity (kg)",
                         fieldname: "search_qty",
                         setTimeout: () => filter_stock()
@@ -83,11 +89,12 @@ gajanand.stock_selector.show_stock_dialog = function (frm) {
             function filter_stock() {
                 const name = (dialog.get_value("search_name") || "").toLowerCase();
                 const qty = dialog.get_value("search_qty");
-
+                const size = dialog.get_value("search_size");
                 const filtered = items.filter(item => {
                     const name_match = name ? item.item_name.toLowerCase().includes(name) : true;
                     const qty_match = qty ? item.actual_qty.toString().startsWith(qty.toString()) : true;
-                    return name_match && qty_match;
+                    const size_match = size ? item.size.toString().startsWith(size.toString()) : true;
+                    return name_match && qty_match && size_match;
                 });
 
                 render_stock_table(filtered);
@@ -113,6 +120,7 @@ gajanand.stock_selector.show_stock_dialog = function (frm) {
                     <tr>
                       <th>Select</th>
                       <th>Item</th>
+                      <th>Size (Inch)</th>
                       <th>Qty (kg)</th>
                       <th>Price (₹)</th>
                       <th>Purchase Date</th>
@@ -124,6 +132,7 @@ gajanand.stock_selector.show_stock_dialog = function (frm) {
                       <tr>
                         <td><input type="checkbox" data-index="${i}"></td>
                         <td>${item.item_name}</td>
+                        <td>${item.size}</td>
                         <td>${item.actual_qty}</td>
                         <td>${parseFloat(item.item_price || 0).toFixed(2)}</td>
                         <td>${item.posting_date}
@@ -148,6 +157,13 @@ gajanand.stock_selector.show_stock_dialog = function (frm) {
                     }
                 });
                 dialog.fields_dict.search_qty.$wrapper.find("input").on("input", function () {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(() => {
+                        filter_stock();
+                    }, 1000);
+                });
+
+                dialog.fields_dict.search_size.$wrapper.find("input").on("input", function () {
                     clearTimeout(debounceTimer);
                     debounceTimer = setTimeout(() => {
                         filter_stock();
