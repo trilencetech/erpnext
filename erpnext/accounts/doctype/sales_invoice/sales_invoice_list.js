@@ -43,5 +43,15 @@ frappe.listview_settings["Sales Invoice"] = {
 				erpnext.bulk_transaction_processing.create(listview, "Sales Invoice", "Payment Entry");
 			});
 		}
+		const report_link = `
+            <div style="margin-top: 1rem;">
+              
+						<button class="btn btn-primary" onclick="window.open('/app/query-report/Available%20Stock%20Filtered%20View', '_blank')">
+							    Available Stock Report
+  						</button>
+                
+            </div>
+        `;
+		$(listview.page.sidebar).append(report_link);
 	},
 };

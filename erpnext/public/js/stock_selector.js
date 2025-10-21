@@ -1,3 +1,4 @@
+
 frappe.provide("gajanand.stock_selector");
 
 gajanand.stock_selector.show_stock_dialog = function (frm) {

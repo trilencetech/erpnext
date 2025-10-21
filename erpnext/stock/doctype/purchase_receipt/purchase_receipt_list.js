@@ -30,5 +30,15 @@ frappe.listview_settings["Purchase Receipt"] = {
 		listview.page.add_action_item(__("Purchase Invoice"), () => {
 			erpnext.bulk_transaction_processing.create(listview, "Purchase Receipt", "Purchase Invoice");
 		});
+		const report_link = `
+            <div style="margin-top: 1rem;">
+              
+						<button class="btn btn-primary" onclick="window.open('/app/query-report/Available%20Stock%20Filtered%20View', '_blank')">
+							    Available Stock Report
+  						</button>
+                
+            </div>
+        `;
+		$(listview.page.sidebar).append(report_link);
 	},
 };

@@ -655,12 +655,12 @@ erpnext.buying.PurchaseOrderController = class PurchaseOrderController extends (
 
 									frappe.msgprint(
 										"Assigning " +
-											d.mr_name +
-											" to " +
-											d.item_code +
-											" (row " +
-											me.frm.doc.items[i].idx +
-											")"
+										d.mr_name +
+										" to " +
+										d.item_code +
+										" (row " +
+										me.frm.doc.items[i].idx +
+										")"
 									);
 									if (qty > 0) {
 										frappe.msgprint("Splitting " + qty + " units of " + d.item_code);
@@ -821,3 +821,17 @@ frappe.ui.form.on("Purchase Order", "is_subcontracted", function (frm) {
 		erpnext.buying.get_default_bom(frm);
 	}
 });
+
+frappe.listview_settings['Purchase Order'] = {
+	onload: function (listview) {
+		const report_link = `
+            <div style="margin-top: 1rem;">
+                <h5 class="text-muted" style="font-weight:bold"> <a href="/app/report/Available%20Stock%20Filtered%20View" target="_blank" class="text-primary">
+                            Available Stock Report
+                        </a></h5>
+                
+            </div>
+        `;
+		$(listview.page.sidebar).prepend(report_link);
+	}
+};
