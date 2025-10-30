@@ -46,7 +46,7 @@ gajanand.stock_selector.show_stock_dialog = function (frm) {
                     },
                     {
                         fieldtype: "Float",
-                        label: "Exact Quantity (kg)",
+                        label: "Search Weight (kg)",
                         fieldname: "search_qty",
                         setTimeout: () => filter_stock()
                     },
@@ -121,7 +121,7 @@ gajanand.stock_selector.show_stock_dialog = function (frm) {
                       <th>Select</th>
                       <th>Item</th>
                       <th>Size (Inch)</th>
-                      <th>Qty (kg)</th>
+                      <th>Weight (kg)</th>
                       <th>Price (₹)</th>
                       <th>Purchase Date</th>
                       <th>Supplier Name</th>
