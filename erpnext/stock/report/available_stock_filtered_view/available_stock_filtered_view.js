@@ -39,7 +39,7 @@ frappe.query_reports["Available Stock Filtered View"] = {
 			width: "120px"
 		},
 		{
-			label: __("Qty"),
+			label: __("Weight"),
 			fieldname: "qty",
 			fieldtype: "Float",
 			width: "100px"

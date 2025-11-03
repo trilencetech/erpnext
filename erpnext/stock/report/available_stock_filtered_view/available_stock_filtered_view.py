@@ -14,7 +14,7 @@ def get_columns():
          "fieldtype": "Data", "width": 300},
         {"label": _("Size"), "fieldname": "size",
          "fieldtype": "Data", "width": 180},
-        {"label": _("Qty"), "fieldname": "actual_qty",
+        {"label": _("Weight"), "fieldname": "actual_qty",
          "fieldtype": "Float", "width": 180},
         {"label": _("Supplier"), "fieldname": "supplier_name",
          "fieldtype": "Link", "options": "Supplier", "width": 300},
