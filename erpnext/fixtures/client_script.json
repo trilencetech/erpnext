@@ -26,10 +26,10 @@
   "doctype": "Client Script",
   "dt": "Sales Order",
   "enabled": 1,
-  "modified": "2025-10-15 09:13:42.381733",
+  "modified": "2025-11-13 09:34:30.851623",
   "module": "Selling",
   "name": "Sale_order_Item_Price",
-  "script": "frappe.ui.form.on('Sales Order Item', {\n  item_code: function(frm, cdt, cdn) {\n    let row = locals[cdt][cdn];\n    if (row.item_code ) {\n      frappe.call({\n        method: \"frappe.client.get_value\",\n        args: {\n          doctype: \"Bin\",\n          filters: {\n            item_code: row.item_code\n            \n          },\n          fieldname: \"actual_qty\"\n        },\n        callback: function(r) {\n            console.log(\"r.message.actual_qty::\"+r.message.actual_qty)\n          if (r.message) {\n            frappe.model.set_value(cdt, cdn, \"available_stock\", r.message.actual_qty);\n          } else {\n            frappe.model.set_value(cdt, cdn, \"available_stock\", 0);\n          }\n        }\n      });\n    }\n  },\n  \n});\n\nfrappe.ui.form.on(\"Sales Order\", {\n  refresh: function(frm) {\n    if (frm.doc.docstatus === 0) {\n      frm.add_custom_button(\"Select from Available Stock\", () => {\n             gajanand.stock_selector.show_stock_dialog(frm);\n      });\n    }\n  }\n});\n\n\n\n\n",
+  "script": "frappe.ui.form.on('Sales Order Item', {\n  item_code: function(frm, cdt, cdn) {\n    let row = locals[cdt][cdn];\n    if (row.item_code ) {\n      frappe.call({\n        method: \"frappe.client.get_value\",\n        args: {\n          doctype: \"Bin\",\n          filters: {\n            item_code: row.item_code\n            \n          },\n          fieldname: \"actual_qty\"\n        },\n        callback: function(r) {\n            console.log(\"r.message.actual_qty::\"+r.message.actual_qty)\n          if (r.message) {\n            frappe.model.set_value(cdt, cdn, \"available_stock\", r.message.actual_qty);\n          } else {\n            frappe.model.set_value(cdt, cdn, \"available_stock\", 0);\n          }\n        }\n      });\n    }\n  },\n  \n});\n\nfrappe.ui.form.on(\"Sales Order\", {\n  refresh: function(frm) {\n    if (frm.doc.docstatus === 0) {\n      frm.add_custom_button(\"Select from Available Stock\", () => {\n             gajanand.stock_selector.show_stock_dialog(frm);\n      });\n    }\n  }\n  \n});\n\n\n\n\n\n\nfrappe.ui.form.on('Sales Order Item', {\n\trefresh(frm) {\n\t\t// your code here\n\t}\n})",
   "view": "Form"
  },
  {
