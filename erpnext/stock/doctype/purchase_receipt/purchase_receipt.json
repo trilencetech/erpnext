@@ -53,6 +53,7 @@
   "total_qty",
   "total_net_weight",
   "column_break_43",
+  "master_rate",
   "base_total",
   "base_net_total",
   "column_break_27",
@@ -1283,6 +1284,13 @@
    "label": "Dispatch Address",
    "print_hide": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "master_rate",
+   "fieldtype": "Currency",
+   "label": "Master Rate",
+   "precision": "2",
+   "print_hide": 1
   }
  ],
  "grid_page_length": 50,
@@ -1290,7 +1298,7 @@
  "idx": 261,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-09 16:52:19.323878",
+ "modified": "2025-11-14 09:25:18.412481",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Purchase Receipt",

@@ -70,10 +70,10 @@
   "doctype": "Client Script",
   "dt": "Purchase Receipt",
   "enabled": 1,
-  "modified": "2025-09-06 17:17:10.347172",
+  "modified": "2025-11-14 09:25:35.917573",
   "module": "Stock",
   "name": "Purchase_Receipt_Size_MM",
-  "script": "frappe.ui.form.on(\"Purchase Receipt Item\", {\n  item_code: function(frm, cdt, cdn) {\n      console.log(\"Test\")\n    let row = locals[cdt][cdn];\n    if (row.item_code) {\n      frappe.call({\n        method: \"frappe.client.get\",\n        args: {\n          doctype: \"Item\",\n          name: row.item_code\n        },\n        callback: function(r) {\n          if (r.message) {\n            frappe.model.set_value(cdt, cdn, \"size\", r.message.size);\n            frappe.model.set_value(cdt, cdn, \"mm\", r.message.mm);\n          }\n        }\n      });\n    }\n  }\n});\n",
+  "script": "frappe.ui.form.on(\"Purchase Receipt Item\", {\n  item_code: function(frm, cdt, cdn) {\n      console.log(\"Test\")\n    let row = locals[cdt][cdn];\n    if (row.item_code) {\n      frappe.call({\n        method: \"frappe.client.get\",\n        args: {\n          doctype: \"Item\",\n          name: row.item_code\n        },\n        callback: function(r) {\n          if (r.message) {\n            frappe.model.set_value(cdt, cdn, \"size\", r.message.size);\n            frappe.model.set_value(cdt, cdn, \"mm\", r.message.mm);\n          }\n        }\n      });\n    }\n  }\n});\n\nfrappe.ui.form.on('Purchase Receipt', {\n  master_rate: function (frm) {\n    const rate = flt(frm.doc.master_rate);\n    frm.doc.items.forEach(row => {\n      row.rate = rate;\n      row.amount = flt(row.qty) * rate;\n    });\n    frm.refresh_field('items');\n    frm.script_manager.trigger(\"calculate_taxes_and_totals\");\n  }\n});\n",
   "view": "Form"
  },
  {
@@ -81,10 +81,10 @@
   "doctype": "Client Script",
   "dt": "Purchase Invoice",
   "enabled": 1,
-  "modified": "2025-09-06 17:18:07.037018",
+  "modified": "2025-11-14 09:21:19.746529",
   "module": "Stock",
   "name": "Purchase_Invoice_Size_MM",
-  "script": "frappe.ui.form.on(\"Purchase Invoice Item\", {\n  item_code: function(frm, cdt, cdn) {\n      console.log(\"Test\")\n    let row = locals[cdt][cdn];\n    if (row.item_code) {\n      frappe.call({\n        method: \"frappe.client.get\",\n        args: {\n          doctype: \"Item\",\n          name: row.item_code\n        },\n        callback: function(r) {\n          if (r.message) {\n            frappe.model.set_value(cdt, cdn, \"size\", r.message.size);\n            frappe.model.set_value(cdt, cdn, \"mm\", r.message.mm);\n          }\n        }\n      });\n    }\n  }\n});\n\n\nfrappe.ui.form.on('Purchase Invoice Item', {\n\trefresh(frm) {\n\t\t// your code here\n\t}\n})",
+  "script": "frappe.ui.form.on(\"Purchase Invoice Item\", {\n  item_code: function(frm, cdt, cdn) {\n    let row = locals[cdt][cdn];\n    if (row.item_code) {\n      frappe.call({\n        method: \"frappe.client.get\",\n        args: {\n          doctype: \"Item\",\n          name: row.item_code\n        },\n        callback: function(r) {\n          if (r.message) {\n            frappe.model.set_value(cdt, cdn, \"size\", r.message.size);\n            frappe.model.set_value(cdt, cdn, \"mm\", r.message.mm);\n          }\n        }\n      });\n    }\n  }\n});\n\n\nfrappe.ui.form.on('Purchase Invoice', {\n  master_rate: function (frm) {\n    const rate = flt(frm.doc.master_rate);\n    frm.doc.items.forEach(row => {\n      row.rate = rate;\n      row.amount = flt(row.qty) * rate;\n    });\n    frm.refresh_field('items');\n    frm.script_manager.trigger(\"calculate_taxes_and_totals\");\n  }\n});\n",
   "view": "Form"
  },
  {

@@ -60,6 +60,7 @@
   "total_qty",
   "total_net_weight",
   "column_break_50",
+  "master_rate",
   "base_total",
   "base_net_total",
   "column_break_28",
@@ -1656,6 +1657,13 @@
    "label": "Select Dispatch Address ",
    "options": "Address",
    "print_hide": 1
+  },
+  {
+   "fieldname": "master_rate",
+   "fieldtype": "Currency",
+   "label": "Master Rate",
+   "precision": "2",
+   "print_hide": 1
   }
  ],
  "grid_page_length": 50,
@@ -1663,7 +1671,7 @@
  "idx": 204,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-29 09:04:01.000456",
+ "modified": "2025-11-13 10:08:00.736127",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Purchase Invoice",

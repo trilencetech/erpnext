@@ -131,6 +131,7 @@ class PurchaseInvoice(BuyingController):
 		items: DF.Table[PurchaseInvoiceItem]
 		language: DF.Data | None
 		letter_head: DF.Link | None
+		master_rate: DF.Currency
 		mode_of_payment: DF.Link | None
 		named_place: DF.Data | None
 		naming_series: DF.Literal["ACC-PINV-.YYYY.-", "ACC-PINV-RET-.YYYY.-"]
