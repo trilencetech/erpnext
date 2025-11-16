@@ -67,6 +67,7 @@ gajanand.stock_selector.show_stock_dialog = function (frm) {
                             qty: item.actual_qty,
                             size: item.size,
                             mm: item.mm,
+                            delivery_date: frappe.datetime.get_today(),
                             rate: parseFloat(item.item_price || 0).toFixed(2),
                             uom: item.stock_uom,
                             amount: parseFloat((item.item_price * item.actual_qty) || 0).toFixed(2),

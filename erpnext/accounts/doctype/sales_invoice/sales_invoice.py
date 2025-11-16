@@ -414,9 +414,45 @@ class SalesInvoice(SellingController):
         # calculate totals again after applying TDS
         self.calculate_taxes_and_totals()
 
+    def get_financial_year_suffix():
+        today = getdate(nowdate())
+        year = today.year
+        month = today.month
+
+        if month < 4:
+            start_year = year - 1
+            end_year = year
+        else:
+            start_year = year
+        end_year = year + 1
+
+        return f"{str(start_year)[-2:]}-{str(end_year)[-2:]}"
+
     def before_save(self):
         self.set_account_for_mode_of_payment()
         self.set_paid_amount()
+        company_abbr = frappe.db.get_value(
+            "Company", self.company, "abbr") or "XX"
+        today = getdate(nowdate())
+        year = today.year
+        month = today.month
+
+        if month < 4:
+            start_year = year - 1
+            end_year = year
+        else:
+            start_year = year
+        end_year = year + 1
+        # e.g., '2025-2026'
+
+        fiscal_year = f"{str(start_year)[-2:]}-{str(end_year)[-2:]}"
+
+        base_series = frappe.model.naming.make_autoname(
+            f"{company_abbr}-.#####")
+
+        # Append fiscal year suffix manually
+        self.name = f"{base_series}/{fiscal_year}"
+        # self.name = frappe.model.naming.make_autoname(series_prefix)
 
     def before_submit(self):
         self.add_remarks()
