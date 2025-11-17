@@ -1,0 +1,69 @@
+{
+ "actions": [],
+ "autoname": "autoincrement",
+ "creation": "2025-11-17 11:02:53.106686",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "master_item_code_details_section",
+  "thick",
+  "film_type",
+  "prefix"
+ ],
+ "fields": [
+  {
+   "fieldname": "master_item_code_details_section",
+   "fieldtype": "Section Break",
+   "label": "Master Item Code Details"
+  },
+  {
+   "fieldname": "thick",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Thickness",
+   "reqd": 1
+  },
+  {
+   "fieldname": "film_type",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Film Type",
+   "reqd": 1
+  },
+  {
+   "fieldname": "prefix",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Item Code Prefix",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-11-17 11:15:11.701371",
+ "modified_by": "Administrator",
+ "module": "Stock",
+ "name": "Master Item Code From Thickness",
+ "naming_rule": "Autoincrement",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

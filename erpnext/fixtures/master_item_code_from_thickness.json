@@ -1,0 +1,65 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Master Item Code From Thickness",
+  "film_type": "PLMA",
+  "modified": "2025-11-17 12:00:10.006973",
+  "name": 1,
+  "prefix": "BO",
+  "thick": 10
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Master Item Code From Thickness",
+  "film_type": "PLMA",
+  "modified": "2025-11-17 12:00:16.950219",
+  "name": 2,
+  "prefix": "MT",
+  "thick": 12
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Master Item Code From Thickness",
+  "film_type": "SILVER",
+  "modified": "2025-11-17 11:59:52.969302",
+  "name": 3,
+  "prefix": "SL",
+  "thick": 10
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Master Item Code From Thickness",
+  "film_type": "32PCT",
+  "modified": "2025-11-17 15:43:19.885767",
+  "name": 4,
+  "prefix": "VL",
+  "thick": 32
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Master Item Code From Thickness",
+  "film_type": "DL",
+  "modified": "2025-11-17 11:59:28.414771",
+  "name": 5,
+  "prefix": "20TG",
+  "thick": 20
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Master Item Code From Thickness",
+  "film_type": "MDL",
+  "modified": "2025-11-17 11:59:18.960524",
+  "name": 6,
+  "prefix": "20TM",
+  "thick": 20
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Master Item Code From Thickness",
+  "film_type": "PEARL",
+  "modified": "2025-11-17 11:58:59.489014",
+  "name": 7,
+  "prefix": "PL",
+  "thick": 18
+ }
+]
