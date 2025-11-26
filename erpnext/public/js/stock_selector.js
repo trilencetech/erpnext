@@ -3,6 +3,7 @@ frappe.provide("gajanand.stock_selector");
 
 gajanand.stock_selector.show_stock_dialog = function (frm) {
     income_account = ""
+    abbr = ""
     if (!frm.doc.customer) {
         frappe.msgprint("Please select a Customer before choosing items from stock.");
         return;
@@ -16,6 +17,18 @@ gajanand.stock_selector.show_stock_dialog = function (frm) {
                 frappe.msgprint("No stock available.");
                 return;
             }
+            frappe.call({
+                method: "frappe.client.get_value",
+                args: {
+                    doctype: "Company",
+                    filters: { name: frm.doc.company },
+                    fieldname: ["default_income_account", "abbr"]
+                },
+                callback: function (r) {
+                    income_account = r.message.default_income_account// fallback
+                    abbr = r.message.abbr
+                }
+            })
             frappe.call({
                 method: "frappe.client.get_value",
                 args: {
@@ -70,16 +83,20 @@ gajanand.stock_selector.show_stock_dialog = function (frm) {
                             delivery_date: frappe.datetime.get_today(),
                             rate: parseFloat(item.item_price || 0).toFixed(2),
                             uom: item.stock_uom,
+                            warehouse: "Stores - " + abbr,
                             amount: parseFloat((item.item_price * item.actual_qty) || 0).toFixed(2),
                             income_account: income_account
                         });
                     });
                     frm.doc.items = frm.doc.items.filter(row => row.item_code);
+                    console.log("frm.doc.items.sales8555:" + frm.doc.items.length)
+
                     frm.refresh_field("items");
                     frm.trigger("calculate_taxes_and_totals");
                     if (frm.doc.doctype == 'Update Stock') {
                         calculate_totals(frm)
                     }
+
                     dialog.hide();
                 }
 
@@ -108,7 +125,7 @@ gajanand.stock_selector.show_stock_dialog = function (frm) {
                     total_qty += row.qty || 0;
                     total_amount += row.amount || (row.qty * row.rate) || 0;
                 });
-                console.log("Total Amount:::" + total_amount)
+
                 frm.set_value("total_qty", total_qty);
                 frm.set_value("total_amount", total_amount);
             }
@@ -136,7 +153,7 @@ gajanand.stock_selector.show_stock_dialog = function (frm) {
                         <td>${item.size}</td>
                         <td>${item.actual_qty}</td>
                         <td>${parseFloat(item.item_price || 0).toFixed(2)}</td>
-                        <td>${item.posting_date}
+                        <td>${item.posting_date} </td>
                         <td>${item.supplier_name}</td>
 
                       </tr>

@@ -1941,7 +1941,7 @@ def get_individual_stock_entries(customer=None, company=None):
             sle.item_code,
             item.item_name,
             sle.warehouse,
-            sle.actual_qty,
+            SUM(sle.actual_qty) AS actual_qty,
             sle.valuation_rate,
             sle.batch_no,
             sle.serial_no,
@@ -1960,10 +1960,12 @@ def get_individual_stock_entries(customer=None, company=None):
             ) AS item_price
         FROM `tabStock Ledger Entry` sle
         JOIN `tabItem` item ON sle.item_code = item.name
-        LEFT JOIN `tabPurchase Receipt` pr ON pr.name = sle.voucher_no
-        WHERE sle.actual_qty > 0 AND sle.display_stock != 1
+        LEFT JOIN `tabPurchase Receipt` pr 
+        ON pr.name = sle.voucher_no AND sle.voucher_type = 'Purchase Receipt'
+        WHERE 
+        sle.display_stock != 1
         AND sle.docstatus = 1 AND sle.company = %s
-        AND sle.voucher_type = 'Purchase Receipt'
+        GROUP BY sle.item_code
         ORDER BY sle.posting_date DESC, sle.posting_time DESC
     """, (price_list, company,), as_dict=True)
 
