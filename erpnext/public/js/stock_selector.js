@@ -89,8 +89,6 @@ gajanand.stock_selector.show_stock_dialog = function (frm) {
                         });
                     });
                     frm.doc.items = frm.doc.items.filter(row => row.item_code);
-                    console.log("frm.doc.items.sales8555:" + frm.doc.items.length)
-
                     frm.refresh_field("items");
                     frm.trigger("calculate_taxes_and_totals");
                     if (frm.doc.doctype == 'Update Stock') {

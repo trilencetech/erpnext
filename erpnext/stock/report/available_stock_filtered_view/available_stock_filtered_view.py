@@ -14,7 +14,7 @@ def get_columns():
          "fieldtype": "Data", "width": 300},
         {"label": _("Size"), "fieldname": "size",
          "fieldtype": "Data", "width": 180},
-        {"label": _("Weight"), "fieldname": "actual_qty",
+        {"label": _("Weight/Unit"), "fieldname": "actual_qty",
          "fieldtype": "Float", "width": 180},
         {"label": _("Supplier"), "fieldname": "supplier_name",
          "fieldtype": "Link", "options": "Supplier", "width": 300},
@@ -46,17 +46,18 @@ def get_data(filters):
     query = f"""
         SELECT 
             item.item_name,
-            sle.actual_qty,
+            SUM(sle.actual_qty) AS actual_qty,
             item.size,
             pr.supplier AS supplier_name,
             sle.posting_date
         FROM `tabStock Ledger Entry` sle
         JOIN `tabItem` item ON sle.item_code = item.name
-        LEFT JOIN `tabPurchase Receipt` pr ON pr.name = sle.voucher_no
-        WHERE sle.actual_qty > 0
-          AND sle.docstatus = 1
-          AND sle.voucher_type = 'Purchase Receipt'
+        LEFT JOIN `tabPurchase Receipt` pr ON pr.name = sle.voucher_no AND sle.voucher_type = 'Purchase Receipt'
+        WHERE 
+          sle.docstatus = 1
+          
           {"AND " + " AND ".join(conditions) if conditions else ""}
+          group by sle.item_code,item.size
         ORDER BY sle.posting_date DESC, sle.posting_time DESC
     """
     return frappe.db.sql(query, values, as_dict=True)

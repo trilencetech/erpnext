@@ -1965,7 +1965,7 @@ def get_individual_stock_entries(customer=None, company=None):
         WHERE 
         sle.display_stock != 1
         AND sle.docstatus = 1 AND sle.company = %s
-        GROUP BY sle.item_code
+        GROUP BY sle.item_code,item.size
         ORDER BY sle.posting_date DESC, sle.posting_time DESC
     """, (price_list, company,), as_dict=True)
 
