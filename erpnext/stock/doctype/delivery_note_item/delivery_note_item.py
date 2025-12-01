@@ -49,6 +49,7 @@ class DeliveryNoteItem(Document):
 		is_free_item: DF.Check
 		item_code: DF.Link
 		item_group: DF.Link | None
+		item_id: DF.Data | None
 		item_name: DF.Data
 		item_tax_rate: DF.SmallText | None
 		item_tax_template: DF.Link | None

@@ -258,6 +258,9 @@ class PurchaseReceipt(BuyingController):
                     }))
                 item.qty = 0  # prevent double-counting
                 self.items.extend(new_items)
+        for i, d in enumerate(self.items, start=1):
+            # Generate sequential ID based on parent doc + row index
+            d.item_id = f"{self.name}-I{i:04d}"
 
     def before_validate(self):
         from erpnext.stock.doctype.putaway_rule.putaway_rule import apply_putaway_rule
@@ -1694,6 +1697,7 @@ def import_items_from_excel(docname, file_url):
                 "uom": "Kg",
                 "size": size_str,
                 "mm": width_mm,
+                "item_id": roll_no,
                 "description": f"Roll {roll_no}, Gross {grosswt}"
             })
             success_count += 1

@@ -29,17 +29,7 @@ gajanand.stock_selector.show_stock_dialog = function (frm) {
                     abbr = r.message.abbr
                 }
             })
-            frappe.call({
-                method: "frappe.client.get_value",
-                args: {
-                    doctype: "Company",
-                    filters: { name: frm.doc.company },
-                    fieldname: "default_income_account"
-                },
-                callback: function (r) {
-                    income_account = r.message.default_income_account// fallback
-                }
-            })
+
 
             const items = r.message;
             const dialog = new frappe.ui.Dialog({
@@ -71,8 +61,14 @@ gajanand.stock_selector.show_stock_dialog = function (frm) {
 
                 primary_action_label: "Add Selected",
                 primary_action() {
-                    const selected = Array.from(dialog.fields_dict.stock_table.$wrapper.find("input:checked"))
-                        .map(input => items[parseInt(input.dataset.index)]);
+
+                    const selected = Array.from(
+                        dialog.fields_dict.stock_table.$wrapper.find("input:checked")
+                    ).map(input => {
+                        const itemId = input.dataset.itemId;
+                        return items.find(it => it.item_id === itemId);
+                    });
+
                     selected.forEach(item => {
                         frm.add_child("items", {
                             item_code: item.item_code,
@@ -80,6 +76,7 @@ gajanand.stock_selector.show_stock_dialog = function (frm) {
                             qty: item.actual_qty,
                             size: item.size,
                             mm: item.mm,
+                            item_id: item.item_id,
                             delivery_date: frappe.datetime.get_today(),
                             rate: parseFloat(item.item_price || 0).toFixed(2),
                             uom: item.stock_uom,
@@ -146,7 +143,7 @@ gajanand.stock_selector.show_stock_dialog = function (frm) {
                   <tbody>
                     ${filtered.map((item, i) => `
                       <tr>
-                        <td><input type="checkbox" data-index="${i}"></td>
+                        <td><input type="checkbox" data-item-id="${item.item_id}"></td>
                         <td>${item.item_name}</td>
                         <td>${item.size}</td>
                         <td>${item.actual_qty}</td>
@@ -189,6 +186,9 @@ gajanand.stock_selector.show_stock_dialog = function (frm) {
 
             dialog.show();
             render_stock_table(items);
+
+
+
         }
     });
 

@@ -21,6 +21,7 @@
   "voucher_detail_no",
   "serial_and_batch_bundle",
   "dependant_sle_voucher_detail_no",
+  "item_id",
   "section_break_11",
   "recalculate_rate",
   "actual_qty",
@@ -360,6 +361,11 @@
    "fieldtype": "Check",
    "hidden": 1,
    "label": "Display Stock"
+  },
+  {
+   "fieldname": "item_id",
+   "fieldtype": "Data",
+   "label": "Item_Id"
   }
  ],
  "grid_page_length": 50,
@@ -369,7 +375,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-09 10:45:19.458945",
+ "modified": "2025-11-27 13:09:16.030474",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Stock Ledger Entry",

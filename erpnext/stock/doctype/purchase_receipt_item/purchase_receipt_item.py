@@ -47,6 +47,7 @@ class PurchaseReceiptItem(Document):
 		is_free_item: DF.Check
 		item_code: DF.Link
 		item_group: DF.Link | None
+		item_id: DF.Data | None
 		item_name: DF.Data
 		item_tax_amount: DF.Currency
 		item_tax_rate: DF.Code | None

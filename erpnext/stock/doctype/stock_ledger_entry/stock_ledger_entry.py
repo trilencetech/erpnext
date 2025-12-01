@@ -55,6 +55,7 @@ class StockLedgerEntry(Document):
 		is_adjustment_entry: DF.Check
 		is_cancelled: DF.Check
 		item_code: DF.Link | None
+		item_id: DF.Data | None
 		outgoing_rate: DF.Currency
 		posting_date: DF.Date | None
 		posting_datetime: DF.Datetime | None
