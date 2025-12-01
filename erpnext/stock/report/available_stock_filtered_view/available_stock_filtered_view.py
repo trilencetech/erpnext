@@ -55,7 +55,7 @@ def get_data(filters):
             SUM(sle.actual_qty) AS actual_qty,
             item.size,
 			sle.posting_date,
-   			pr.supplier AS supplier_name
+   			MAX(pr.supplier) AS supplier_name
 		   
         FROM `tabStock Ledger Entry` sle
         JOIN `tabItem` item ON sle.item_code = item.name

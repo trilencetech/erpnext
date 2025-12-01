@@ -1950,7 +1950,7 @@ def get_individual_stock_entries(customer=None, company=None):
 			item.size,
 			item.mm,
 			sle.posting_date,
-   			pr.supplier AS supplier_name,
+   			MAX(pr.supplier) AS supplier_name,
 		    (
                 SELECT price_list_rate 
                 FROM `tabItem Price` 
