@@ -1288,6 +1288,7 @@
   {
    "fieldname": "master_rate",
    "fieldtype": "Currency",
+   "hidden": 1,
    "label": "Master Rate",
    "precision": "2",
    "print_hide": 1
@@ -1298,7 +1299,7 @@
  "idx": 261,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-11-14 09:25:18.412481",
+ "modified": "2025-12-09 17:57:52.895667",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Purchase Receipt",

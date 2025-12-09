@@ -113,8 +113,7 @@ class PurchaseReceipt(BuyingController):
         shipping_address: DF.Link | None
         shipping_address_display: DF.SmallText | None
         shipping_rule: DF.Link | None
-        status: DF.Literal["", "Draft", "Partly Billed", "To Bill",
-                           "Completed", "Return Issued", "Cancelled", "Closed"]
+        status: DF.Literal["", "Draft", "Partly Billed", "To Bill", "Completed", "Return Issued", "Cancelled", "Closed"]
         subcontracting_receipt: DF.Link | None
         supplied_items: DF.Table[PurchaseReceiptItemSupplied]
         supplier: DF.Link
@@ -1669,7 +1668,7 @@ def import_items_from_excel(docname, file_url):
             if not row or len(row) < 7:
                 continue
 
-            sn, roll_no, thick, film_type, width_mm, grosswt, netwt = row[:7]
+            sn, roll_no, thick, film_type, width_mm, grosswt, netwt, rate = row[:8]
 
             # Lookup prefix from Film Item Master
             prefix = frappe.db.get_value(
@@ -1698,6 +1697,7 @@ def import_items_from_excel(docname, file_url):
                 "size": size_str,
                 "mm": width_mm,
                 "item_id": roll_no,
+                "rate": rate,
                 "description": f"Roll {roll_no}, Gross {grosswt}"
             })
             success_count += 1
