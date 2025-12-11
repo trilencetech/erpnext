@@ -133,6 +133,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "allow_on_submit": 1,
    "bold": 1,
    "default": "Today",
    "fieldname": "posting_date",
@@ -158,6 +159,7 @@
    "options": "Cost Center"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "mode_of_payment",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -800,7 +802,7 @@
    "table_fieldname": "payment_entries"
   }
  ],
- "modified": "2025-05-15 18:01:04.013025",
+ "modified": "2025-12-11 12:02:57.226779",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Payment Entry",
