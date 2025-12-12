@@ -1395,6 +1395,7 @@
    "allow_on_submit": 1,
    "fieldname": "freight",
    "fieldtype": "Currency",
+   "hidden": 1,
    "label": "FREIGHT",
    "options": "currency"
   }
@@ -1403,7 +1404,7 @@
  "idx": 146,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-12-12 12:13:00.670904",
+ "modified": "2025-12-12 14:25:08.426252",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Delivery Note",
