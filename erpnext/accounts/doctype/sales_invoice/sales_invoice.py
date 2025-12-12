@@ -117,6 +117,7 @@ class SalesInvoice(SellingController):
         dispatch_address: DF.SmallText | None
         dispatch_address_name: DF.Link | None
         due_date: DF.Date | None
+        freight: DF.Currency
         from_date: DF.Date | None
         grand_total: DF.Currency
         group_same_items: DF.Check
@@ -142,8 +143,7 @@ class SalesInvoice(SellingController):
         loyalty_redemption_account: DF.Link | None
         loyalty_redemption_cost_center: DF.Link | None
         named_place: DF.Data | None
-        naming_series: DF.Literal["ACC-SINV-.YYYY.-",
-                                  "ACC-SINV-RET-.YYYY.-", "GE-/25-26"]
+        naming_series: DF.Literal["ACC-SINV-.YYYY.-", "ACC-SINV-RET-.YYYY.-", "GE-/25-26"]
         net_total: DF.Currency
         only_include_allocated_payments: DF.Check
         other_charges_calculation: DF.TextEditor | None
@@ -181,8 +181,7 @@ class SalesInvoice(SellingController):
         shipping_address_name: DF.Link | None
         shipping_rule: DF.Link | None
         source: DF.Link | None
-        status: DF.Literal["", "Draft", "Return", "Credit Note Issued", "Submitted", "Paid", "Partly Paid", "Unpaid",
-                           "Unpaid and Discounted", "Partly Paid and Discounted", "Overdue and Discounted", "Overdue", "Cancelled", "Internal Transfer"]
+        status: DF.Literal["", "Draft", "Return", "Credit Note Issued", "Submitted", "Paid", "Partly Paid", "Unpaid", "Unpaid and Discounted", "Partly Paid and Discounted", "Overdue and Discounted", "Overdue", "Cancelled", "Internal Transfer"]
         subscription: DF.Link | None
         tax_category: DF.Link | None
         tax_id: DF.Data | None

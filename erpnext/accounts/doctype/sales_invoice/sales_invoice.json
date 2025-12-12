@@ -57,6 +57,7 @@
   "base_total",
   "base_net_total",
   "column_break_52",
+  "freight",
   "total",
   "net_total",
   "taxes_section",
@@ -2176,6 +2177,15 @@
    "label": "Company Contact Person",
    "options": "Contact",
    "print_hide": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "freight",
+   "fieldtype": "Currency",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "FREIGHT",
+   "options": "currency"
   }
  ],
  "grid_page_length": 50,
@@ -2189,7 +2199,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2025-11-06 14:53:45.513946",
+ "modified": "2025-12-12 12:02:45.385595",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Sales Invoice",

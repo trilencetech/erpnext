@@ -23,15 +23,12 @@ class DeliveryNote(SellingController):
     from typing import TYPE_CHECKING
 
     if TYPE_CHECKING:
-        from frappe.types import DF
-
         from erpnext.accounts.doctype.pricing_rule_detail.pricing_rule_detail import PricingRuleDetail
-        from erpnext.accounts.doctype.sales_taxes_and_charges.sales_taxes_and_charges import (
-            SalesTaxesandCharges,
-        )
+        from erpnext.accounts.doctype.sales_taxes_and_charges.sales_taxes_and_charges import SalesTaxesandCharges
         from erpnext.selling.doctype.sales_team.sales_team import SalesTeam
         from erpnext.stock.doctype.delivery_note_item.delivery_note_item import DeliveryNoteItem
         from erpnext.stock.doctype.packed_item.packed_item import PackedItem
+        from frappe.types import DF
 
         additional_discount_percentage: DF.Float
         address_display: DF.SmallText | None
@@ -71,6 +68,7 @@ class DeliveryNote(SellingController):
         driver: DF.Link | None
         driver_name: DF.Data | None
         excise_page: DF.Data | None
+        freight: DF.Currency
         grand_total: DF.Currency
         group_same_items: DF.Check
         ignore_pricing_rule: DF.Check
@@ -95,7 +93,6 @@ class DeliveryNote(SellingController):
         per_billed: DF.Percent
         per_installed: DF.Percent
         per_returned: DF.Percent
-        pick_list: DF.Link | None
         plc_conversion_rate: DF.Float
         po_date: DF.Date | None
         po_no: DF.SmallText | None
@@ -121,8 +118,7 @@ class DeliveryNote(SellingController):
         shipping_address_name: DF.Link | None
         shipping_rule: DF.Link | None
         source: DF.Link | None
-        status: DF.Literal["", "Draft", "To Bill",
-                           "Completed", "Return Issued", "Cancelled", "Closed"]
+        status: DF.Literal["", "Draft", "To Bill", "Completed", "Return Issued", "Cancelled", "Closed"]
         tax_category: DF.Link | None
         tax_id: DF.Data | None
         taxes: DF.Table[SalesTaxesandCharges]
