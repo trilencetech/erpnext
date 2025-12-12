@@ -50,6 +50,7 @@ class SalesOrderItem(Document):
 		is_stock_item: DF.Check
 		item_code: DF.Link
 		item_group: DF.Link | None
+		item_id: DF.Data | None
 		item_name: DF.Data
 		item_tax_rate: DF.Code | None
 		item_tax_template: DF.Link | None
