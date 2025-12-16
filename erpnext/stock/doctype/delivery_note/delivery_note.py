@@ -61,6 +61,7 @@ class DeliveryNote(SellingController):
         customer_address: DF.Link | None
         customer_group: DF.Link | None
         customer_name: DF.Data | None
+        deliver_to: DF.Data | None
         disable_rounded_total: DF.Check
         discount_amount: DF.Currency
         dispatch_address: DF.SmallText | None
@@ -118,8 +119,7 @@ class DeliveryNote(SellingController):
         shipping_address_name: DF.Link | None
         shipping_rule: DF.Link | None
         source: DF.Link | None
-        status: DF.Literal["", "Draft", "To Bill",
-                           "Completed", "Return Issued", "Cancelled", "Closed"]
+        status: DF.Literal["", "Draft", "To Bill", "Completed", "Return Issued", "Cancelled", "Closed"]
         tax_category: DF.Link | None
         tax_id: DF.Data | None
         taxes: DF.Table[SalesTaxesandCharges]
