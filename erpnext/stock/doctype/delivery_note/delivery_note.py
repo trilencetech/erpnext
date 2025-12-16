@@ -57,6 +57,7 @@ class DeliveryNote(SellingController):
         conversion_rate: DF.Float
         cost_center: DF.Link | None
         currency: DF.Link
+        custom_name: DF.Data | None
         customer: DF.Link
         customer_address: DF.Link | None
         customer_group: DF.Link | None
