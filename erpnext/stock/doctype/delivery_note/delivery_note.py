@@ -8,7 +8,7 @@ from frappe.contacts.doctype.address.address import get_company_address
 from frappe.desk.notifications import clear_doctype_notifications
 from frappe.model.mapper import get_mapped_doc
 from frappe.model.utils import get_fetch_values
-from frappe.utils import cint, flt
+from frappe.utils import cint, flt, getdate, nowdate
 
 from erpnext.controllers.accounts_controller import get_taxes_and_charges, merge_taxes
 from erpnext.controllers.selling_controller import SellingController
@@ -226,6 +226,29 @@ class DeliveryNote(SellingController):
 
         if self.docstatus == 0:
             self.set_onload("has_unpacked_items", self.has_unpacked_items())
+
+    def autoname(self):
+        company_abbr = frappe.db.get_value(
+            "Company", self.company, "abbr") or "XX"
+        today = getdate(nowdate())
+        year = today.year
+        month = today.month
+
+        if month < 4:
+            start_year = year - 1
+            end_year = year
+        else:
+            start_year = year
+        end_year = year + 1
+        # e.g., '2025-2026'
+
+        fiscal_year = f"{str(start_year)[-2:]}-{str(end_year)[-2:]}"
+
+        base_series = frappe.model.naming.make_autoname(
+            f"{company_abbr}-.#####")
+
+        # Append fiscal year suffix manually
+        self.name = f"{base_series}/{fiscal_year}"
 
     def before_print(self, settings=None):
         def toggle_print_hide(meta, fieldname):
