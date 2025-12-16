@@ -14,6 +14,8 @@
   "tax_id",
   "custom_name",
   "deliver_to",
+  "deliver_by",
+  "del_vehical_no",
   "customer_name",
   "column_break1",
   "posting_date",
@@ -1412,13 +1414,25 @@
    "fieldname": "custom_name",
    "fieldtype": "Data",
    "label": "Custom Name"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "deliver_by",
+   "fieldtype": "Data",
+   "label": "Deliver By"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "del_vehical_no",
+   "fieldtype": "Data",
+   "label": "Delivery Vehicle No"
   }
  ],
  "icon": "fa fa-truck",
  "idx": 146,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-12-16 09:22:31.893382",
+ "modified": "2025-12-16 14:10:02.541524",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Delivery Note",

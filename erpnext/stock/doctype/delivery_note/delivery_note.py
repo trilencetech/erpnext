@@ -62,6 +62,8 @@ class DeliveryNote(SellingController):
         customer_address: DF.Link | None
         customer_group: DF.Link | None
         customer_name: DF.Data | None
+        del_vehical_no: DF.Data | None
+        deliver_by: DF.Data | None
         deliver_to: DF.Data | None
         disable_rounded_total: DF.Check
         discount_amount: DF.Currency
