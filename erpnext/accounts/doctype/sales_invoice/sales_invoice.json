@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_import": 1,
+ "allow_rename": 1,
  "autoname": "naming_series:",
  "creation": "2022-01-25 10:29:57.771398",
  "doctype": "DocType",
@@ -2199,7 +2200,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2025-12-12 12:02:45.385595",
+ "modified": "2025-12-16 17:11:11.173850",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Sales Invoice",
