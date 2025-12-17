@@ -13,16 +13,16 @@
   "naming_series",
   "customer",
   "tax_id",
-  "custom_name",
-  "deliver_to",
-  "deliver_by",
-  "del_vehical_no",
   "customer_name",
+  "custom_name",
   "column_break1",
   "posting_date",
   "posting_time",
   "set_posting_time",
-  "column_break_10",
+  "deliver_to",
+  "del_vehical_no",
+  "deliver_by",
+  "column_break_xpyr",
   "company",
   "amended_from",
   "is_return",
@@ -1335,10 +1335,6 @@
    "show_dashboard": 1
   },
   {
-   "fieldname": "column_break_10",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "section_break_30",
    "fieldtype": "Section Break",
    "hide_border": 1
@@ -1427,13 +1423,17 @@
    "fieldname": "del_vehical_no",
    "fieldtype": "Data",
    "label": "Delivery Vehicle No"
+  },
+  {
+   "fieldname": "column_break_xpyr",
+   "fieldtype": "Column Break"
   }
  ],
  "icon": "fa fa-truck",
  "idx": 146,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-12-16 18:52:44.631623",
+ "modified": "2025-12-16 20:59:36.836152",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Delivery Note",

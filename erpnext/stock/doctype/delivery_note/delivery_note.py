@@ -122,7 +122,8 @@ class DeliveryNote(SellingController):
         shipping_address_name: DF.Link | None
         shipping_rule: DF.Link | None
         source: DF.Link | None
-        status: DF.Literal["", "Draft", "To Bill", "Completed", "Return Issued", "Cancelled", "Closed"]
+        status: DF.Literal["", "Draft", "To Bill",
+                           "Completed", "Return Issued", "Cancelled", "Closed"]
         tax_category: DF.Link | None
         tax_id: DF.Data | None
         taxes: DF.Table[SalesTaxesandCharges]
@@ -245,7 +246,7 @@ class DeliveryNote(SellingController):
         fiscal_year = f"{str(start_year)[-2:]}-{str(end_year)[-2:]}"
 
         base_series = frappe.model.naming.make_autoname(
-            f"{company_abbr}-.#####")
+            f"DC-{company_abbr}-.#####")
 
         # Append fiscal year suffix manually
         self.name = f"{base_series}/{fiscal_year}"
