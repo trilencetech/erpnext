@@ -112,6 +112,7 @@ class SalesInvoice(SellingController):
         customer_group: DF.Link | None
         customer_name: DF.SmallText | None
         debit_to: DF.Link
+        delivery_challan: DF.Link
         disable_rounded_total: DF.Check
         discount_amount: DF.Currency
         dispatch_address: DF.SmallText | None
