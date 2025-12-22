@@ -44,6 +44,7 @@ class DeliveryNoteItem(Document):
 		grant_commission: DF.Check
 		has_item_scanned: DF.Check
 		image: DF.Attach | None
+		income_account: DF.Link | None
 		incoming_rate: DF.Currency
 		installed_qty: DF.Float
 		is_free_item: DF.Check
