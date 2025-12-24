@@ -3109,6 +3109,7 @@ def send_invoice_email(docId):
     message = frappe.render_template(template.response, {"doc": doc})
     # Find customer contact email
     contact_email = customer_doc.email_id
+
     if contact_email:
         frappe.sendmail(
             recipients=[contact_email],
