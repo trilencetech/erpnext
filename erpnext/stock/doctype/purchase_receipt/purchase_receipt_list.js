@@ -34,7 +34,11 @@ frappe.listview_settings["Purchase Receipt"] = {
             <div style="margin-top: 1rem;">
               
 						<button class="btn btn-primary" onclick="window.open('/app/query-report/Available%20Stock%20Filtered%20View', '_blank')">
-							    Available Stock Report
+							    Available Stock Report <br/> (With Weight)
+  						</button>
+						<br/>
+						<button class="btn btn-primary" onclick="window.open('/app/query-report/Total%20Stock%20View/', '_blank')">
+							    Total Stock Report
   						</button>
                 
             </div>

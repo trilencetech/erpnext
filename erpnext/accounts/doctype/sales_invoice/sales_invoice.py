@@ -144,7 +144,8 @@ class SalesInvoice(SellingController):
         loyalty_redemption_account: DF.Link | None
         loyalty_redemption_cost_center: DF.Link | None
         named_place: DF.Data | None
-        naming_series: DF.Literal["ACC-SINV-.YYYY.-", "ACC-SINV-RET-.YYYY.-", "GE-/25-26"]
+        naming_series: DF.Literal["ACC-SINV-.YYYY.-",
+                                  "ACC-SINV-RET-.YYYY.-", "GE-/25-26"]
         net_total: DF.Currency
         only_include_allocated_payments: DF.Check
         other_charges_calculation: DF.TextEditor | None
@@ -182,7 +183,8 @@ class SalesInvoice(SellingController):
         shipping_address_name: DF.Link | None
         shipping_rule: DF.Link | None
         source: DF.Link | None
-        status: DF.Literal["", "Draft", "Return", "Credit Note Issued", "Submitted", "Paid", "Partly Paid", "Unpaid", "Unpaid and Discounted", "Partly Paid and Discounted", "Overdue and Discounted", "Overdue", "Cancelled", "Internal Transfer"]
+        status: DF.Literal["", "Draft", "Return", "Credit Note Issued", "Submitted", "Paid", "Partly Paid", "Unpaid",
+                           "Unpaid and Discounted", "Partly Paid and Discounted", "Overdue and Discounted", "Overdue", "Cancelled", "Internal Transfer"]
         subscription: DF.Link | None
         tax_category: DF.Link | None
         tax_id: DF.Data | None
@@ -2990,9 +2992,12 @@ def check_if_return_invoice_linked_with_payment_entry(self):
             frappe.throw(message)
 
 
-def generate_invoice_pdf(invoice_name):
+def generate_invoice_pdf(invoice_name, doc):
+    print_template = 'GST Tax Format'
+    if doc.company == "Veer Creation Works":
+        print_template = 'GST Tax Custom Format'
     html = frappe.get_print('Sales Invoice', invoice_name,
-                            print_format='GST Tax Invoice')
+                            print_format=print_template)
     pdf = get_pdf(html)
     return pdf
 
@@ -3070,13 +3075,47 @@ def send_invoice_whatsapp(invoice_name):
     settings = frappe.get_single("WhatsApp Settings")
     access_token = settings.get_password("token")
     phone_number_id = settings.phone_id
-    pdf = generate_invoice_pdf(invoice_name)
+    doc = frappe.get_doc("Sales Invoice", invoice_name)
+    pdf = generate_invoice_pdf(invoice_name, doc)
 
     media_id = upload_pdf_to_whatsapp(pdf, access_token, phone_number_id)
     # frappe.msgprint("Media ID::"+str(media_id))
     # Send text message first
-    doc = frappe.get_doc("Sales Invoice", invoice_name)
+
     customer_doc = frappe.get_doc("Customer", doc.customer)
 
     send_text_message(access_token, customer_doc,
                       phone_number_id, invoice_name, media_id)
+
+
+@frappe.whitelist()
+def send_invoice_email(docId):
+
+    doc = frappe.get_doc("Sales Invoice", docId)
+    # Generate HTML from print format
+    print_template = "GST Tax Format"
+    if doc.company == "Veer Creation Works":
+        print_template = "GST Tax Custom Format"
+    html = frappe.get_print("Sales Invoice", doc.name,
+                            print_format=print_template)
+
+    # Convert HTML to PDF
+    pdf_data = get_pdf(html)
+
+    customer_doc = frappe.get_doc("Customer", doc.customer)
+
+    template = frappe.get_doc("Email Template", "Invoice Format")
+    subject = frappe.render_template(template.subject, {"doc": doc})
+    message = frappe.render_template(template.response, {"doc": doc})
+    # Find customer contact email
+    contact_email = customer_doc.email_id
+    if contact_email:
+        frappe.sendmail(
+            recipients=[contact_email],
+            subject=subject,
+            message=message,
+            attachments=[{
+                "fname": f"{doc.name}.pdf",
+                "fcontent": pdf_data
+            }]
+        )

@@ -55,5 +55,24 @@
   "reference_doctype": "Item",
   "script": "frappe.call(\"erpnext.stock.doctype.item.item.create_item_prices_from_group_rate\", docname=doc.name)",
   "script_type": "DocType Event"
+ },
+ {
+  "allow_guest": 0,
+  "api_method": null,
+  "cron_format": null,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Server Script",
+  "doctype_event": "Before Submit",
+  "enable_rate_limit": 0,
+  "event_frequency": "All",
+  "modified": "2025-12-24 11:37:50.101789",
+  "module": "Selling",
+  "name": "Send_Email",
+  "rate_limit_count": 5,
+  "rate_limit_seconds": 86400,
+  "reference_doctype": "Sales Invoice",
+  "script": "frappe.call(\"erpnext.accounts.doctype.sales_invoice.sales_invoice.send_invoice_email\", docId=doc.name)",
+  "script_type": "DocType Event"
  }
 ]
