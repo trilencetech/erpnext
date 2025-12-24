@@ -3089,7 +3089,7 @@ def send_invoice_whatsapp(invoice_name):
 
 
 @frappe.whitelist()
-def send_invoice_email(docId):
+def send_invoice_email(docId, emailId):
 
     doc = frappe.get_doc("Sales Invoice", docId)
     # Generate HTML from print format
@@ -3102,17 +3102,14 @@ def send_invoice_email(docId):
     # Convert HTML to PDF
     pdf_data = get_pdf(html)
 
-    customer_doc = frappe.get_doc("Customer", doc.customer)
-
     template = frappe.get_doc("Email Template", "Invoice Format")
     subject = frappe.render_template(template.subject, {"doc": doc})
     message = frappe.render_template(template.response, {"doc": doc})
     # Find customer contact email
-    contact_email = customer_doc.email_id
 
-    if contact_email:
+    if emailId:
         frappe.sendmail(
-            recipients=[contact_email],
+            recipients=[emailId],
             subject=subject,
             message=message,
             attachments=[{
