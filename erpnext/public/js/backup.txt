@@ -1,0 +1,316 @@
+<style>
+@page {
+    size:A4;
+    margin:0;
+}
+
+
+.print-format1 {
+    width:100% !important;
+    height: 100% !important;
+    position: relative;
+    background-image: url("{{ frappe.utils.get_url() }}/files/Veer_Full_Image.jpg");
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: top left;
+    overflow: hidden;
+    font-family:sans-serif;
+    font-size: 12px;
+    
+}
+.print-format {
+    width:100% !important;
+    height: 100% !important;
+    padding:0.5in !important;
+}
+.page-content {
+    overflow: hidden;
+    flex-direction: column;
+    padding: 20mm 10mm;
+    
+    
+}
+.item-table {
+    flex: 1;
+    overflow: hidden;
+}
+.footer-section {
+    margin-top: auto;
+    page-break-inside: avoid;
+    justify-content: space-between;
+    display: block;
+    
+}
+.footer-left {
+    width: 65%;
+    border: 1px solid #000;
+    padding: 10px;
+    box-sizing: border-box;
+    float:left;
+}
+ .footer-right {
+    width: 35%;
+    border: 1px solid #000;
+    padding: 10px;
+    box-sizing: border-box;
+    float:right;
+}
+
+.box-container {
+    justify-content: space-between;
+    align-items: stretch;   /* ensures equal height */
+}
+
+.left-box {
+    border: 1px solid #000;
+    box-sizing: border-box;
+    width:50%;
+    float:left;
+    height:40mm;
+}
+.right-box {
+    border: 1px solid #000;
+    box-sizing: border-box;
+    width:50%;
+    float:right;
+    height:40mm;
+}
+
+.invoice-section {
+    font-size: 12px;
+    color: #000;
+    margin-top: 20px;
+}
+.invoice-section table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0;
+    font-size: 12px !important;
+    border: 1px solid;
+  
+    
+}
+
+
+.left-right {
+    width: 100%;
+    display: table;
+}
+.left-col, .right-col {
+    display: table-cell;
+    width: 50%;
+    vertical-align: top;
+    
+}
+.item-section {
+    border: 1px solid #000;
+    width: 100%;
+    margin-bottom: 5px;
+    box-sizing: border-box;
+    overflow: hidden;      /* prevent pushing footer */
+}
+
+.item-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+    line-height: 1.0; /* tighter line spacing */
+    
+}
+
+.item-table th, .item-table td {
+    border: 1px solid #000;
+   padding: 3px 4px; /* reduce padding */ 
+   text-align: left; 
+   vertical-align: middle;
+}
+.item-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+
+
+.section-box {
+    border: 1px;
+    margin: 10px 0;
+}
+.section-title {
+    font-weight: bold;
+    background-color: #f2f2f2;
+    padding: 1px 10px;
+    border: 1px solid #000;
+}
+
+.left-box table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.left-box td {
+    padding: 6px;
+    border: 1px ;
+}
+.right-box table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.right-box td {
+    padding: 6px;
+    border: 1px ;
+}
+</style>
+
+
+<div class="print-format1">
+    <div class="page-content">
+    <h2 style="text-align:center; margin-bottom:5px;margin-top:52px !important">TAX INVOICE</h2>
+{% set customer_doc = frappe.get_doc("Customer",doc.customer) %}
+  <div class="box-container">
+      <div class="left-box">
+        
+            <div class="section-title">Customer Details</div>
+            <table >
+                <tr><td><b>Name:</b> {{ doc.customer_name }}</td></tr>
+                <tr><td><b>Address:</b> {{ doc.address_display | replace("<br>", "\n") }}</td></tr>
+                <tr><td><b>GST No:</b> {{ customer_doc.gstin or "" }}</td></tr>
+            </table>
+        
+    </div>
+
+    <div class="right-box">
+        
+            <div class="section-title">Invoice Details</div>
+            <table>
+                <tr><td><b>Invoice No:</b> {{ doc.name }}</td></tr>
+                <tr><td><b>Invoice Date:</b> {{ frappe.utils.formatdate(doc.posting_date) }}</td></tr>
+                <tr><td><b>Challan No:</b> {{ doc.delivery_challan or "" }}</td></tr>
+                <tr><td><b>Due Date:</b> {{ frappe.utils.formatdate(doc.due_date) }}</td></tr>
+                
+                
+            </table>
+        
+    </div>
+</div>
+
+
+    <!-- Item Table -->
+ <div class="box-container">
+ <div class="item-section">
+  <div class="section-title">Item Details</div>
+  <table class="item-table">
+  <thead>
+    <tr>
+      <th style="width:2%;">Sr</th>
+      <th style="width:56%;">Description</th>
+      <th style="width:10%;">HSN/SAC</th>
+      <th style="width:5%;">Qty</th>
+      <th style="width:12%;">Rate</th>
+      <th style="width:15%;">Amount</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+     {% for item in doc.items %}
+      
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ item.item_name }}</td>
+          <td>{{ item.gst_hsn_code }}</td>
+          <td>{{ item.qty }}</td>
+          <td>₹ {{ "{:,.2f}".format(item.rate) }}</td>
+          <td>₹ {{ "{:,.2f}".format(item.amount) }}</td>
+        </tr>
+      
+    {% endfor %}
+  </tbody>
+</table>
+
+</div>
+
+</div>
+
+{% set ns = namespace(sgst=0, cgst=0) %}
+
+{% for tax in doc.taxes %}
+    {% if "SGST" in (tax.account_head or "") or "SGST" in (tax.description or "") %}
+        {% set ns.sgst = ns.sgst + tax.tax_amount %}
+    {% endif %}
+    {% if "CGST" in (tax.account_head or "") or "CGST" in (tax.description or "") %}
+        {% set ns.cgst = ns.cgst + tax.tax_amount %}
+    {% endif %}
+{% endfor %}
+
+    <!-- Totals -->
+   
+    {% set company_doc = frappe.get_doc("Company",doc.company) %}   
+    {% set account_doc = frappe.get_doc("Account",company_doc.default_bank_account) %}
+   <div class="box-container">
+    <!-- Left Column: Bank & Company Details -->
+    <div class="left-box" style="height:50mm !important">
+        
+            <div class="section-title">Bank and Company Details</div>
+            <table>
+                <tr>
+                    <td><b>Bank Name:</b> {{account_doc.account_name}}</td>
+                </tr>
+                <tr>
+                    <td><b>IFSC:</b> {{account_doc.ifsc_code}}</td>
+                </tr>
+                <tr>
+                    <td><b>A/C No:</b> {{account_doc.account_number}}</td>
+                </tr>
+               
+        
+                <tr>
+                    <td><b>Our GSTIN:</b> {{company_doc.gstin}}</td>
+                    
+                </tr>
+                <tr>
+                    
+                    <td><b>MSME:</b> {{company_doc.msme}}</td>
+                </tr>
+            </table>
+        
+    </div>
+
+    <!-- Right Column: Tax & Total -->
+    <div class="right-box" style="height:50mm !important">
+        
+            <div class="section-title">Tax & Total</div>
+            <table>
+                <tr><td colspan="5"><b>Subtotal</b></td><td>₹ {{ "{:,.2f}".format(doc.net_total) }}</td></tr>
+                <tr><td colspan="5"><b>SGST</b></td><td>₹ {{ "{:,.2f}".format(ns.sgst) }}</td></tr>
+                <tr><td colspan="5"><b>CGST</b></td><td>₹ {{ "{:,.2f}".format(ns.cgst) }}</td></tr>
+                <tr><td colspan="5"><b>Grand Total</b></td><td>₹ {{ "{:,.2f}".format(doc.grand_total) }}</td></tr>
+                <tr><td colspan="5"><b>Rounded Total</b></td><td>₹ {{ "{:,.2f}".format(doc.rounded_total) }}</td></tr>
+                
+                
+                
+            </table>
+    </div>
+ 
+              
+</div>
+ <div class="box-container">
+   <table style="width:100%; border-collapse:collapse;border:1px solid">
+          <tr><td colspan="1"><b>In Words: </b></td><td> {{ doc.in_words }}</td></tr>
+  </table>
+  </div>
+ <div class="footer-section">
+      <div class="footer-left">
+        <strong>Terms & Conditions</strong><br>
+        (1) We do not hold responsible for any breakage/damage/leakage in transit.<br>
+        (2) Our responsibility ceases when the goods are delivered to the carrier.<br>
+        (3) Goods once sold will not be accepted back.<br>
+        (4) Interest @ 24% p.a. will be charged, if invoice is not paid on or before due date.<br>
+        (5) Subject to Ahmedabad Jurisdiction.
+      </div>
+      <div class="footer-right" style="text-align:right;">
+        <strong>For Veer Creation Works</strong><br/><br/><br/><br/><br/><br/><br/><br/>
+        Authorized Signatory
+      </div>
+    </div>
+
+</div>
+</div>
+</div>

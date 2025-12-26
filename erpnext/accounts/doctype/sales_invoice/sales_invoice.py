@@ -3089,11 +3089,11 @@ def send_invoice_whatsapp(invoice_name):
 
 
 @frappe.whitelist()
-def send_invoice_email(docId, emailId):
+def send_invoice_email(docId):
 
     doc = frappe.get_doc("Sales Invoice", docId)
     # Generate HTML from print format
-    print_template = "GST Tax Format"
+    print_template = "GST Tax Invoice"
     if doc.company == "Veer Creation Works":
         print_template = "GST Tax Custom Format"
     html = frappe.get_print("Sales Invoice", doc.name,
@@ -3106,7 +3106,9 @@ def send_invoice_email(docId, emailId):
     subject = frappe.render_template(template.subject, {"doc": doc})
     message = frappe.render_template(template.response, {"doc": doc})
     # Find customer contact email
-
+    customer_doc = frappe.get_doc("Customer", doc.customer)
+    emailId = get_primary_contact_email(customer_doc)
+    email_account = get_company_email_account(doc.company)
     if emailId:
         frappe.sendmail(
             recipients=[emailId],
@@ -3116,4 +3118,42 @@ def send_invoice_email(docId, emailId):
                 "fname": f"{doc.name}.pdf",
                 "fcontent": pdf_data
             }]
+
         )
+
+
+@frappe.whitelist()
+def get_company_email_account(company_name):
+    # Try to fetch an Email Account linked to this company
+    email_account = frappe.db.get_value(
+        "Email Account",
+        {"company": company_name},
+        ["name"],
+        as_dict=True
+    )
+    if email_account:
+        return email_account["name"]
+    return None
+
+
+@frappe.whitelist()
+def get_primary_contact_email(customer_doc):
+    # Step 1: Find all contacts linked to this customer
+    contact_doc = frappe.get_doc(
+        "Contact", customer_doc.customer_primary_contact)
+
+    if not contact_doc:
+        return None
+
+    email_ids = frappe.get_doc("Contact Email", contact_doc.email_ids)
+    # Step 2: Loop through contacts and check their Contact Email child table
+
+    primary_email = frappe.db.get_value(
+        "Contact Email",
+        {"parent": contact_doc.name, "is_primary": 1},
+        "email_id"
+    )
+    if primary_email:
+        return primary_email
+
+    return None
