@@ -3109,8 +3109,10 @@ def send_invoice_email(docId):
     customer_doc = frappe.get_doc("Customer", doc.customer)
     emailId = get_primary_contact_email(customer_doc)
     email_account = get_company_email_account(doc.company)
+
     if emailId:
         frappe.sendmail(
+            sender=email_account,
             recipients=[emailId],
             subject=subject,
             message=message,
@@ -3120,6 +3122,9 @@ def send_invoice_email(docId):
             }]
 
         )
+        frappe.msgprint("Email sent successfully with Invoice PDF")
+    else:
+        frappe.msgprint("Email ID not found for customer "+doc.customer_name)
 
 
 @frappe.whitelist()
@@ -3128,11 +3133,11 @@ def get_company_email_account(company_name):
     email_account = frappe.db.get_value(
         "Email Account",
         {"company": company_name},
-        ["name"],
+        ["email_id"],
         as_dict=True
     )
     if email_account:
-        return email_account["name"]
+        return email_account["email_id"]
     return None
 
 
@@ -3144,9 +3149,6 @@ def get_primary_contact_email(customer_doc):
 
     if not contact_doc:
         return None
-
-    email_ids = frappe.get_doc("Contact Email", contact_doc.email_ids)
-    # Step 2: Loop through contacts and check their Contact Email child table
 
     primary_email = frappe.db.get_value(
         "Contact Email",

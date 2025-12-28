@@ -15,13 +15,7 @@ def get_columns():
         {"label": _("Size"), "fieldname": "size",
          "fieldtype": "Data", "width": 180},
         {"label": _("Weight/Unit"), "fieldname": "actual_qty",
-         "fieldtype": "Float", "width": 180},
-        {"label": _("Supplier"), "fieldname": "supplier_name",
-         "fieldtype": "Link", "options": "Supplier", "width": 300},
-        {"label": _("Purchase Date"), "fieldname": "posting_date",
-         "fieldtype": "Data",  "width": 200},
-        {"label": _("Item ID"), "fieldname": "item_id",
-         "fieldtype": "Data",  "width": 200}
+         "fieldtype": "Float", "width": 180}
     ]
 
 
