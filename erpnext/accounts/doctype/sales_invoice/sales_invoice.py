@@ -3144,18 +3144,20 @@ def get_company_email_account(company_name):
 @frappe.whitelist()
 def get_primary_contact_email(customer_doc):
     # Step 1: Find all contacts linked to this customer
-    contact_doc = frappe.get_doc(
-        "Contact", customer_doc.customer_primary_contact)
+    email_id_cust = None
+    if customer_doc.customer_primary_contact:
+        contact_doc = frappe.get_doc(
+            "Contact", customer_doc.customer_primary_contact)
 
-    if not contact_doc:
-        return None
+        if contact_doc:
+            emails = frappe.get_all(
+                "Contact Email",
+                filters={"parent": contact_doc.name, "is_primary": 1},
+                fields=["email_id"]
+            )
 
-    primary_email = frappe.db.get_value(
-        "Contact Email",
-        {"parent": contact_doc.name, "is_primary": 1},
-        "email_id"
-    )
-    if primary_email:
-        return primary_email
-
-    return None
+            if emails:
+                email_id_cust = emails[0].email_id
+            else:
+                email_id_cust = None   # or skip logic
+    return email_id_cust
