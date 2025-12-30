@@ -253,7 +253,7 @@ class SalesInvoice(SellingController):
         fiscal_year = f"{str(start_year)[-2:]}-{str(end_year)[-2:]}"
 
         base_series = frappe.model.naming.make_autoname(
-            f"{company_abbr}-.#####")
+            f"{company_abbr}-.####")
 
         # Append fiscal year suffix manually
         self.name = f"{base_series}/{fiscal_year}"
