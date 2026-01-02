@@ -14535,7 +14535,7 @@
  },
  {
   "charts": [],
-  "content": "[{\"id\":\"QV5_MJr7E0\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Purchase Management</span>\",\"col\":12}},{\"id\":\"IM-QyIcLfD\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Purchase and Selling Menu\",\"col\":12}},{\"id\":\"BTo4iSd-Br\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Sales Management</b></span>\",\"col\":12}},{\"id\":\"JlOLhj4rkg\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Sale Management\",\"col\":12}},{\"id\":\"g9TMg7nNSf\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Payment Entries</b></span>\",\"col\":12}},{\"id\":\"nAI7wMUuL6\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Payment Entries\",\"col\":12}},{\"id\":\"jXqwFgnoN-\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Item and Customer/Supplier Management</b></span>\",\"col\":12}},{\"id\":\"qcsxn58Y1g\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Item Group Menu Master\",\"col\":12}},{\"id\":\"5wd9Dq9yBZ\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Accounting Data Report</b></span>\",\"col\":12}},{\"id\":\"r1nJzX0SGd\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"General Ledger\",\"col\":3}},{\"id\":\"ln_pVW1Dxj\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Stock Report\",\"col\":3}},{\"id\":\"qzh7GbzGVO\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Stock Ledger\",\"col\":3}},{\"id\":\"LBb4WmRaVB\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Balance Sheet\",\"col\":3}},{\"id\":\"NncQkxfr39\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer Ledger\",\"col\":3}},{\"id\":\"oHjfALQ4HV\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Profit and Loss Statement\",\"col\":3}},{\"id\":\"N5c17qqYFb\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Stock Balance\",\"col\":3}}]",
+  "content": "[{\"id\":\"QV5_MJr7E0\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Purchase Management</span>\",\"col\":12}},{\"id\":\"IM-QyIcLfD\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Purchase and Selling Menu\",\"col\":12}},{\"id\":\"BTo4iSd-Br\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Sales Management</b></span>\",\"col\":12}},{\"id\":\"JlOLhj4rkg\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Sale Management\",\"col\":12}},{\"id\":\"g9TMg7nNSf\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Payment Entries</b></span>\",\"col\":12}},{\"id\":\"nAI7wMUuL6\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Payment Entries\",\"col\":12}},{\"id\":\"jXqwFgnoN-\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Item and Customer/Supplier Management</b></span>\",\"col\":12}},{\"id\":\"qcsxn58Y1g\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Item Group Menu Master\",\"col\":12}},{\"id\":\"5wd9Dq9yBZ\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Accounting Data Report</b></span>\",\"col\":12}},{\"id\":\"r1nJzX0SGd\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"General Ledger\",\"col\":3}},{\"id\":\"ln_pVW1Dxj\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Stock Report\",\"col\":3}},{\"id\":\"qzh7GbzGVO\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Stock Ledger\",\"col\":3}},{\"id\":\"LBb4WmRaVB\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Balance Sheet\",\"col\":3}},{\"id\":\"NncQkxfr39\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer Ledger\",\"col\":3}},{\"id\":\"oHjfALQ4HV\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Profit and Loss Statement\",\"col\":3}},{\"id\":\"N5c17qqYFb\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Stock Balance\",\"col\":3}},{\"id\":\"xeMYTwclUa\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Frieght and Other Charges\",\"col\":3}}]",
   "custom_blocks": [
    {
     "custom_block_name": "Sale Management",
@@ -14575,7 +14575,7 @@
   "is_hidden": 0,
   "label": "Gajanand Enterprise",
   "links": [],
-  "modified": "2025-10-19 23:25:26.765240",
+  "modified": "2026-01-02 15:58:17.887084",
   "module": null,
   "name": "Gajanand Enterprise",
   "number_cards": [],
@@ -14601,6 +14601,23 @@
     "restrict_to_domain": null,
     "stats_filter": null,
     "type": "Report",
+    "url": null
+   },
+   {
+    "color": "Orange",
+    "doc_view": "List",
+    "format": null,
+    "icon": null,
+    "kanban_board": null,
+    "label": "Frieght and Other Charges",
+    "link_to": "Freight and Other Charges",
+    "parent": "Gajanand Enterprise",
+    "parentfield": "shortcuts",
+    "parenttype": "Workspace",
+    "report_ref_doctype": null,
+    "restrict_to_domain": null,
+    "stats_filter": "[]",
+    "type": "DocType",
     "url": null
    },
    {
