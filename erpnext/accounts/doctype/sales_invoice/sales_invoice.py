@@ -3102,9 +3102,15 @@ def send_invoice_email(docId):
     # Convert HTML to PDF
     pdf_data = get_pdf(html)
 
-    template = frappe.get_doc("Email Template", "Invoice Format")
-    subject = frappe.render_template(template.subject, {"doc": doc})
-    message = frappe.render_template(template.response, {"doc": doc})
+    template = frappe.get_all(
+        "Email Template",
+        filters={"company": doc.company},
+        fields=["subject", "response"]
+    )
+
+    subject = frappe.render_template(template[0].subject, {"doc": doc})
+    message = frappe.render_template(template[0].response, {"doc": doc})
+
     # Find customer contact email
     customer_doc = frappe.get_doc("Customer", doc.customer)
     emailId = get_primary_contact_email(customer_doc)
@@ -3133,11 +3139,14 @@ def get_company_email_account(company_name):
     email_account = frappe.db.get_value(
         "Email Account",
         {"company": company_name},
-        ["email_id"],
+        ["email_id", "email_account_name"],
         as_dict=True
     )
     if email_account:
-        return email_account["email_id"]
+        sender_name = email_account["email_account_name"]
+        sender_email = email_account["email_id"]
+        sender = f"{sender_name} <{sender_email}>"
+        return sender
     return None
 
 

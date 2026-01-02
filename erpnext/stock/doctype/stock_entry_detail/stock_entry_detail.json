@@ -16,6 +16,7 @@
   "sec_break1",
   "item_code",
   "item_name",
+  "item_id",
   "col_break2",
   "is_finished_item",
   "is_scrap_item",
@@ -606,6 +607,13 @@
   {
    "fieldname": "column_break_prps",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "item_id",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Item ID",
+   "print_hide": 1
   }
  ],
  "grid_page_length": 50,
@@ -613,13 +621,14 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-03-26 21:01:58.544797",
+ "modified": "2026-01-02 11:03:36.989812",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Stock Entry Detail",
  "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "ASC",
  "states": []

@@ -700,7 +700,7 @@ class BuyingController(SubcontractingController):
                     self.get_sl_entries(
                         d,
                         {
-                            "warehouse": d.rejected_warehouse,
+                            "warehouse": d.rejected_warehouste,
                             "actual_qty": flt(
                                 flt(d.rejected_qty) *
                                 flt(d.conversion_factor), d.precision(

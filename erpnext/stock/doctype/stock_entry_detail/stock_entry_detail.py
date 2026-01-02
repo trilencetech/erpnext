@@ -35,6 +35,7 @@ class StockEntryDetail(Document):
 		is_scrap_item: DF.Check
 		item_code: DF.Link
 		item_group: DF.Data | None
+		item_id: DF.Data | None
 		item_name: DF.Data | None
 		job_card_item: DF.Data | None
 		material_request: DF.Link | None

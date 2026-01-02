@@ -1,5 +1,6 @@
 [
  {
+  "company": null,
   "docstatus": 0,
   "doctype": "Email Template",
   "modified": "2025-07-24 16:58:15.203993",
@@ -10,6 +11,7 @@
   "use_html": 0
  },
  {
+  "company": null,
   "docstatus": 0,
   "doctype": "Email Template",
   "modified": "2025-08-03 20:46:01.898715",
@@ -20,11 +22,23 @@
   "use_html": 0
  },
  {
+  "company": "Veer Creation Works",
   "docstatus": 0,
   "doctype": "Email Template",
-  "modified": "2025-12-24 11:34:13.472996",
-  "name": "Invoice Format",
+  "modified": "2026-01-02 13:58:04.295046",
+  "name": "Invoice Format - Veer Creation",
   "response": "<div class=\"ql-editor read-mode\"><p>Hi {{doc.customer}},</p><p><br></p><p>We have generated Invoice for {{doc.delivery_challan}} Challan No. Please find attached same invoice.</p><p><br></p><p><br></p><p>Thanks &amp; Regards</p><p>Veer Creation Works</p><p>C/15/16- Bansidhar Estate,</p><p>Opp. Suprabhat Estate, Bardolpura,</p><p>Ahmedabad,380004</p><p>M:+919409125152</p></div>",
+  "response_html": null,
+  "subject": "{{doc.company}}: Invoice - {{doc.name}}",
+  "use_html": 0
+ },
+ {
+  "company": "Gajanand Enterprise",
+  "docstatus": 0,
+  "doctype": "Email Template",
+  "modified": "2026-01-02 14:00:04.272486",
+  "name": "Invoice Format-Gajanand Enterprise",
+  "response": "<div class=\"ql-editor read-mode\"><p>Hi {{doc.customer}},</p><p><br></p><p>We have generated Invoice for {{doc.delivery_challan}} Challan No. Please find attached same invoice.</p><p><br></p><p><br></p><p>Thanks &amp; Regards</p><p>Gajanand Enterpise</p><p>C/15/16- Bansidhar Estate,</p><p>Opp. Suprabhat Estate, Bardolpura,</p><p>Ahmedabad,380004</p><p>M:+919925024629</p></div>",
   "response_html": null,
   "subject": "{{doc.company}}: Invoice - {{doc.name}}",
   "use_html": 0
