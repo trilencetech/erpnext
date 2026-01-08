@@ -16,7 +16,7 @@ frappe.ui.form.on("Stock Entry", {
 				return doc.qty <= doc.actual_qty ? "green" : "orange";
 			}
 		});
-
+		
 		frm.set_query("work_order", function () {
 			return {
 				filters: [

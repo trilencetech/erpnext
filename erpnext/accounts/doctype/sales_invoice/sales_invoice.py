@@ -279,6 +279,7 @@ class SalesInvoice(SellingController):
     def validate(self):
         self.validate_auto_set_posting_time()
         super().validate()
+        self.validate_sequence()
 
         if not (self.is_pos or self.is_debit_note):
             self.so_dn_required()
@@ -364,6 +365,41 @@ class SalesInvoice(SellingController):
         self.validate_write_off_account()
         self.validate_account_for_change_amount()
         self.validate_income_account()
+    # Server Script: Sales Invoice (Before Save)
+
+    def validate_sequence(doc):
+        import frappe
+
+    def validate_sequence(doc):
+        # If no Delivery Note linked, skip
+        if not doc.delivery_challan:
+            return
+
+        # Extract prefix and sequence from Delivery Note name
+        dn_parts = doc.delivery_challan.split('/')
+        if len(dn_parts) < 2:
+            return
+
+        dn_parts = dn_parts[0].split('-')
+        company_prefix = dn_parts[1]   # e.g. VCW, GE
+        dn_seq = dn_parts[2]     # e.g. 24
+
+        si_parts = doc.name.split('/')
+        if len(si_parts) < 2:
+            return
+
+        si_parts = si_parts[0].split('-')
+        si_company_prefix = si_parts[0]   # e.g. VCW, GE
+        si_seq = si_parts[1]
+
+        pending_dn = "DC-"+company_prefix+"-"+si_seq
+        if company_prefix == si_company_prefix:
+            if int(dn_seq) != int(si_seq):
+                frappe.throw(
+                    f"Cannot create Sales Invoice for {doc.delivery_challan}. "
+                    f"Previous Delivery Note {pending_dn}  "
+                    f"is still pending invoicing."
+                )
 
     def validate_for_repost(self):
         self.validate_write_off_account()

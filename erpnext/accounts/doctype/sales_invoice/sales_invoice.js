@@ -90,6 +90,7 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends (
 			this.frm.page.set_inner_btn_group_as_primary(__("Create"));
 		}
 
+
 		if (doc.docstatus == 1 && !doc.is_return) {
 			var is_delivered_by_supplier = false;
 
@@ -1135,7 +1136,7 @@ var select_loyalty_program = function (frm, loyalty_programs) {
 				fieldname: "loyalty_program",
 				value: dialog.get_value("loyalty_program"),
 			},
-			callback: function (r) {},
+			callback: function (r) { },
 		});
 	});
 
