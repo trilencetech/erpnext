@@ -3061,10 +3061,9 @@ def upload_pdf_to_whatsapp(pdf_bytes, access_token, phone_number_id):
 
 
 @frappe.whitelist()
-def send_text_message(access_token, customer_doc, phone_number_id, invoice_name, media_id):
+def send_text_message(access_token, mobile_no, phone_number_id, invoice_name, media_id):
 
     message_url = f"https://graph.facebook.com/v22.0/{phone_number_id}/messages"
-    mobileNo = f"{customer_doc.mobile_no}"
     # frappe.msgprint("customer_phone:::"+mobileNo)
     headers = {
         "Authorization": f"Bearer {access_token}",
@@ -3073,7 +3072,7 @@ def send_text_message(access_token, customer_doc, phone_number_id, invoice_name,
 
     payload = {
         "messaging_product": "whatsapp",
-        "to": mobileNo,
+        "to": mobile_no,
         "type": "template",
         "template": {
             "name": "invoice_notification",
@@ -3108,20 +3107,24 @@ def send_text_message(access_token, customer_doc, phone_number_id, invoice_name,
 
 @frappe.whitelist()
 def send_invoice_whatsapp(invoice_name):
-    settings = frappe.get_single("WhatsApp Settings")
-    access_token = settings.get_password("token")
-    phone_number_id = settings.phone_id
     doc = frappe.get_doc("Sales Invoice", invoice_name)
-    pdf = generate_invoice_pdf(invoice_name, doc)
-
-    media_id = upload_pdf_to_whatsapp(pdf, access_token, phone_number_id)
-    # frappe.msgprint("Media ID::"+str(media_id))
-    # Send text message first
-
     customer_doc = frappe.get_doc("Customer", doc.customer)
+    mobile_no = get_primary_contact_mobile(customer_doc)
+    if mobile_no:
+        settings = frappe.get_single("WhatsApp Settings")
+        access_token = settings.get_password("token")
+        phone_number_id = settings.phone_id
 
-    send_text_message(access_token, customer_doc,
-                      phone_number_id, invoice_name, media_id)
+        pdf = generate_invoice_pdf(invoice_name, doc)
+
+        media_id = upload_pdf_to_whatsapp(pdf, access_token, phone_number_id)
+        # frappe.msgprint("Media ID::"+str(media_id))
+        # Send text message first
+
+        send_text_message(access_token, mobile_no,
+                          phone_number_id, invoice_name, media_id)
+    else:
+        frappe.throw("Mobile No not found under Customer Contact Details")
 
 
 @frappe.whitelist()
@@ -3206,3 +3209,26 @@ def get_primary_contact_email(customer_doc):
             else:
                 email_id_cust = None   # or skip logic
     return email_id_cust
+
+
+@frappe.whitelist()
+def get_primary_contact_mobile(customer_doc):
+    # Step 1: Find all contacts linked to this customer
+    phone_cust = None
+    if customer_doc.customer_primary_contact:
+        contact_doc = frappe.get_doc(
+            "Contact", customer_doc.customer_primary_contact)
+
+        if contact_doc:
+            phones = frappe.get_all(
+                "Contact Phone",
+                filters={"parent": contact_doc.name,
+                         "is_primary_mobile_no": 1},
+                fields=["phone"]
+            )
+
+            if phones:
+                phone_cust = phones[0].phone
+            else:
+                phone_cust = None   # or skip logic
+    return phone_cust
