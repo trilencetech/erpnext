@@ -1,3 +1,4 @@
+import pytz
 import ipaddress
 import frappe
 from datetime import datetime
@@ -109,7 +110,7 @@ def block_after_hours():
     end_block = settings.end_block_time
 
     # Current server time
-    now = datetime.now().time()
+    now = get_local_time()
 
     # Convert to time objects
     cutoff_start = datetime.strptime(start_block, "%H:%M").time()
@@ -117,7 +118,15 @@ def block_after_hours():
 
     # Check time restriction
     if now >= cutoff_start or now < cutoff_end:
-        frappe.msgprint("Login restricted outside office hours.")
+        frappe.throw("Login restricted outside office hours.")
+
+
+def get_local_time():
+    # Get ERPNext system timezone
+    tz = frappe.db.get_single_value(
+        "System Settings", "time_zone") or "Asia/Kolkata"
+    # Convert server time to local ERPNext time
+    return datetime.now(pytz.timezone(tz)).time()
 
 
 def block_ip():
