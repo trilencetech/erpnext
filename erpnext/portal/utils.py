@@ -110,12 +110,11 @@ def block_after_hours():
 
     # Current server time
     now = datetime.now().time()
-    frappe.msgprint(now)
+
     # Convert to time objects
     cutoff_start = datetime.strptime(start_block, "%H:%M").time()
     cutoff_end = datetime.strptime(end_block, "%H:%M").time()
-    frappe.msgprint(cutoff_start)
-    frappe.msgprint(cutoff_end)
+
     # Check time restriction
     if now >= cutoff_start or now < cutoff_end:
         frappe.msgprint("Login restricted outside office hours.")
