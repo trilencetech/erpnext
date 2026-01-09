@@ -1,3 +1,4 @@
+import ipaddress
 import frappe
 from datetime import datetime
 
@@ -24,6 +25,7 @@ def create_customer_or_supplier():
     """Based on the default Role (Customer, Supplier), create a Customer / Supplier.
     Called on_session_creation hook.
     """
+
     block_after_hours()
     user = frappe.session.user
 
@@ -107,3 +109,50 @@ def block_after_hours():
     if now >= start_block or now < end_block:
         frappe.throw(
             "Login restricted outside office hours (10:00 AM – 8:00 PM).")
+
+
+def block_after_hours():
+    # Exempt Administrator
+    if frappe.session.user == "Administrator":
+        return
+
+    # Fetch global settings
+    settings = frappe.get_single("System Settings")
+
+    start_block = settings.start_block_time
+    end_block = settings.end_block_time
+
+    # Current server time
+    now = datetime.now().time()
+
+    # Convert to time objects
+    cutoff_start = datetime.strptime(start_block, "%H:%M").time()
+    cutoff_end = datetime.strptime(end_block, "%H:%M").time()
+
+    # Check time restriction
+    if now >= cutoff_start or now < cutoff_end:
+        frappe.throw("Login restricted outside office hours.")
+
+
+def block_ip():
+    settings = frappe.get_single("System Settings")
+    allowed_ips = [ip.strip() for ip in (
+        settings.allowed_ips or "").split(",") if ip.strip()]
+    # Check IP
+    user_ip = frappe.local.request_ip
+
+    ip_ok = True
+    if allowed_ips:
+        ip_ok = False
+        for ip in allowed_ips:
+            if "/" in ip:  # CIDR range
+                if ipaddress.ip_address(user_ip) in ipaddress.ip_network(ip, strict=False):
+                    ip_ok = True
+                    break
+                else:  # exact match
+                    if user_ip == ip:
+                        ip_ok = True
+                        break
+
+    if not ip_ok and frappe.session.user != "Administrator":
+        frappe.throw("Login restricted: Your IP is not allowed.")
