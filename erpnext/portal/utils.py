@@ -102,20 +102,6 @@ def block_after_hours():
     if frappe.session.user == "Administrator":
         return
 
-    now = datetime.now().time()
-    start_block = datetime.strptime("20:00", "%H:%M").time()
-    end_block = datetime.strptime("10:00", "%H:%M").time()
-
-    if now >= start_block or now < end_block:
-        frappe.throw(
-            "Login restricted outside office hours (10:00 AM – 8:00 PM).")
-
-
-def block_after_hours():
-    # Exempt Administrator
-    if frappe.session.user == "Administrator":
-        return
-
     # Fetch global settings
     settings = frappe.get_single("System Settings")
 
