@@ -231,24 +231,26 @@ class DeliveryNote(SellingController):
     def autoname(self):
         company_abbr = frappe.db.get_value(
             "Company", self.company, "abbr") or "XX"
+
         today = getdate(nowdate())
         year = today.year
         month = today.month
 
-        if month < 4:
+        # Indian fiscal year runs April (4) to March (3)
+        if month < 4:  # Jan, Feb, Mar → still previous FY
             start_year = year - 1
             end_year = year
-        else:
+        else:          # Apr–Dec → current FY
             start_year = year
-        end_year = year + 1
-        # e.g., '2025-2026'
+            end_year = year + 1
 
+        # e.g., April 2025 → March 2026 = "25-26"
         fiscal_year = f"{str(start_year)[-2:]}-{str(end_year)[-2:]}"
 
         base_series = frappe.model.naming.make_autoname(
-            f"DC-{company_abbr}-.#####")
+            f"DC-{company_abbr}-.####")
 
-        # Append fiscal year suffix manually
+        # Append fiscal year suffix
         self.name = f"{base_series}/{fiscal_year}"
 
     def before_print(self, settings=None):
