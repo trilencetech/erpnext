@@ -212,7 +212,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2025-08-29 09:40:38.710091",
+  "modified": "2026-01-12 19:08:59.757824",
   "name": "GajanandAccountant",
   "role_profile": "GajanandAccountant",
   "roles": [
@@ -287,6 +287,12 @@
     "parentfield": "roles",
     "parenttype": "Role Profile",
     "role": "Sales Master Manager"
+   },
+   {
+    "parent": "GajanandAccountant",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "GajanandAccount"
    }
   ]
  }
