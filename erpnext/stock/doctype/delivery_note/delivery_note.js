@@ -316,6 +316,13 @@ erpnext.stock.DeliveryNoteController = class DeliveryNoteController extends (
 			}
 			if (this.frm.has_perm("submit") && doc.status !== "Closed") {
 				me.frm.add_custom_button(
+					__("Completed"),
+					function () {
+						me.complete_delivery_note();
+					},
+					__("Status")
+				);
+				me.frm.add_custom_button(
 					__("Close"),
 					function () {
 						me.close_delivery_note();
@@ -412,9 +419,15 @@ erpnext.stock.DeliveryNoteController = class DeliveryNoteController extends (
 		this.update_status("Closed");
 	}
 
+	complete_delivery_note(doc) {
+		this.update_status("Completed");
+	}
+
 	reopen_delivery_note() {
 		this.update_status("Submitted");
 	}
+
+
 
 	update_status(status) {
 		var me = this;
@@ -423,6 +436,7 @@ erpnext.stock.DeliveryNoteController = class DeliveryNoteController extends (
 			method: "erpnext.stock.doctype.delivery_note.delivery_note.update_delivery_note_status",
 			args: { docname: me.frm.doc.name, status: status },
 			callback: function (r) {
+				console.log(r)
 				if (!r.exc) me.frm.reload_doc();
 			},
 			always: function () {

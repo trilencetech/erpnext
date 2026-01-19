@@ -78,19 +78,6 @@ frappe.listview_settings["Delivery Note"] = {
 				erpnext.bulk_transaction_processing.create(doclist, "Delivery Note", "Packing Slip");
 			});
 		}
-		const report_link = `
-            <div style="margin-top: 1rem;">
-              
-						<button class="btn btn-primary" onclick="window.open('/app/query-report/Available%20Stock%20Filtered%20View', '_blank')">
-							    Available Stock Report <br/> (With Weight)
-  						</button>
-						<br/>
-						<button class="btn btn-primary" onclick="window.open('/app/query-report/Total%20Stock%20View/', '_blank')">
-							    Total Stock Report
-  						</button>
-                
-            </div>
-        `;
-		$(listview.page.sidebar).append(report_link);
+
 	},
 };
