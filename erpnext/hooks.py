@@ -71,6 +71,7 @@ doctype_list_js = {
     ],
 }
 
+
 override_doctype_class = {
     "Address": "erpnext.accounts.custom.address.ERPNextAddress"}
 
@@ -524,7 +525,8 @@ default_mail_footer = """
 	</span>
 """
 
-get_translated_dict = {("doctype", "Global Defaults"): "frappe.geo.country_info.get_translated_dict"}
+get_translated_dict = {("doctype", "Global Defaults")
+                        : "frappe.geo.country_info.get_translated_dict"}
 
 bot_parsers = [
     "erpnext.utilities.bot.FindItemBot",

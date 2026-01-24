@@ -1,0 +1,29 @@
+{
+ "content": null,
+ "creation": "2026-01-24 15:45:05.625779",
+ "docstatus": 0,
+ "doctype": "Page",
+ "idx": 0,
+ "modified": "2026-01-24 15:45:05.625779",
+ "modified_by": "Administrator",
+ "module": "Selling",
+ "name": "company-selector",
+ "owner": "Administrator",
+ "page_name": "company-selector",
+ "roles": [
+  {
+   "role": "Gajanand Account Admin"
+  },
+  {
+   "role": "GajanandAccount"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 0,
+ "title": "Company Selector"
+}

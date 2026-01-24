@@ -370,9 +370,6 @@ class SalesInvoice(SellingController):
     # Server Script: Sales Invoice (Before Save)
 
     def validate_sequence(doc):
-        import frappe
-
-    def validate_sequence(doc):
         # If no Delivery Note linked, skip
         if not doc.delivery_challan:
             return
@@ -3234,3 +3231,34 @@ def get_primary_contact_mobile(customer_doc):
             else:
                 phone_cust = None   # or skip logic
     return phone_cust
+
+
+@frappe.whitelist()
+def fetch_and_link_address(gstin, customer_name):
+    api_key = frappe.db.get_single_value(
+        "India Compliance Settings", "api_key")
+    url = f"https://api.india-compliance.in/gstin/{gstin}"
+    headers = {"Authorization": f"Bearer {api_key}"}
+
+    response = requests.get(url, headers=headers)
+    if response.status_code != 200:
+        frappe.throw("Failed to fetch GST details")
+
+    data = response.json()
+    addr = data.get("address", {})
+
+    # Create Address linked to Customer
+    address = frappe.get_doc({
+        "doctype": "Address",
+        "address_title": customer_name,
+        "address_line1": addr.get("line1"),
+        "address_line2": addr.get("line2"),
+        "city": addr.get("city"),
+        "state": addr.get("state"),
+        "pincode": addr.get("pincode"),
+        "country": "India",
+        "links": [{"link_doctype": "Customer", "link_name": customer_name}]
+    })
+    address.insert(ignore_permissions=True)
+
+    return {"status": "success", "address_name": address.name}

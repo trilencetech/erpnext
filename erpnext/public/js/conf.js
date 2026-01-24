@@ -24,3 +24,4 @@ $.extend(frappe.breadcrumbs.module_map, {
 	"E-commerce": "Website",
 	Contacts: "CRM",
 });
+

@@ -130,5 +130,16 @@
   "name": "Delivery_Note_Freight",
   "script": "frappe.ui.form.on(\"Delivery Note\", {\n    freight: function (frm) {\n    let freight = frm.doc.freight || 0;\n\n    // Find existing FREIGHT row\n    let existing = (frm.doc.items || []).find(d => d.item_code === \"FREIGHT\");\n\n    if (freight > 0) {\n        if (existing) {\n            // Update existing row\n            existing.rate = freight;\n            existing.qty = 1;\n            existing.amount = freight;\n        } else {\n            // Add new FREIGHT row\n            let row = frm.add_child(\"items\");\n            row.item_code = \"FREIGHT\";\n            row.item_name = \"Freight Charges\";\n            row.qty = 1;\n            row.rate = freight;\n            row.amount = freight;\n            row.uom = \"Nos\"; // or Service UOM\n        }\n    } else {\n        // Remove FREIGHT row if freight = 0\n        frm.doc.items = frm.doc.items.filter(d => d.item_code !== \"FREIGHT\");\n    }\n\n    frm.refresh_field(\"items\");\n    frm.script_manager.trigger(\"calculate_taxes_and_totals\");\n    }\n});\n\n",
   "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Customer",
+  "enabled": 0,
+  "modified": "2026-01-22 11:55:26.447163",
+  "module": "Selling",
+  "name": "Update_Address_GSTIN",
+  "script": "frappe.ui.form.on('Customer', {\n    gstin: function(frm) {\n        if (frm.doc.gstin) {\n            frappe.call({\n                method: \"erpnext.accounts.doctype.sales_invoice.sales_invoice.fetch_and_link_address\",\n                args: {\n                    gstin: frm.doc.gstin,\n                    customer_name: frm.doc.name\n                },\n                callback: function(r) {\n                    if (r.message && r.message.status === \"success\") {\n                        frappe.msgprint({\n                            title: __(\"Success\"),\n                            message: __(\"Address fetched and linked successfully\"),\n                            indicator: \"green\"\n                        });\n                        frm.reload_doc();\n                    }\n                }\n            });\n        }\n    }\n});\n",
+  "view": "Form"
  }
 ]
