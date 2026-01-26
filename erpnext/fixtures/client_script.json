@@ -141,5 +141,16 @@
   "name": "Update_Address_GSTIN",
   "script": "frappe.ui.form.on('Customer', {\n    gstin: function(frm) {\n        if (frm.doc.gstin) {\n            frappe.call({\n                method: \"erpnext.accounts.doctype.sales_invoice.sales_invoice.fetch_and_link_address\",\n                args: {\n                    gstin: frm.doc.gstin,\n                    customer_name: frm.doc.name\n                },\n                callback: function(r) {\n                    if (r.message && r.message.status === \"success\") {\n                        frappe.msgprint({\n                            title: __(\"Success\"),\n                            message: __(\"Address fetched and linked successfully\"),\n                            indicator: \"green\"\n                        });\n                        frm.reload_doc();\n                    }\n                }\n            });\n        }\n    }\n});\n",
   "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Payment Entry",
+  "enabled": 1,
+  "modified": "2026-01-26 18:58:01.293697",
+  "module": "Setup",
+  "name": "Payment_Entry_Pay",
+  "script": "frappe.ui.form.on('Payment Entry', {\n    party: function(frm) {\n        // If Party Type is Account, set Account Paid To same as Party\n        if (frm.doc.party_type === \"Account\" && frm.doc.payment_type='Pay') {\n            frm.set_value(\"paid_to\", frm.doc.party);\n        }\n        \n        if (frm.doc.company) {\n            // Get abbreviation of company\n            frappe.db.get_value(\"Company\", frm.doc.company, \"abbr\", function(r) {\n                if (r && r.abbr) {\n                    frm.set_value(\"cost_center\", \"Main - \" + r.abbr);\n                }\n            });\n        }\n    },\n    \n    party_type: function (frm) {\n         frm.set_query(\"party\", function() {\n            if (frm.doc.party_type === \"Account\" && frm.doc.company) {\n                return {\n                    filters: {\n                        company: frm.doc.company,\n                        is_group: 0\n                    }\n                };\n            }\n        });\n        frm.set_query(\"paid_to\", function() {\n            if (frm.doc.company) {\n                return {\n                    filters: {\n                        company: frm.doc.company,\n                        is_group: 0\n                    }\n                };\n            }\n        });\n    }\n\n    \n});\n\n// Add query filter so Party (Account) only shows accounts of selected company\nfrappe.ui.form.on('Payment Entry', {\n    onload: function(frm) {\n       \n\n        \n\n        frm.set_query(\"cost_center\", function() {\n            if (frm.doc.company) {\n                return {\n                    filters: {\n                        company: frm.doc.company\n                    }\n                };\n            }\n        });\n    }\n});\n",
+  "view": "Form"
  }
 ]
