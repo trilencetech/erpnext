@@ -16,9 +16,9 @@ frappe.pages['company-selector'].on_page_load = function (wrapper) {
 				let companies = r.message;
 				let $container = $(wrapper).find('.layout-main-section');
 				$container.empty();
-
+				$container.append('<div class="company-selector-page">')
 				companies.forEach(c => {
-					let btn = $(`<button class="btn btn-primary" style="margin:5px">${c.name}</button>`);
+					let btn = $(` <button  style="margin:5px">${c.name}</button> `);
 					btn.on('click', function () {
 						frappe.call({
 							method: "erpnext.api.set_session_company",
@@ -36,7 +36,15 @@ frappe.pages['company-selector'].on_page_load = function (wrapper) {
 					});
 					$container.append(btn);
 				});
+
+				$container.append('</div>')
 			}
 		}
+
+
 	});
+
+
+
+
 };

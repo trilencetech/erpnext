@@ -43,7 +43,8 @@ fixtures = [
 develop_version = "15.x.x-develop"
 
 app_include_js = "erpnext.bundle.js"
-app_include_css = "erpnext.bundle.css"
+app_include_css = ["erpnext.bundle.css",
+                   "/assets/erpnext/css/company_selector.css"]
 web_include_js = "erpnext-web.bundle.js"
 web_include_css = "erpnext-web.bundle.css"
 email_css = "email_erpnext.bundle.css"
@@ -525,8 +526,7 @@ default_mail_footer = """
 	</span>
 """
 
-get_translated_dict = {("doctype", "Global Defaults")
-                        : "frappe.geo.country_info.get_translated_dict"}
+get_translated_dict = {("doctype", "Global Defaults")                       : "frappe.geo.country_info.get_translated_dict"}
 
 bot_parsers = [
     "erpnext.utilities.bot.FindItemBot",

@@ -1,0 +1,64 @@
+/* Style for the header "Select Company" link */
+.navbar .nav-link.company-selector {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    /* spacing between icon and text */
+    font-weight: 500;
+    /* slightly bold */
+    color: #2563eb;
+    /* modern blue tone */
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: all 0.2s ease-in-out;
+}
+
+.navbar .nav-link.company-selector:hover {
+    background-color: #e0f2fe;
+    /* light blue hover background */
+    color: #1e40af;
+    /* darker blue text */
+    text-decoration: none;
+}
+
+.navbar .nav-link.company-selector span.octicon {
+    font-size: 16px;
+    color: #1e3a8a;
+    /* deep blue for icon */
+}
+
+.company-selector-page .company-btn {
+    display: inline-block;
+    margin: 8px;
+    padding: 10px 18px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #2563eb, #1e40af);
+    color: #fff;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.company-selector-page .company-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+}
+
+.company-btn {
+    display: inline-block;
+    margin: 8px;
+    padding: 10px 18px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #2563eb, #1e40af);
+    color: #fff;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.company-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+}
