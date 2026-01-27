@@ -24,6 +24,18 @@
   "prospect_name",
   "account_manager",
   "image",
+  "address_contacts",
+  "address_html",
+  "column_break1",
+  "contact_html",
+  "primary_address_and_contact_detail",
+  "column_break_26",
+  "customer_primary_address",
+  "primary_address",
+  "column_break_nwor",
+  "customer_primary_contact",
+  "mobile_no",
+  "email_id",
   "defaults_tab",
   "default_currency",
   "default_bank_account",
@@ -43,19 +55,6 @@
   "column_break_45",
   "customer_details",
   "dashboard_tab",
-  "contact_and_address_tab",
-  "address_contacts",
-  "address_html",
-  "column_break1",
-  "contact_html",
-  "primary_address_and_contact_detail",
-  "column_break_26",
-  "customer_primary_address",
-  "primary_address",
-  "column_break_nwor",
-  "customer_primary_contact",
-  "mobile_no",
-  "email_id",
   "tax_tab",
   "taxation_section",
   "gstin",
@@ -498,11 +497,6 @@
    "print_hide": 1
   },
   {
-   "fieldname": "contact_and_address_tab",
-   "fieldtype": "Tab Break",
-   "label": "Address & Contact"
-  },
-  {
    "fieldname": "defaults_tab",
    "fieldtype": "Section Break",
    "label": "Defaults"
@@ -548,7 +542,8 @@
   },
   {
    "fieldname": "taxation_section",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "GST Details"
   },
   {
    "fieldname": "accounting_tab",
@@ -631,7 +626,7 @@
    "link_fieldname": "party"
   }
  ],
- "modified": "2025-09-07 16:34:20.173446",
+ "modified": "2026-01-27 17:58:01.541022",
  "modified_by": "Administrator",
  "module": "Selling",
  "name": "Customer",

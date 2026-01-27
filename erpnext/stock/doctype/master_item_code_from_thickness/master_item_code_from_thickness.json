@@ -41,7 +41,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-11-17 11:15:11.701371",
+ "modified": "2026-01-27 17:15:43.333300",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Master Item Code From Thickness",
@@ -57,6 +57,30 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Gajanand Account Admin",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "GajanandAccount",
    "share": 1,
    "write": 1
   }
