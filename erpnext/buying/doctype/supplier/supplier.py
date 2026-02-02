@@ -28,6 +28,7 @@ class Supplier(TransactionBase):
 	if TYPE_CHECKING:
 		from erpnext.accounts.doctype.allowed_to_transact_with.allowed_to_transact_with import AllowedToTransactWith
 		from erpnext.accounts.doctype.party_account.party_account import PartyAccount
+		from erpnext.selling.doctype.customer_company.customer_company import CustomerCompany
 		from erpnext.utilities.doctype.portal_user.portal_user import PortalUser
 		from frappe.types import DF
 
@@ -37,6 +38,7 @@ class Supplier(TransactionBase):
 		companies: DF.Table[AllowedToTransactWith]
 		country: DF.Link | None
 		credit_days: DF.Int
+		customer_company: DF.Table[CustomerCompany]
 		default_bank_account: DF.Link | None
 		default_currency: DF.Link | None
 		default_price_list: DF.Link | None

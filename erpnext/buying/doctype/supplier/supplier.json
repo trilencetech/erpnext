@@ -12,6 +12,7 @@
  "field_order": [
   "naming_series",
   "supplier_name",
+  "customer_company",
   "country",
   "column_break0",
   "supplier_group",
@@ -499,6 +500,13 @@
    "fieldname": "credit_days",
    "fieldtype": "Int",
    "label": "Credit Days"
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "customer_company",
+   "fieldtype": "Table",
+   "label": "Company",
+   "options": "Customer Company"
   }
  ],
  "icon": "fa fa-user",
@@ -511,7 +519,7 @@
    "link_fieldname": "party"
   }
  ],
- "modified": "2025-09-07 16:33:46.041328",
+ "modified": "2026-02-02 18:45:33.399788",
  "modified_by": "Administrator",
  "module": "Buying",
  "name": "Supplier",

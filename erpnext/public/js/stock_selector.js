@@ -193,3 +193,4 @@ gajanand.stock_selector.show_stock_dialog = function (frm) {
     });
 
 }
+

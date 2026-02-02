@@ -32,6 +32,7 @@ class Customer(TransactionBase):
 	if TYPE_CHECKING:
 		from erpnext.accounts.doctype.allowed_to_transact_with.allowed_to_transact_with import AllowedToTransactWith
 		from erpnext.accounts.doctype.party_account.party_account import PartyAccount
+		from erpnext.selling.doctype.customer_company.customer_company import CustomerCompany
 		from erpnext.selling.doctype.customer_credit_limit.customer_credit_limit import CustomerCreditLimit
 		from erpnext.selling.doctype.sales_team.sales_team import SalesTeam
 		from erpnext.utilities.doctype.portal_user.portal_user import PortalUser
@@ -41,6 +42,7 @@ class Customer(TransactionBase):
 		accounts: DF.Table[PartyAccount]
 		companies: DF.Table[AllowedToTransactWith]
 		credit_limits: DF.Table[CustomerCreditLimit]
+		customer_company: DF.Table[CustomerCompany]
 		customer_details: DF.Text | None
 		customer_group: DF.Link | None
 		customer_name: DF.Data

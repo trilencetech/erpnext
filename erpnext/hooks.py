@@ -55,11 +55,12 @@ doctype_js = {
     "Event": "public/js/event.js",
     "Newsletter": "public/js/newsletter.js",
     "Contact": "public/js/contact.js",
-    "Purchase Order": "public/js/stock_selector.js",
-    "Purchase Receipt": "public/js/stock_selector.js",
-    "Sales Order": "public/js/stock_selector.js",
-    "Sales Invoice": "public/js/stock_selector.js",
-    "Update Stock": "public/js/stock_selector.js",
+    "Purchase Order": ["public/js/stock_selector.js", "public/js/customer_company.js"],
+    "Purchase Receipt": ["public/js/stock_selector.js", "public/js/customer_company.js"],
+    "Sales Order": ["public/js/stock_selector.js", "public/js/customer_company.js"],
+    "Sales Invoice": ["public/js/stock_selector.js", "public/js/customer_company.js"],
+    "Update Stock": ["public/js/stock_selector.js", "public/js/customer_company.js"],
+    "Delivery Note": ["public/js/stock_selector.js", "public/js/customer_company.js"],
     "Report": "public/js/stock_report_dialog.js",
     "Custom HTML Block": "public/js/stock_report_dialog.js"
 }
