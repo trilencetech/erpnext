@@ -17,6 +17,7 @@
   "customer_type",
   "customer_group",
   "customer_company",
+  "credit_days",
   "column_break0",
   "territory",
   "gender",
@@ -360,8 +361,7 @@
   {
    "fieldname": "credit_limit_section",
    "fieldtype": "Section Break",
-   "hidden": 1,
-   "label": "Credit Limit and Payment Terms"
+   "label": "Credit Days Configuration"
   },
   {
    "fieldname": "payment_terms",
@@ -466,6 +466,7 @@
   {
    "fieldname": "credit_limits",
    "fieldtype": "Table",
+   "hidden": 1,
    "label": "Credit Limit",
    "options": "Customer Credit Limit"
   },
@@ -621,6 +622,12 @@
    "fieldtype": "Table",
    "label": "Company",
    "options": "Customer Company"
+  },
+  {
+   "default": "45",
+   "fieldname": "credit_days",
+   "fieldtype": "Int",
+   "label": "Credit Days"
   }
  ],
  "icon": "fa fa-user",
@@ -634,7 +641,7 @@
    "link_fieldname": "party"
   }
  ],
- "modified": "2026-02-01 16:07:13.282503",
+ "modified": "2026-02-03 08:13:01.535022",
  "modified_by": "Administrator",
  "module": "Selling",
  "name": "Customer",
