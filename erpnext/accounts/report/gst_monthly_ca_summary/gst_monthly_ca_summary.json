@@ -1,0 +1,61 @@
+{
+ "add_total_row": 0,
+ "add_translate_data": 0,
+ "columns": [],
+ "creation": "2026-02-11 08:53:31.666059",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "mandatory": 1,
+   "options": "Company",
+   "wildcard_filter": 0
+  },
+  {
+   "fieldname": "from_date",
+   "fieldtype": "Date",
+   "label": "From Date",
+   "mandatory": 1,
+   "wildcard_filter": 0
+  },
+  {
+   "fieldname": "to_date",
+   "fieldtype": "Date",
+   "label": "To Date",
+   "mandatory": 1,
+   "wildcard_filter": 0
+  }
+ ],
+ "idx": 0,
+ "is_standard": "Yes",
+ "letterhead": null,
+ "modified": "2026-02-12 09:44:09.011620",
+ "modified_by": "Administrator",
+ "module": "Accounts",
+ "name": "GST Monthly CA Summary",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "Sales Invoice",
+ "report_name": "GST Monthly CA Summary",
+ "report_script": "# SIMPLE TEST SCRIPT FOR ERPNEXT V15 SCRIPT REPORT\n# ==================================================\n# Use this to verify your Script Report setup is working\n# BEFORE pasting the full GST CA Summary script.\n#\n# HOW TO USE:\n# 1. Create Script Report: \"GST Monthly CA Summary\"\n# 2. Add 3 filters: company, from_date, to_date\n# 3. Paste THIS script (the whole file) into the script editor\n# 4. Save\n# 5. Run the report - you should see test data\n# 6. If it works, replace with the full gst_ca_summary.py script\n# ==================================================\n\n\ndef execute(filters=None):\n    \"\"\"\n    Minimal test script to verify Script Report configuration.\n    If this runs successfully, your setup is correct.\n    \"\"\"\n    \n    # Test 1: Verify filters are being passed\n    if not filters:\n        filters = {}\n    \n    # Define columns\n    columns = [\n        {\"label\": \"Test Item\",   \"fieldname\": \"item\",   \"fieldtype\": \"Data\",     \"width\": 250},\n        {\"label\": \"Status\",      \"fieldname\": \"status\", \"fieldtype\": \"Data\",     \"width\": 200},\n        {\"label\": \"Test Value\",  \"fieldname\": \"value\",  \"fieldtype\": \"Currency\", \"width\": 150},\n    ]\n    \n    # Test data\n    data = []\n    \n    # Row 1: Confirm script is running\n    data.append({\n        \"item\":   \"\u2713 Script Execution\",\n        \"status\": \"SUCCESS - Script is running!\",\n        \"value\":  1.00\n    })\n    \n    # Row 2: Show received filters\n    data.append({\n        \"item\":   \"\u2713 Filters Received\",\n        \"status\": \"Company: \" + str(filters.get(\"company\", \"NOT SET\")),\n        \"value\":  0.00\n    })\n    \n    data.append({\n        \"item\":   \"\",\n        \"status\": \"From Date: \" + str(filters.get(\"from_date\", \"NOT SET\")),\n        \"value\":  0.00\n    })\n    \n    data.append({\n        \"item\":   \"\",\n        \"status\": \"To Date: \" + str(filters.get(\"to_date\", \"NOT SET\")),\n        \"value\":  0.00\n    })\n    \n    # Row 3: Test database connectivity\n    try:\n        # Try to count Sales Invoices in the date range\n        result = frappe.db.sql(\"\"\"\n            SELECT COUNT(*) as count\n            FROM `tabSales Invoice`\n            WHERE docstatus = 1\n              AND company = %(company)s\n              AND posting_date BETWEEN %(from_date)s AND %(to_date)s\n        \"\"\", {\n            \"company\": filters.get(\"company\"),\n            \"from_date\": filters.get(\"from_date\"),\n            \"to_date\": filters.get(\"to_date\")\n        }, as_dict=True)\n        \n        invoice_count = result[0][\"count\"] if result else 0\n        \n        data.append({\n            \"item\":   \"\u2713 Database Query\",\n            \"status\": \"SUCCESS - Found \" + str(invoice_count) + \" Sales Invoices\",\n            \"value\":  float(invoice_count)\n        })\n        \n    except Exception as e:\n        data.append({\n            \"item\":   \"\u2717 Database Query\",\n            \"status\": \"ERROR: \" + str(e),\n            \"value\":  0.00\n        })\n    \n    # Row 4: Test tax data detection\n    try:\n        tax_result = frappe.db.sql(\"\"\"\n            SELECT \n                COUNT(*) as count,\n                SUM(base_tax_amount) as total\n            FROM `tabSales Taxes and Charges` stc\n            INNER JOIN `tabSales Invoice` si ON si.name = stc.parent\n            WHERE si.docstatus = 1\n              AND si.company = %(company)s\n              AND si.posting_date BETWEEN %(from_date)s AND %(to_date)s\n        \"\"\", {\n            \"company\": filters.get(\"company\"),\n            \"from_date\": filters.get(\"from_date\"),\n            \"to_date\": filters.get(\"to_date\")\n        }, as_dict=True)\n        \n        tax_count = tax_result[0][\"count\"] if tax_result else 0\n        tax_total = flt(tax_result[0][\"total\"], 2) if tax_result and tax_result[0][\"total\"] else 0.00\n        \n        data.append({\n            \"item\":   \"\u2713 Tax Lines Found\",\n            \"status\": \"SUCCESS - \" + str(tax_count) + \" tax lines\",\n            \"value\":  tax_total\n        })\n        \n    except Exception as e:\n        data.append({\n            \"item\":   \"\u2717 Tax Data\",\n            \"status\": \"ERROR: \" + str(e),\n            \"value\":  0.00\n        })\n    \n    # Summary row\n    data.append({\n        \"item\":   frappe.bold(\"RESULT\"),\n        \"status\": frappe.bold(\"If all items show \u2713 SUCCESS, your setup is correct!\"),\n        \"value\":  None\n    })\n    \n    data.append({\n        \"item\":   \"\",\n        \"status\": \"Next step: Replace this test script with gst_ca_summary.py\",\n        \"value\":  None\n    })\n    \n    return columns, data\n\n\n# ============================================================================\n# EXPECTED OUTPUT WHEN WORKING:\n# ============================================================================\n# Test Item                | Status                                    | Test Value\n# -------------------------|-------------------------------------------|------------\n# \u2713 Script Execution       | SUCCESS - Script is running!              | 1.00\n# \u2713 Filters Received       | Company: Veer Creation Works              | 0.00\n#                          | From Date: 2026-01-01                     | 0.00\n#                          | To Date: 2026-01-31                       | 0.00\n# \u2713 Database Query         | SUCCESS - Found 15 Sales Invoices         | 15.00\n# \u2713 Tax Lines Found        | SUCCESS - 30 tax lines                    | 51302.16\n# RESULT                   | If all items show \u2713 SUCCESS, setup OK!    |\n#                          | Next: Replace with gst_ca_summary.py      |\n# ============================================================================\n",
+ "report_type": "Script Report",
+ "roles": [
+  {
+   "role": "Accounts User"
+  },
+  {
+   "role": "Purchase User"
+  },
+  {
+   "role": "Accounts Manager"
+  },
+  {
+   "role": "Auditor"
+  }
+ ],
+ "timeout": 0
+}
