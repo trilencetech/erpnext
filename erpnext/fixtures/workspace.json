@@ -1,7 +1,7 @@
 [
  {
   "charts": [],
-  "content": "[{\"id\":\"aCk49ShVRs\",\"type\":\"onboarding\",\"data\":{\"onboarding_name\":\"Home\",\"col\":12}},{\"id\":\"kb3XPLg8lb\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Your Shortcuts</b></span>\",\"col\":12}},{\"id\":\"nWd2KJPW8l\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Item\",\"col\":3}},{\"id\":\"snrzfbFr5Y\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer\",\"col\":3}},{\"id\":\"SHJKakmLLf\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Supplier\",\"col\":3}},{\"id\":\"CPxEyhaf3G\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Sales Invoice\",\"col\":3}},{\"id\":\"WU4F-HUcIQ\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Leaderboard\",\"col\":3}},{\"id\":\"d_KVM1gsf9\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"JVu8-FJZCu\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Reports &amp; Masters</b></span>\",\"col\":12}},{\"id\":\"JiuSi0ubOg\",\"type\":\"card\",\"data\":{\"card_name\":\"Accounting\",\"col\":4}},{\"id\":\"ji2Jlm3Q8i\",\"type\":\"card\",\"data\":{\"card_name\":\"Stock\",\"col\":4}},{\"id\":\"N61oiXpuwK\",\"type\":\"card\",\"data\":{\"card_name\":\"CRM\",\"col\":4}},{\"id\":\"6J0CVl1mPo\",\"type\":\"card\",\"data\":{\"card_name\":\"Data Import and Settings\",\"col\":4}}]",
+  "content": "[{\"id\":\"aCk49ShVRs\",\"type\":\"onboarding\",\"data\":{\"onboarding_name\":\"Home\",\"col\":12}},{\"id\":\"kb3XPLg8lb\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Your Shortcuts</b></span>\",\"col\":12}},{\"id\":\"nWd2KJPW8l\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Item\",\"col\":3}},{\"id\":\"snrzfbFr5Y\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer\",\"col\":3}},{\"id\":\"SHJKakmLLf\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Supplier\",\"col\":3}},{\"id\":\"CPxEyhaf3G\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Sales Invoice\",\"col\":3}},{\"id\":\"d_KVM1gsf9\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"JVu8-FJZCu\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Reports &amp; Masters</b></span>\",\"col\":12}},{\"id\":\"JiuSi0ubOg\",\"type\":\"card\",\"data\":{\"card_name\":\"Accounting\",\"col\":4}},{\"id\":\"ji2Jlm3Q8i\",\"type\":\"card\",\"data\":{\"card_name\":\"Stock\",\"col\":4}},{\"id\":\"N61oiXpuwK\",\"type\":\"card\",\"data\":{\"card_name\":\"CRM\",\"col\":4}},{\"id\":\"6J0CVl1mPo\",\"type\":\"card\",\"data\":{\"card_name\":\"Data Import and Settings\",\"col\":4}}]",
   "custom_blocks": [],
   "docstatus": 0,
   "doctype": "Workspace",
@@ -391,7 +391,7 @@
     "type": "Link"
    }
   ],
-  "modified": "2025-07-02 14:12:28.407612",
+  "modified": "2026-02-12 11:38:15.803523",
   "module": "Setup",
   "name": "Home",
   "number_cards": [],
@@ -14535,33 +14535,33 @@
  },
  {
   "charts": [],
-  "content": "[{\"id\":\"QV5_MJr7E0\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Purchase Management</span>\",\"col\":12}},{\"id\":\"IM-QyIcLfD\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Purchase and Selling Menu\",\"col\":12}},{\"id\":\"BTo4iSd-Br\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Sales Management</b></span>\",\"col\":12}},{\"id\":\"JlOLhj4rkg\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Sale Management\",\"col\":12}},{\"id\":\"g9TMg7nNSf\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Payment Entries</b></span>\",\"col\":12}},{\"id\":\"nAI7wMUuL6\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Payment Entries\",\"col\":12}},{\"id\":\"jXqwFgnoN-\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Item and Customer/Supplier Management</b></span>\",\"col\":12}},{\"id\":\"qcsxn58Y1g\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Item Group Menu Master\",\"col\":12}},{\"id\":\"5wd9Dq9yBZ\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Accounting Data Report</b></span>\",\"col\":12}},{\"id\":\"r1nJzX0SGd\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"General Ledger\",\"col\":3}},{\"id\":\"ln_pVW1Dxj\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Stock Report\",\"col\":3}},{\"id\":\"qzh7GbzGVO\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Stock Ledger\",\"col\":3}},{\"id\":\"LBb4WmRaVB\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Balance Sheet\",\"col\":3}},{\"id\":\"NncQkxfr39\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer Ledger\",\"col\":3}},{\"id\":\"oHjfALQ4HV\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Profit and Loss Statement\",\"col\":3}},{\"id\":\"N5c17qqYFb\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Stock Balance\",\"col\":3}},{\"id\":\"xeMYTwclUa\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Frieght and Other Charges\",\"col\":3}}]",
+  "content": "[{\"id\":\"QV5_MJr7E0\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Purchase Management</span>\",\"col\":12}},{\"id\":\"IM-QyIcLfD\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Purchase and Selling Menu\",\"col\":12}},{\"id\":\"BTo4iSd-Br\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Sales Management</b></span>\",\"col\":12}},{\"id\":\"JlOLhj4rkg\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Sale Management\",\"col\":12}},{\"id\":\"g9TMg7nNSf\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Payment Entries</b></span>\",\"col\":12}},{\"id\":\"nAI7wMUuL6\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Payment Entries\",\"col\":12}},{\"id\":\"jXqwFgnoN-\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Item and Customer/Supplier Management</b></span>\",\"col\":12}},{\"id\":\"qcsxn58Y1g\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Item Group Menu Master\",\"col\":12}},{\"id\":\"5wd9Dq9yBZ\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Accounting Data Report</b></span>\",\"col\":12}},{\"id\":\"r1nJzX0SGd\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"General Ledger\",\"col\":3}},{\"id\":\"ln_pVW1Dxj\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Stock Report\",\"col\":3}},{\"id\":\"qzh7GbzGVO\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Stock Ledger\",\"col\":3}},{\"id\":\"LBb4WmRaVB\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Balance Sheet\",\"col\":3}},{\"id\":\"NncQkxfr39\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer Ledger\",\"col\":3}},{\"id\":\"oHjfALQ4HV\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Profit and Loss Statement\",\"col\":3}},{\"id\":\"N5c17qqYFb\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Stock Balance\",\"col\":3}},{\"id\":\"xeMYTwclUa\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Frieght and Other Charges\",\"col\":3}},{\"id\":\"hW_8O2oG8-\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"GST Summary Monthly\",\"col\":3}}]",
   "custom_blocks": [
    {
     "custom_block_name": "Sale Management",
     "label": "Sale Management",
-    "parent": "Gajanand Enterprise",
+    "parent": "Gajanand House",
     "parentfield": "custom_blocks",
     "parenttype": "Workspace"
    },
    {
     "custom_block_name": "Payment Entries",
     "label": "Payment Entries",
-    "parent": "Gajanand Enterprise",
+    "parent": "Gajanand House",
     "parentfield": "custom_blocks",
     "parenttype": "Workspace"
    },
    {
     "custom_block_name": "Purchase and Selling Menu",
     "label": "Purchase and Selling Menu",
-    "parent": "Gajanand Enterprise",
+    "parent": "Gajanand House",
     "parentfield": "custom_blocks",
     "parenttype": "Workspace"
    },
    {
     "custom_block_name": "Item Group Menu Master",
     "label": "Item Group Menu Master",
-    "parent": "Gajanand Enterprise",
+    "parent": "Gajanand House",
     "parentfield": "custom_blocks",
     "parenttype": "Workspace"
    }
@@ -14570,14 +14570,14 @@
   "doctype": "Workspace",
   "for_user": "",
   "hide_custom": 0,
-  "icon": "solid-success",
-  "indicator_color": "blue",
+  "icon": "color-monthly-rank",
+  "indicator_color": "",
   "is_hidden": 0,
-  "label": "Gajanand Enterprise",
+  "label": "Gajanand House",
   "links": [],
-  "modified": "2026-01-02 15:58:17.887084",
+  "modified": "2026-02-12 11:39:45.311853",
   "module": null,
-  "name": "Gajanand Enterprise",
+  "name": "Gajanand House",
   "number_cards": [],
   "parent_page": "",
   "public": 1,
@@ -14594,10 +14594,27 @@
     "kanban_board": null,
     "label": "Stock Ledger",
     "link_to": "Stock Ledger",
-    "parent": "Gajanand Enterprise",
+    "parent": "Gajanand House",
     "parentfield": "shortcuts",
     "parenttype": "Workspace",
     "report_ref_doctype": "Stock Ledger Entry",
+    "restrict_to_domain": null,
+    "stats_filter": null,
+    "type": "Report",
+    "url": null
+   },
+   {
+    "color": "Grey",
+    "doc_view": "List",
+    "format": null,
+    "icon": null,
+    "kanban_board": null,
+    "label": "GST Summary Monthly",
+    "link_to": "GST Monthly CA Summary",
+    "parent": "Gajanand House",
+    "parentfield": "shortcuts",
+    "parenttype": "Workspace",
+    "report_ref_doctype": "Sales Invoice",
     "restrict_to_domain": null,
     "stats_filter": null,
     "type": "Report",
@@ -14611,7 +14628,7 @@
     "kanban_board": null,
     "label": "Frieght and Other Charges",
     "link_to": "Freight and Other Charges",
-    "parent": "Gajanand Enterprise",
+    "parent": "Gajanand House",
     "parentfield": "shortcuts",
     "parenttype": "Workspace",
     "report_ref_doctype": null,
@@ -14628,7 +14645,7 @@
     "kanban_board": null,
     "label": "General Ledger",
     "link_to": "General Ledger",
-    "parent": "Gajanand Enterprise",
+    "parent": "Gajanand House",
     "parentfield": "shortcuts",
     "parenttype": "Workspace",
     "report_ref_doctype": "GL Entry",
@@ -14645,7 +14662,7 @@
     "kanban_board": null,
     "label": "Stock Balance",
     "link_to": "Stock Balance",
-    "parent": "Gajanand Enterprise",
+    "parent": "Gajanand House",
     "parentfield": "shortcuts",
     "parenttype": "Workspace",
     "report_ref_doctype": "Stock Ledger Entry",
@@ -14662,7 +14679,7 @@
     "kanban_board": null,
     "label": "Stock Report",
     "link_to": "Available Stock Filtered View",
-    "parent": "Gajanand Enterprise",
+    "parent": "Gajanand House",
     "parentfield": "shortcuts",
     "parenttype": "Workspace",
     "report_ref_doctype": "Stock Ledger Entry",
@@ -14679,7 +14696,7 @@
     "kanban_board": null,
     "label": "Balance Sheet",
     "link_to": "Balance Sheet",
-    "parent": "Gajanand Enterprise",
+    "parent": "Gajanand House",
     "parentfield": "shortcuts",
     "parenttype": "Workspace",
     "report_ref_doctype": "GL Entry",
@@ -14696,7 +14713,7 @@
     "kanban_board": null,
     "label": "Profit and Loss Statement",
     "link_to": "Profit and Loss Statement",
-    "parent": "Gajanand Enterprise",
+    "parent": "Gajanand House",
     "parentfield": "shortcuts",
     "parenttype": "Workspace",
     "report_ref_doctype": "GL Entry",
@@ -14713,7 +14730,7 @@
     "kanban_board": null,
     "label": "Customer Ledger",
     "link_to": "Customer Ledger Summary",
-    "parent": "Gajanand Enterprise",
+    "parent": "Gajanand House",
     "parentfield": "shortcuts",
     "parenttype": "Workspace",
     "report_ref_doctype": "Sales Invoice",
@@ -14723,7 +14740,7 @@
     "url": null
    }
   ],
-  "title": "Gajanand Enterprise"
+  "title": "Gajanand House"
  },
  {
   "charts": [],
