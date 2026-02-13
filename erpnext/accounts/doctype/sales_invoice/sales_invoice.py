@@ -3262,3 +3262,20 @@ def fetch_and_link_address(gstin, customer_name):
     address.insert(ignore_permissions=True)
 
     return {"status": "success", "address_name": address.name}
+
+
+@frappe.whitelist()
+def rename_sales_invoice(old_name, new_name):
+    """Helper function to rename sales invoice"""
+    if not frappe.has_permission("Sales Invoice", "write"):
+        frappe.throw("No permission to rename")
+
+    # Rename the invoice
+    frappe.rename_doc("Sales Invoice", old_name, new_name, force=True)
+
+    # Add comment for audit trail
+    doc = frappe.get_doc("Sales Invoice", new_name)
+    doc.add_comment(
+        "Edit", f"Invoice renamed from {old_name} by {frappe.session.user}")
+
+    return {"success": True, "new_name": new_name}

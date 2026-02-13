@@ -328,6 +328,7 @@
    "fieldtype": "Section Break"
   },
   {
+   "allow_on_submit": 1,
    "bold": 1,
    "columns": 2,
    "fieldname": "rate",
@@ -1019,7 +1020,7 @@
  "idx": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-11-28 15:11:28.562211",
+ "modified": "2026-02-13 09:48:41.775560",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Sales Invoice Item",
