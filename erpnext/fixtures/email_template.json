@@ -20,16 +20,5 @@
   "response_html": null,
   "subject": "2A/2B Reconciliation for {{ supplier_name }}-{{ supplier_gstin }}",
   "use_html": 0
- },
- {
-  "company": "Veer Creation Works",
-  "docstatus": 0,
-  "doctype": "Email Template",
-  "modified": "2026-01-02 13:58:04.295046",
-  "name": "Invoice Format - Veer Creation",
-  "response": "<div class=\"ql-editor read-mode\"><p>Hi {{doc.customer}},</p><p><br></p><p>We have generated Invoice for {{doc.delivery_challan}} Challan No. Please find attached same invoice.</p><p><br></p><p><br></p><p>Thanks &amp; Regards</p><p>Veer Creation Works</p><p>C/15/16- Bansidhar Estate,</p><p>Opp. Suprabhat Estate, Bardolpura,</p><p>Ahmedabad,380004</p><p>M:+919409125152</p></div>",
-  "response_html": null,
-  "subject": "{{doc.company}}: Invoice - {{doc.name}}",
-  "use_html": 0
  }
 ]

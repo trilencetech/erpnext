@@ -10,7 +10,8 @@ from frappe import _, msgprint, throw
 from frappe.contacts.doctype.address.address import get_address_display
 from frappe.model.mapper import get_mapped_doc
 from frappe.model.utils import get_fetch_values
-from frappe.utils import add_days, cint, cstr, flt, formatdate, get_link_to_form, getdate, nowdate
+from frappe.utils import add_days, cint, cstr, flt, formatdate, get_link_to_form, getdate, nowdate, now
+import json
 
 import erpnext
 from erpnext.accounts.deferred_revenue import validate_service_stop_date
@@ -3145,30 +3146,31 @@ def send_invoice_email(docId):
         filters={"company": doc.company},
         fields=["subject", "response"]
     )
+    if template:
+        subject = frappe.render_template(template[0].subject, {"doc": doc})
+        message = frappe.render_template(template[0].response, {"doc": doc})
 
-    subject = frappe.render_template(template[0].subject, {"doc": doc})
-    message = frappe.render_template(template[0].response, {"doc": doc})
+        # Find customer contact email
+        customer_doc = frappe.get_doc("Customer", doc.customer)
+        emailId = get_primary_contact_email(customer_doc)
+        email_account = get_company_email_account(doc.company)
 
-    # Find customer contact email
-    customer_doc = frappe.get_doc("Customer", doc.customer)
-    emailId = get_primary_contact_email(customer_doc)
-    email_account = get_company_email_account(doc.company)
+        if emailId:
+            frappe.sendmail(
+                sender=email_account,
+                recipients=[emailId],
+                subject=subject,
+                message=message,
+                attachments=[{
+                    "fname": f"{doc.name}.pdf",
+                    "fcontent": pdf_data
+                }]
 
-    if emailId:
-        frappe.sendmail(
-            sender=email_account,
-            recipients=[emailId],
-            subject=subject,
-            message=message,
-            attachments=[{
-                "fname": f"{doc.name}.pdf",
-                "fcontent": pdf_data
-            }]
-
-        )
-        frappe.msgprint("Email sent successfully with Invoice PDF")
-    else:
-        frappe.msgprint("Email ID not found for customer "+doc.customer_name)
+            )
+            frappe.msgprint("Email sent successfully with Invoice PDF")
+        else:
+            frappe.msgprint(
+                "Email ID not found for customer "+doc.customer_name)
 
 
 @frappe.whitelist()
@@ -3265,17 +3267,132 @@ def fetch_and_link_address(gstin, customer_name):
 
 
 @frappe.whitelist()
-def rename_sales_invoice(old_name, new_name):
-    """Helper function to rename sales invoice"""
-    if not frappe.has_permission("Sales Invoice", "write"):
-        frappe.throw("No permission to rename")
+def unlock_sales_invoice(invoice_name):
+    """
+    Unlock a submitted Sales Invoice for editing
+    - Cancels GL entries
+    - Cancels Stock Ledger entries (if applicable)
+    - Changes docstatus to Draft
+    - User can then edit and resubmit normally
+    """
+    try:
+        # Get document
+        doc = frappe.get_doc("Sales Invoice", invoice_name)
 
-    # Rename the invoice
-    frappe.rename_doc("Sales Invoice", old_name, new_name, force=True)
+        # Permission check
+        if not frappe.has_permission("Sales Invoice", "write", doc):
+            frappe.throw(_("No permission to modify this invoice"))
 
-    # Add comment for audit trail
-    doc = frappe.get_doc("Sales Invoice", new_name)
-    doc.add_comment(
-        "Edit", f"Invoice renamed from {old_name} by {frappe.session.user}")
+        # Validation
+        if doc.docstatus != 1:
+            frappe.throw(_("Invoice must be submitted to unlock"))
 
-    return {"success": True, "new_name": new_name}
+        if doc.is_return:
+            frappe.throw(_("Cannot unlock return invoices"))
+
+        # Store info for audit
+        old_grand_total = doc.grand_total
+
+        # ===================================================================
+        # STEP 1: CANCEL GL ENTRIES
+        # ===================================================================
+        gl_count = frappe.db.sql("""
+            UPDATE `tabGL Entry`
+            SET is_cancelled = 1,
+                modified = %s,
+                modified_by = %s
+            WHERE voucher_type = 'Sales Invoice'
+            AND voucher_no = %s
+            AND is_cancelled = 0
+        """, (now(), frappe.session.user, invoice_name))
+
+        gl_cancelled = gl_count[0][0] if gl_count else 0
+
+        # ===================================================================
+        # STEP 2: CANCEL STOCK LEDGER ENTRIES (if update_stock)
+        # ===================================================================
+        sle_cancelled = 0
+        if doc.update_stock:
+            sle_count = frappe.db.sql("""
+                UPDATE `tabStock Ledger Entry`
+                SET is_cancelled = 1,
+                    modified = %s,
+                    modified_by = %s
+                WHERE voucher_type = 'Sales Invoice'
+                AND voucher_no = %s
+                AND is_cancelled = 0
+            """, (now(), frappe.session.user, invoice_name))
+
+            sle_cancelled = sle_count[0][0] if sle_count else 0
+
+        # ===================================================================
+        # STEP 3: CHANGE TO DRAFT
+        # ===================================================================
+        frappe.db.sql("""
+            UPDATE `tabSales Invoice`
+            SET docstatus = 0,
+                modified = %s,
+                modified_by = %s
+            WHERE name = %s
+        """, (now(), frappe.session.user, invoice_name))
+
+        frappe.db.commit()
+
+        # ===================================================================
+        # STEP 4: ADD AUDIT COMMENT
+        # ===================================================================
+        doc = frappe.get_doc("Sales Invoice", invoice_name)
+
+        comment_html = f"""
+        <div style="background: #fff3cd; padding: 12px; border-left: 4px solid #ffc107; margin: 10px 0;">
+            <b>🔓 Invoice Unlocked for Editing</b><br>
+            <b>Unlocked by:</b> {frappe.session.user}<br>
+            <b>Date/Time:</b> {now()}<br><br>
+            
+            <b>📊 Status Before Unlock:</b><br>
+            • Grand Total: ₹ {old_grand_total:,.2f}<br>
+            • GL Entries Cancelled: {gl_cancelled}<br>
+            • Stock Entries Cancelled: {sle_cancelled}<br><br>
+            
+            <b>ℹ️ Next Steps:</b><br>
+            • Edit rates, items, or any fields as needed<br>
+            • Click Submit when done<br>
+            • ERPNext will create new GL entries automatically
+        </div>
+        """
+
+        doc.add_comment("Edit", comment_html)
+
+        # Log for permanent record
+        frappe.log_error(
+            title=f"🔓 Sales Invoice Unlocked: {invoice_name}",
+            message=f"""
+            Invoice: {invoice_name}
+            Unlocked by: {frappe.session.user}
+            Timestamp: {now()}
+            
+            Original Grand Total: ₹{old_grand_total:,.2f}
+            GL Entries Cancelled: {gl_cancelled}
+            Stock Entries Cancelled: {sle_cancelled}
+            
+            User will now edit and resubmit.
+            """
+        )
+
+        return {
+            "success": True,
+            "invoice_name": invoice_name,
+            "gl_cancelled": gl_cancelled,
+            "sle_cancelled": sle_cancelled
+        }
+
+    except Exception as e:
+        frappe.db.rollback()
+        frappe.log_error(
+            title=f"❌ Failed to unlock: {invoice_name}",
+            message=frappe.get_traceback()
+        )
+        return {
+            "success": False,
+            "error": str(e)
+        }

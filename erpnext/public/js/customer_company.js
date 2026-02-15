@@ -25,7 +25,6 @@ function apply_company_filters(frm) {
 ["Sales Order", "Sales Invoice", "Delivery Note", "Purchase Order", "Purchase Invoice"].forEach(function (doctype) {
     frappe.ui.form.on(doctype, {
         company: function (frm) {
-            frm.set_value("customer", null);
             apply_company_filters(frm);
         },
         onload: function (frm) {

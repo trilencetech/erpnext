@@ -720,6 +720,7 @@
   },
   {
    "allow_bulk_edit": 1,
+   "allow_on_submit": 1,
    "fieldname": "items",
    "fieldtype": "Table",
    "hide_days": 1,
@@ -2215,7 +2216,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2025-12-20 14:08:47.256773",
+ "modified": "2026-02-15 13:47:31.158665",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Sales Invoice",
