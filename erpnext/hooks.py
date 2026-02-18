@@ -19,7 +19,21 @@ add_to_apps_screen = [
 		"has_permission": "erpnext.check_app_permission",
 	}
 ]
-
+fixtures = [
+    {"doctype": "Client Script"},
+    {"doctype": "Server Script"},
+    {"doctype": "Role"},
+    {"doctype": "Role Profile"},
+    {"doctype": "Module Profile"},
+    {"doctype": "Custom DocPerm"},
+    {"doctype": "Email Template"},
+    {"doctype": "Print Format"},
+    {"doctype": "Web Page"},
+    {"doctype": "Custom HTML Block"},
+    {"doctype": "Workflow"},
+    {"doctype": "Workflow State"},
+    {"doctype": "Workspace"}
+]
 develop_version = "15.x.x-develop"
 
 app_include_js = "erpnext.bundle.js"

@@ -1,0 +1,46 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Custom HTML Block",
+  "html": "<div class=\"menu-grid\">\n  <div class=\"menu-item\">\n    <div class=\"menu-icon\">📥</div>\n    <a href=\"/app/sales-order\" target=\"_blank\">Sales Orders</a>\n  </div>\n  <div class=\"menu-item\">\n    <div class=\"menu-icon\">🛒</div>\n    <a href=\"/app/delivery-note\" target=\"_blank\">Delivery Note</a>\n  </div>\n  <div class=\"menu-item\">\n    <div class=\"menu-icon\">💳</div>\n    <a href=\"/app/sales-invoice\" target=\"_blank\">Sales Invoice</a>\n  </div>\n  \n\n</div>\n",
+  "modified": "2025-12-12 12:10:03.893158",
+  "name": "Sale Management",
+  "private": 0,
+  "roles": [],
+  "script": null,
+  "style": ".menu-grid {\n  display: grid;\n  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));\n  gap: 16px;\n  margin-top: 10px;\n}\n.menu-item {\n  background: #f5f7fa;\n  border: 1px solid #d1d8dd;\n  border-radius: 8px;\n  padding: 12px;\n  text-align: center;\n  transition: all 0.2s ease;\n}\n.menu-item:hover {\n  background: #e0ecff;\n  border-color: #4a90e2;\n}\n.menu-item a {\n  text-decoration: none;\n  color: #333;\n  font-weight: 600;\n  display: block;\n}\n.menu-icon {\n  font-size: 24px;\n  margin-bottom: 6px;\n  color: #4a90e2;\n}"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Custom HTML Block",
+  "html": "<div class=\"menu-grid\">\n  <div class=\"menu-item\">\n    <div class=\"menu-icon\">💳</div>\n    <a href=\"/app/payment-entry\" target=\"_blank\">Payment Entry</a>\n  </div>\n  <div class=\"menu-item\">\n    <div class=\"menu-icon\">🛒</div>\n    <a href=\"/app/journal-entry\" target=\"_blank\">Journal Entry</a>\n  </div>\n\n</div>\n",
+  "modified": "2025-09-06 17:37:21.029150",
+  "name": "Payment Entries",
+  "private": 0,
+  "roles": [],
+  "script": null,
+  "style": ".menu-grid {\n  display: grid;\n  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));\n  gap: 16px;\n  margin-top: 10px;\n}\n.menu-item {\n  background: #f5f7fa;\n  border: 1px solid #d1d8dd;\n  border-radius: 8px;\n  padding: 12px;\n  text-align: center;\n  transition: all 0.2s ease;\n}\n.menu-item:hover {\n  background: #e0ecff;\n  border-color: #4a90e2;\n}\n.menu-item a {\n  text-decoration: none;\n  color: #333;\n  font-weight: 600;\n  display: block;\n}\n.menu-icon {\n  font-size: 24px;\n  margin-bottom: 6px;\n  color: #4a90e2;\n}"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Custom HTML Block",
+  "html": "\n<div class=\"erp-grid\">\n  <a href=\"/app/item\" target=\"_blank\" class=\"erp-tile\">\n    <div class=\"erp-icon\">📦</div>\n    <div class=\"erp-label\">Item</div>\n  </a>\n  <a href=\"/app/item-group\" target=\"_blank\" class=\"erp-tile\">\n    <div class=\"erp-icon\">🗂️</div>\n    <div class=\"erp-label\">Item Group</div>\n  </a>\n  <a href=\"/app/item-group-rate-master\" target=\"_blank\" class=\"erp-tile\">\n    <div class=\"erp-icon\">🏷️</div>\n    <div class=\"erp-label\">Rate Master</div>\n  </a>\n  <a href=\"/app/customer\" target=\"_blank\" class=\"erp-tile\">\n    <div class=\"erp-icon\">👤</div>\n    <div class=\"erp-label\">Customer</div>\n  </a>\n  <a href=\"/app/supplier\" target=\"_blank\" class=\"erp-tile\">\n    <div class=\"erp-icon\">🚚</div>\n    <div class=\"erp-label\">Supplier</div>\n  </a>\n  <a href=\"/app/item-price\" target=\"_blank\" class=\"erp-tile\">\n    <div class=\"erp-icon\">₹</div>\n    <div class=\"erp-label\">Item Price</div>\n  </a>\n  <a href=\"/app/query-report/Available%20Stock%20Filtered%20View/\" target=\"_blank\" class=\"erp-tile\">\n    <div class=\"erp-icon\">📦</div>\n    <div class=\"erp-label\">Available Stock Report</div>\n  </a>\n   <a href=\"/app/query-report/Total%20Stock%20View\" target=\"_blank\" class=\"erp-tile\">\n    <div class=\"erp-icon\">🛒</div>\n    <div class=\"erp-label\">Total Stock Report</div>\n    \n  </a>\n  <a href=\"/app/master-item-code-from-thickness/\" target=\"_blank\" class=\"erp-tile\">\n    <div class=\"erp-icon\">📦</div>\n    <div class=\"erp-label\">Master Item Code from Thickness</div>\n  </a>\n  \n \n</div>\n",
+  "modified": "2025-12-23 09:54:27.102159",
+  "name": "Item Group Menu Master",
+  "private": 0,
+  "roles": [],
+  "script": "function callStockReport(){\n    \n    \n    \n}",
+  "style": ".erp-grid {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 16px;\n  font-family: Arial, sans-serif;\n}\n.erp-tile {\n  width: 160px;\n  height: 140px;\n  background: #f4f6f8;\n  border-radius: 8px;\n  text-align: center;\n  padding: 16px;\n  box-shadow: 0 2px 6px rgba(0,0,0,0.1);\n  transition: 0.2s ease;\n}\n.erp-tile:hover {\n  background: #e2e6ea;\n  transform: translateY(-2px);\n}\n.hidden {\n  display: none !important;\n}\n\n.erp-icon {\n  font-size: 32px;\n  margin-bottom: 12px;\n  display: block;\n}\n.erp-label {\n  font-weight: bold;\n  color: #333;\n  text-decoration: none;\n}"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Custom HTML Block",
+  "html": "<div class=\"menu-grid\">\n  <div class=\"menu-item\">\n    <div class=\"menu-icon\">📥</div>\n    <a href=\"/app/purchase-order\" target=\"_blank\">Purchase Order List</a>\n  </div>\n   <div class=\"menu-item\">\n    <div class=\"menu-icon\">🧾</div>\n    <a href=\"/app/purchase-receipt\" target=\"_blank\">Purchase Receipt List</a>\n  </div>\n  <div class=\"menu-item\">\n    <div class=\"menu-icon\">💳</div>\n    <a href=\"/app/purchase-invoice\" target=\"_blank\">Purchase Invoice List</a>\n  </div>\n \n\n</div>\n",
+  "modified": "2025-12-12 12:09:53.306752",
+  "name": "Purchase and Selling Menu",
+  "private": 0,
+  "roles": [],
+  "script": null,
+  "style": ".menu-grid {\n  display: grid;\n  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));\n  gap: 16px;\n  margin-top: 10px;\n}\n.menu-item {\n  background: #f5f7fa;\n  border: 1px solid #d1d8dd;\n  border-radius: 8px;\n  padding: 12px;\n  text-align: center;\n  transition: all 0.2s ease;\n}\n.menu-item:hover {\n  background: #e0ecff;\n  border-color: #4a90e2;\n}\n.menu-item a {\n  text-decoration: none;\n  color: #333;\n  font-weight: 600;\n  display: block;\n}\n.menu-icon {\n  font-size: 24px;\n  margin-bottom: 6px;\n  color: #4a90e2;\n}"
+ }
+]

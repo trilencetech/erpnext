@@ -1,0 +1,156 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Sales Invoice",
+  "enabled": 1,
+  "modified": "2026-02-15 15:22:31.995265",
+  "module": "Selling",
+  "name": "Sales_Invoice_Cust_Button",
+  "script": "frappe.ui.form.on('Sales Invoice', {\n    refresh: function(frm) {\n        if (frm.doc.docstatus === 1) {  // Only show when submitted\n        \n        // Add \"Send Email\" under group \"Send Invoice\"\n        frm.add_custom_button(__('Send Whatsapp'), function() {\n            frappe.show_progress('Sending Message with Invoice PDF', 0, 100, 'In Progress...');\n                frappe.call({\n                    method: 'erpnext.accounts.doctype.sales_invoice.sales_invoice.send_invoice_whatsapp',\n                    args: {\n                      invoice_name: frm.doc.name\n                    },\n                    callback: function(r) {\n                        frappe.hide_progress();\n                        frappe.msgprint(\"Whatsapp Message Sent Successfully\")\n                    }\n                });\n        }, __(\"Send Invoice\"));  // <-- group name\n\n        // Add \"Send WhatsApp\" under same group \"Send Invoice\"\n        frm.add_custom_button(__('Send Email'), function() {\n            frappe.show_progress('Sending Email with Invoice PDF', 0, 100, 'In Progress...');\n                frappe.call({\n                    method: 'erpnext.accounts.doctype.sales_invoice.sales_invoice.send_invoice_email',\n                    args: {\n                      docId: frm.doc.name\n                      \n                    },\n                    callback: function(r) {\n                        frappe.hide_progress();\n                        \n                    }\n                });\n            \n           \n            \n        }, __(\"Send Invoice\"));  // <-- same group name\n        \n    }   \n    }\n});\n\n\nfrappe.ui.form.on('Sales Invoice', {\n    customer: function(frm) {\n        if (frm.doc.customer && frm.doc.company) {\n            frappe.call({\n                method: \"frappe.client.get_value\",\n                args: {\n                    doctype: \"Customer\",\n                    filters: {\n                        name: frm.doc.customer\n                    },\n                    fieldname: [\"credit_days\"]\n                },\n                callback: function(r) {\n                    if (r.message && r.message.credit_days) {\n                        let posting_date = frappe.datetime.str_to_obj(frm.doc.posting_date);\n                        let due_date = frappe.datetime.add_days(posting_date, r.message.credit_days);\n                        frm.set_value(\"due_date\", frappe.datetime.obj_to_str(due_date));\n                    }\n                }\n            });\n        }\n    }\n});\n\n\nfrappe.ui.form.on('Sales Invoice', {\n    refresh: function(frm) {\n        // Show button only for submitted invoices\n        if (frm.doc.docstatus === 1 && !frm.doc.is_return) {\n            frm.add_custom_button(__('Unlock for Editing'), function() {\n                unlock_invoice_for_editing(frm);\n            }, __('Update'));\n        }\n    }\n});\n\nfunction unlock_invoice_for_editing(frm) {\n    frappe.confirm(\n        __('This will unlock the invoice for editing. You can then modify rates, items, or any other details. After making changes, click Submit again.<br><br><b>Continue?</b>'),\n        function() {\n            frappe.dom.freeze(__('Unlocking invoice...'));\n            \n            frappe.call({\n                method: 'erpnext.accounts.doctype.sales_invoice.sales_invoice.unlock_sales_invoice',\n                args: {\n                    invoice_name: frm.doc.name\n                },\n                callback: function(r) {\n                    frappe.dom.unfreeze();\n                    \n                    if (r.message && r.message.success) {\n                        frappe.show_alert({\n                            message: __('Invoice unlocked! You can now edit and resubmit.'),\n                            indicator: 'green'\n                        }, 5);\n                        \n                        // Reload the form as draft\n                        setTimeout(function() {\n                            frm.reload_doc();\n                        }, 1000);\n                    } else {\n                        frappe.msgprint({\n                            title: __('Error'),\n                            message: r.message ? r.message.error : 'Failed to unlock invoice',\n                            indicator: 'red'\n                        });\n                    }\n                }\n            });\n        }\n    );\n}\n    \n    \n   \n\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Item Group Rate Master",
+  "enabled": 0,
+  "modified": "2025-08-05 10:17:33.274495",
+  "module": "Selling",
+  "name": "Item_Group_Rate_Master",
+  "script": "frappe.ui.form.on('Item Group Rate Master', {\n\titem_group: function(frm) {\n        if (frm.doc.item_group) {\n            frappe.call({\n                method: 'frappe.client.get_value',\n                args: {\n                    doctype: 'Item Group',\n                    filters: {\n                        name: frm.doc.item_group\n                    },\n                    fieldname: 'price'\n                },\n                callback: function(r) {\n                    if (r.message) {\n                        price_total=frm.doc.price_master + r.message.price\n                        frm.set_value('price_master', price_total);\n                    }\n                }\n            });\n        }\n    }\n})",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Sales Order",
+  "enabled": 1,
+  "modified": "2026-02-02 18:34:21.673796",
+  "module": "Selling",
+  "name": "Sale_order_Item_Price",
+  "script": "frappe.ui.form.on('Sales Order Item', {\n  item_code: function(frm, cdt, cdn) {\n    let row = locals[cdt][cdn];\n    if (row.item_code ) {\n      frappe.call({\n        method: \"frappe.client.get_value\",\n        args: {\n          doctype: \"Bin\",\n          filters: {\n            item_code: row.item_code\n            \n          },\n          fieldname: \"actual_qty\"\n        },\n        callback: function(r) {\n            console.log(\"r.message.actual_qty::\"+r.message.actual_qty)\n          if (r.message) {\n            frappe.model.set_value(cdt, cdn, \"available_stock\", r.message.actual_qty);\n          } else {\n            frappe.model.set_value(cdt, cdn, \"available_stock\", 0);\n          }\n        }\n      });\n    }\n  },\n  \n});\n\nfrappe.ui.form.on(\"Sales Order\", {\n  refresh: function(frm) {\n      frm.__original_company = frm.doc.company;\n    if (frm.doc.docstatus === 0) {\n      frm.add_custom_button(\"Select from Available Stock\", () => {\n             gajanand.stock_selector.show_stock_dialog(frm);\n      });\n    }\n    \n   \n  }\n  \n});\nfrappe.ui.form.on('Sales Order', {\n  onload(frm) {\n    // Store initial company value\n    frm.__original_company = frm.doc.company;\n  }\n    \n});\n  \nfrappe.ui.form.on('Sales Invoice', {\n  company: function (frm) {\n   \n    if (frm.doc.items && frm.doc.items.length > 0) {\n      let first_row = frm.doc.items[0];\n\n      // Only trigger alert if first row has item_code or item_name filled\n    if (first_row.item_code) {      \n      frappe.msgprint({\n        title: __('Company Changed'),\n        message: __('Items have been cleared because the company was changed. Please reselect stock.'),\n        indicator: 'orange'\n      });\n      frm.clear_table('items');\n      frm.refresh_field('items');\n      }\n    }\n  }\n});\n\nfrappe.ui.form.on(\"Sales Order\", {\n    freight: function (frm) {\n    let freight = frm.doc.freight || 0;\n\n    // Find existing FREIGHT row\n    let existing = (frm.doc.items || []).find(d => d.item_code === \"FREIGHT\");\n\n    if (freight > 0) {\n        if (existing) {\n            // Update existing row\n            existing.rate = freight;\n            existing.qty = 1;\n            existing.amount = freight;\n        } else {\n            // Add new FREIGHT row\n            let row = frm.add_child(\"items\");\n            row.item_code = \"FREIGHT\";\n            row.item_name = \"Freight Charges\";\n            row.qty = 1;\n            row.rate = freight;\n            row.amount = freight;\n            row.uom = \"Nos\"; // or Service UOM\n        }\n    } else {\n        // Remove FREIGHT row if freight = 0\n        frm.doc.items = frm.doc.items.filter(d => d.item_code !== \"FREIGHT\");\n    }\n\n    frm.refresh_field(\"items\");\n    frm.script_manager.trigger(\"calculate_taxes_and_totals\");\n    }\n});\n\n\n\n\n\n\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Item",
+  "enabled": 1,
+  "modified": "2025-09-06 15:28:03.132892",
+  "module": "Stock",
+  "name": "Item_Size_MM",
+  "script": "frappe.ui.form.on(\"Item\", {\n  size: function(frm) {\n    if (frm.doc.size) {\n      frm.set_value(\"mm\", frm.doc.size * 25.4);\n    }\n  }\n});\n\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Purchase Order",
+  "enabled": 1,
+  "modified": "2025-11-26 11:35:53.115401",
+  "module": "Stock",
+  "name": "Purchase_Sale_Item_Size_MM",
+  "script": "frappe.ui.form.on(\"Purchase Order Item\", {\n  item_code: function(frm, cdt, cdn) {\n    let row = locals[cdt][cdn];\n    if (row.item_code) {\n      frappe.call({\n        method: \"frappe.client.get\",\n        args: {\n          doctype: \"Item\",\n          name: row.item_code\n        },\n        callback: function(r) {\n          if (r.message) {\n            frappe.model.set_value(cdt, cdn, \"size\", r.message.size);\n            frappe.model.set_value(cdt, cdn, \"mm\", r.message.mm);\n          }\n        }\n      });\n    }\n  }\n});\n\nfrappe.ui.form.on(\"Purchase Receipt Item\", {\n  item_code: function(frm, cdt, cdn) {\n      console.log(\"Test\")\n    let row = locals[cdt][cdn];\n    if (row.item_code) {\n      frappe.call({\n        method: \"frappe.client.get\",\n        args: {\n          doctype: \"Item\",\n          name: row.item_code\n        },\n        callback: function(r) {\n          if (r.message) {\n            frappe.model.set_value(cdt, cdn, \"size\", r.message.size);\n            frappe.model.set_value(cdt, cdn, \"mm\", r.message.mm);\n          }\n        }\n      });\n    }\n  }\n});\n\n\n\n\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Sales Order",
+  "enabled": 1,
+  "modified": "2025-09-06 17:18:36.688165",
+  "module": "Selling",
+  "name": "Sales_Order_Item_Size_MM",
+  "script": "frappe.ui.form.on(\"Sales Order Item\", {\n  item_code: function(frm, cdt, cdn) {\n    let row = locals[cdt][cdn];\n    if (row.item_code) {\n      frappe.call({\n        method: \"frappe.client.get\",\n        args: {\n          doctype: \"Item\",\n          name: row.item_code\n        },\n        callback: function(r) {\n          if (r.message) {\n            frappe.model.set_value(cdt, cdn, \"size\", r.message.size);\n            frappe.model.set_value(cdt, cdn, \"mm\", r.message.mm);\n          }\n        }\n      });\n    }\n  }\n});\n\nfrappe.ui.form.on(\"Sales Invoice Item\", {\n  item_code: function(frm, cdt, cdn) {\n    let row = locals[cdt][cdn];\n    if (row.item_code) {\n      frappe.call({\n        method: \"frappe.client.get\",\n        args: {\n          doctype: \"Item\",\n          name: row.item_code\n        },\n        callback: function(r) {\n          if (r.message) {\n            frappe.model.set_value(cdt, cdn, \"size\", r.message.size);\n            frappe.model.set_value(cdt, cdn, \"mm\", r.message.mm);\n          }\n        }\n      });\n    }\n  }\n});\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Purchase Receipt",
+  "enabled": 1,
+  "modified": "2025-11-19 16:22:43.827407",
+  "module": "Stock",
+  "name": "Purchase_Receipt_Size_MM",
+  "script": "frappe.ui.form.on(\"Purchase Receipt Item\", {\n  item_code: function(frm, cdt, cdn) {\n      console.log(\"Test\")\n    let row = locals[cdt][cdn];\n    if (row.item_code) {\n      frappe.call({\n        method: \"frappe.client.get\",\n        args: {\n          doctype: \"Item\",\n          name: row.item_code\n        },\n        callback: function(r) {\n          if (r.message) {\n            frappe.model.set_value(cdt, cdn, \"size\", r.message.size);\n            frappe.model.set_value(cdt, cdn, \"mm\", r.message.mm);\n          }\n        }\n      });\n    }\n  }\n});\n\nfrappe.ui.form.on('Purchase Receipt', {\n  master_rate: function (frm) {\n    const rate = flt(frm.doc.master_rate);\n    frm.doc.items.forEach(row => {\n      row.rate = rate;\n      row.amount = flt(row.qty) * rate;\n    });\n    frm.refresh_field('items');\n    frm.script_manager.trigger(\"calculate_taxes_and_totals\");\n  }\n});\n\nfrappe.ui.form.on('Purchase Receipt', {\n  refresh(frm) {\n      \n    frm.add_custom_button('Upload Items from Excel', () => {\n     if (frm.doc.name.startsWith(\"new-\")) {\n        frappe.msgprint(\"Please save the Purchase Receipt first.\");\n        return;\n      }    \n      frappe.prompt([\n        {\n          fieldname: 'excel_file',\n          fieldtype: 'Attach',\n          label: 'Upload Excel File',\n          reqd: 1\n        }\n      ],\n      (values) => {\n        frappe.show_progress('Importing Excel', 0, 100, 'In Progress...');\n        frappe.call({\n          method: \"erpnext.stock.doctype.purchase_receipt.purchase_receipt.import_items_from_excel\",\n          args: {\n            docname: frm.doc.name,\n            file_url: values.excel_file\n          },\n          callback: function(r) {\n            frappe.hide_progress(); // hide when done\n            if (r.message) {\n              frappe.msgprint(`✅ Imported ${r.message.success_count} rows successfully`);\n              frm.reload_doc();\n            }\n          }\n        });\n      },\n      'Upload Excel for Items',\n      'Import');\n    });\n  }\n});\n\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Purchase Invoice",
+  "enabled": 1,
+  "modified": "2025-11-14 09:21:19.746529",
+  "module": "Stock",
+  "name": "Purchase_Invoice_Size_MM",
+  "script": "frappe.ui.form.on(\"Purchase Invoice Item\", {\n  item_code: function(frm, cdt, cdn) {\n    let row = locals[cdt][cdn];\n    if (row.item_code) {\n      frappe.call({\n        method: \"frappe.client.get\",\n        args: {\n          doctype: \"Item\",\n          name: row.item_code\n        },\n        callback: function(r) {\n          if (r.message) {\n            frappe.model.set_value(cdt, cdn, \"size\", r.message.size);\n            frappe.model.set_value(cdt, cdn, \"mm\", r.message.mm);\n          }\n        }\n      });\n    }\n  }\n});\n\n\nfrappe.ui.form.on('Purchase Invoice', {\n  master_rate: function (frm) {\n    const rate = flt(frm.doc.master_rate);\n    frm.doc.items.forEach(row => {\n      row.rate = rate;\n      row.amount = flt(row.qty) * rate;\n    });\n    frm.refresh_field('items');\n    frm.script_manager.trigger(\"calculate_taxes_and_totals\");\n  }\n});\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Sales Invoice",
+  "enabled": 1,
+  "modified": "2025-12-22 16:42:57.550181",
+  "module": "Selling",
+  "name": "Sales_Invoice_Item_Size_MM",
+  "script": "frappe.ui.form.on(\"Sales Invoice Item\", {\n  item_code: function(frm, cdt, cdn) {\n    let row = locals[cdt][cdn];\n    if (row.item_code) {\n      frappe.call({\n        method: \"frappe.client.get\",\n        args: {\n          doctype: \"Item\",\n          name: row.item_code\n        },\n        callback: function(r) {\n          if (r.message) {\n            frappe.model.set_value(cdt, cdn, \"size\", r.message.size);\n            frappe.model.set_value(cdt, cdn, \"mm\", r.message.mm);\n          }\n        }\n      });\n    }\n  }\n});\n\n\nfrappe.ui.form.on(\"Sales Invoice\", {\n  refresh: function(frm) {\n    if (frm.doc.docstatus === 0) {\n      frm.add_custom_button(\"Select from Available Stock\", () => {\n      gajanand.stock_selector.show_stock_dialog(frm);\n      });\n    }    \n  }\n});\n    \n\nfrappe.ui.form.on('Sales Invoice', {\n  onload: function(frm) {\n    if (frm.doc.delivery_challan) {\n            frm.doc.__from_dn = true;\n    }      \n    frm.doc.__original_company = frm.doc.company;\n  }\n});\n  \n\nfrappe.ui.form.on('Sales Invoice', {\n  company: function (frm) {\n   if (frm.doc.__from_dn) {\n          frm.doc.__from_dn=false;\n            return;\n    }\n   if(frm.doc.company) {\n       \n            if (frm.doc.items && frm.doc.items.length > 0) {\n              let first_row = frm.doc.items[0];\n        \n              // Only trigger alert if first row has item_code or item_name filled\n            if (first_row.item_code) {      \n              frappe.msgprint({\n                title: __('Company Changed'),\n                message: __('Items have been cleared because the company was changed. Please reselect stock.'),\n                indicator: 'orange'\n              });\n              frm.set_value(\"delivery_challan\", null)\n              frm.clear_table('items');\n              frm.refresh_field('items');\n              }\n        }\n}\n  }\n});\n\nfrappe.ui.form.on(\"Sales Invoice\", {\n    freight: function (frm) {\n     frappe.call({\n                method: \"frappe.client.get_value\",\n                args: {\n                    doctype: \"Company\",\n                    filters: { name: frm.doc.company },\n                    fieldname: [\"default_income_account\", \"abbr\"]\n                },\n                callback: function (r) {\n                    console.log(r.message)\n                    income_account = r.message.default_income_account// fallback\n                    abbr = r.message.abbr    \n        \n    let freight = frm.doc.freight || 0;\n\n    // Find existing FREIGHT row\n    let existing = (frm.doc.items || []).find(d => d.item_code === \"FREIGHT\");\n    let income_acc = ''\n    \n   \n                    \n    if (freight > 0) {\n        \n        if (existing) {\n            // Update existing row\n            existing.rate = freight;\n            existing.qty = 1;\n            existing.amount = freight;\n            existing.income_account= income_account\n        } else {\n            \n            // Add new FREIGHT row\n            let row = frm.add_child(\"items\");\n            row.item_code = \"FREIGHT\";\n            row.item_name = \"Freight Charges\";\n            row.qty = 1;\n            row.rate = freight;\n            row.amount = freight;\n            row.uom = \"Nos\"; // or Service UOM\n            row.income_account= income_account\n            console.log(\"row\"+row)\n        }\n     \n                    \n        \n    }\n     else {\n        // Remove FREIGHT row if freight = 0\n        frm.doc.items = frm.doc.items.filter(d => d.item_code !== \"FREIGHT\");\n    }\n    \n    \n    frm.refresh_field(\"items\");\n    frm.script_manager.trigger(\"calculate_taxes_and_totals\");\n    }\n     })}\n});\n\nfrappe.ui.form.on('Sales Invoice', {\n    refresh: function(frm) {\n        console.log(\"fordeded\")\n        frm.set_query(\"delivery_challan\", function() {\n            return {\n                filters: {\n                    customer: frm.doc.customer,\n                    company: frm.doc.company,\n                    status: \"To Bill\",\n                    docstatus: 1   // only submitted Delivery Notes\n                }\n            };\n        });\n    }\n});\n\nfrappe.ui.form.on('Sales Invoice', {\n    delivery_challan: function(frm) {\n        console.log(\"delivery_challan\")\n        if (!frm.doc.company || !frm.doc.customer) {\n            frappe.msgprint(__('Please select Company and Customer before choosing a Delivery Note.'));\n            frm.set_value(\"delivery_challan\", null);  // reset field\n            return;\n        }\n        if(frm.doc.delivery_challan) {\n            frappe.call({\n                method: \"frappe.client.get\",\n                args: {\n                    doctype: \"Delivery Note\",\n                    name: frm.doc.delivery_challan\n                },\n                callback: function(r) {\n                    if(r.message) {\n                        let dn = r.message;\n                        // Clear existing items\n                        frm.clear_table(\"items\");\n                        // Add items from Delivery Note\n                        (dn.items || []).forEach(function(dni) {\n                            let row = frm.add_child(\"items\");\n                            row.item_code = dni.item_code;\n                            row.item_name = dni.item_name;\n                            row.description = dni.description;\n                            row.uom = dni.uom;\n                            row.qty = dni.qty;\n                            row.rate = dni.rate;\n                            row.size = dni.size;\n                            row.mm = dni.mm;\n                            row.amount = dni.amount;\n                            row.item_id=dni.item_id;\n                            row.income_account=dni.income_account;\n                            row.warehouse = dni.warehouse;\n                        });\n                        frm.refresh_field(\"items\");\n                    }\n                }\n            });\n        }\n    }\n});\n\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Update Stock",
+  "enabled": 1,
+  "modified": "2025-10-15 10:06:47.385920",
+  "module": "Selling",
+  "name": "Update_Stock_Items",
+  "script": "frappe.ui.form.on('Update Stock', {\n   refresh: function(frm) {\n    if (frm.doc.docstatus === 0) {\n      frm.add_custom_button(\"Select from Available Stock\", () => {\n             gajanand.stock_selector.show_stock_dialog(frm);\n      });\n    }\n  }\n\n});\n\nfrappe.ui.form.on('Update Stock Item', {\n  items_add: calculate_totals,\n  items_remove: calculate_totals,\n  items_on_form_rendered: calculate_totals,\n  validate: calculate_totals\n});\n\nfrappe.ui.form.on('Update Stock Item', {\n                rate: calculate_totals\n});\n\nfunction calculate_totals(frm) {\n                let total_qty = 0;\n                let total_amount = 0;\n\n                (frm.doc.items || []).forEach(row => {\n                    total_qty += row.qty || 0;\n                    total_amount += row.amount || (row.qty * row.rate) || 0;\n                });\n\n                frm.set_value(\"total_qty\", total_qty);\n                frm.set_value(\"total_amount\", total_amount);\n}\n\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Update Stock",
+  "enabled": 1,
+  "modified": "2025-10-14 07:15:19.363213",
+  "module": "Selling",
+  "name": "Update_Stock_ListView",
+  "script": "frappe.listview_settings['Update Stock'] = {\n  onload: function(listview) {\n    frappe.call({\n      method: \"frappe.client.get\",\n      args: {\n        doctype: \"Custom Control Settings\",\n        name: \"Custom Control Settings\"\n      },\n      callback: function(r) {\n        const settings = r.message;\n        if (!settings.enable_unbilled_stock_access) {\n          // 🔒 Hide the \"Add\" button\n         // listview.page.set_primary_action(null);\n\n          // 🔒 Hide the \"New\" link in the sidebar (if present)\n          $('.list-sidebar .standard-sidebar .btn-new .btn .btn-default .btn-sm .btn-new-doc').hide();\n          $('.btn[data-label=\"Add Update Stock\"]').addClass(\"hidden\"); \n           setTimeout(() => {\n            const emptyButton = document.querySelector('.no-result .btn-primary');\n            if (emptyButton && emptyButton.textContent.includes(\"Create your first\")) {\n              emptyButton.style.display = \"none\";\n            }\n          }, 500);\n          \n\n         \n        }\n      }\n    });\n  }\n};\n",
+  "view": "List"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Delivery Note",
+  "enabled": 1,
+  "modified": "2026-02-02 18:40:03.254226",
+  "module": "Selling",
+  "name": "Delivery_Note_Freight",
+  "script": "frappe.ui.form.on(\"Delivery Note\", {\n    freight: function (frm) {\n    let freight = frm.doc.freight || 0;\n\n    // Find existing FREIGHT row\n    let existing = (frm.doc.items || []).find(d => d.item_code === \"FREIGHT\");\n\n    if (freight > 0) {\n        if (existing) {\n            // Update existing row\n            existing.rate = freight;\n            existing.qty = 1;\n            existing.amount = freight;\n        } else {\n            // Add new FREIGHT row\n            let row = frm.add_child(\"items\");\n            row.item_code = \"FREIGHT\";\n            row.item_name = \"Freight Charges\";\n            row.qty = 1;\n            row.rate = freight;\n            row.amount = freight;\n            row.uom = \"Nos\"; // or Service UOM\n        }\n    } else {\n        // Remove FREIGHT row if freight = 0\n        frm.doc.items = frm.doc.items.filter(d => d.item_code !== \"FREIGHT\");\n    }\n\n    frm.refresh_field(\"items\");\n    frm.script_manager.trigger(\"calculate_taxes_and_totals\");\n    }\n});\n\nfrappe.ui.form.on(\"Delivery Note\", {\n  refresh: function(frm) {\n    if (frm.doc.docstatus === 0) {\n      frm.add_custom_button(\"Select from Available Stock\", () => {\n      gajanand.stock_selector.show_stock_dialog(frm);\n      });\n    }    \n  }\n});\n    \n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Customer",
+  "enabled": 0,
+  "modified": "2026-01-22 11:55:26.447163",
+  "module": "Selling",
+  "name": "Update_Address_GSTIN",
+  "script": "frappe.ui.form.on('Customer', {\n    gstin: function(frm) {\n        if (frm.doc.gstin) {\n            frappe.call({\n                method: \"erpnext.accounts.doctype.sales_invoice.sales_invoice.fetch_and_link_address\",\n                args: {\n                    gstin: frm.doc.gstin,\n                    customer_name: frm.doc.name\n                },\n                callback: function(r) {\n                    if (r.message && r.message.status === \"success\") {\n                        frappe.msgprint({\n                            title: __(\"Success\"),\n                            message: __(\"Address fetched and linked successfully\"),\n                            indicator: \"green\"\n                        });\n                        frm.reload_doc();\n                    }\n                }\n            });\n        }\n    }\n});\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Payment Entry",
+  "enabled": 1,
+  "modified": "2026-01-27 10:46:45.904850",
+  "module": "Setup",
+  "name": "Payment_Entry_Pay",
+  "script": "frappe.ui.form.on('Payment Entry', {\n    party: function(frm) {\n        // If Party Type is Account, set Account Paid To same as Party\n        if (frm.doc.party_type == \"Account\" && frm.doc.payment_type =='Pay') {\n            frm.set_value(\"paid_to\", frm.doc.party);\n        }\n        \n        if (frm.doc.company) {\n            // Get abbreviation of company\n            frappe.db.get_value(\"Company\", frm.doc.company, \"abbr\", function(r) {\n                if (r && r.abbr) {\n                    frm.set_value(\"cost_center\", \"Main - \" + r.abbr);\n                }\n            });\n        }\n    },\n    \n    party_type: function (frm) {\n         frm.set_query(\"party\", function() {\n            if (frm.doc.party_type === \"Account\" && frm.doc.company) {\n                return {\n                    filters: {\n                        company: frm.doc.company,\n                        is_group: 0\n                    }\n                };\n            }\n        });\n        frm.set_query(\"paid_to\", function() {\n            if (frm.doc.company) {\n                return {\n                    filters: {\n                        company: frm.doc.company,\n                        is_group: 0\n                    }\n                };\n            }\n        });\n    }\n\n    \n});\n\n// Add query filter so Party (Account) only shows accounts of selected company\nfrappe.ui.form.on('Payment Entry', {\n    onload: function(frm) {\n       \n\n        \n\n        frm.set_query(\"cost_center\", function() {\n            if (frm.doc.company) {\n                return {\n                    filters: {\n                        company: frm.doc.company\n                    }\n                };\n            }\n        });\n    }\n});\n",
+  "view": "Form"
+ }
+]
