@@ -16,6 +16,7 @@
   "customer_name",
   "customer_type",
   "customer_group",
+  "customer_abbr",
   "column_break0",
   "territory",
   "gender",
@@ -598,6 +599,11 @@
    "fieldtype": "Read Only",
    "hidden": 1,
    "label": "Last Name"
+  },
+  {
+   "fieldname": "customer_abbr",
+   "fieldtype": "Data",
+   "label": "Customer Abbreviation"
   }
  ],
  "icon": "fa fa-user",
@@ -611,7 +617,7 @@
    "link_fieldname": "party"
   }
  ],
- "modified": "2026-01-21 17:23:42.151114",
+ "modified": "2026-02-19 22:12:59.097253",
  "modified_by": "Administrator",
  "module": "Selling",
  "name": "Customer",
