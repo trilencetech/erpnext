@@ -113,12 +113,13 @@ def block_after_hours():
     now = get_local_time()
 
     # Convert to time objects
-    cutoff_start = datetime.strptime(start_block, "%H:%M").time()
-    cutoff_end = datetime.strptime(end_block, "%H:%M").time()
+    if start_block:
+        cutoff_start = datetime.strptime(start_block, "%H:%M").time()
+        cutoff_end = datetime.strptime(end_block, "%H:%M").time()
 
-    # Check time restriction
-    if now >= cutoff_start or now < cutoff_end:
-        frappe.throw("Login restricted outside office hours.")
+        # Check time restriction
+        if now >= cutoff_start or now < cutoff_end:
+            frappe.throw("Login restricted outside office hours.")
 
 
 def get_local_time():
