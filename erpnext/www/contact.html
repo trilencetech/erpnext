@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - TrilenceTech | Get in Touch</title>
+    <meta name="description"
+        content="Contact TrilenceTech for ERPNext implementation, PrintFlow demo, or custom development inquiries">
+    <link rel="stylesheet" href="/assets/erpnext/css/website.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .contact-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 80px 0;
+            color: white;
+            text-align: center;
+        }
+
+        .contact-section {
+            padding: 80px 0;
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: start;
+        }
+
+        .contact-form {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+
+        .form-textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .contact-info-box {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            display: flex;
+            gap: 20px;
+        }
+
+        .contact-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 768px) {
+            .contact-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="/" class="logo">
+                <span class="logo-text">TrilenceTech</span>
+                <span class="logo-tagline">Smart ERP Solutions</span>
+            </a>
+
+            <div class="nav-menu">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/about" class="nav-link">About</a>
+                <a href="/solutions" class="nav-link">Solutions</a>
+                <a href="/products" class="nav-link">Products</a>
+                <a href="/pricing" class="nav-link">Pricing</a>
+                <a href="/contact" class="nav-link active">Contact</a>
+                <a href="/jobcard" class="btn-nav">PrintFlow Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="contact-hero">
+        <div class="container">
+            <h1 style="font-size: 48px; font-weight: 800; margin-bottom: 20px;">
+                Get in Touch
+            </h1>
+            <p style="font-size: 20px; opacity: 0.9; max-width: 700px; margin: 0 auto;">
+                We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+            </p>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact-section">
+        <div class="container">
+            <div class="contact-grid">
+                <!-- Contact Form -->
+                <div>
+                    <h2 style="font-size: 32px; font-weight: 700; margin-bottom: 15px;">
+                        Send Us a Message
+                    </h2>
+                    <p style="color: #64748b; margin-bottom: 30px;">
+                        Fill out the form below and our team will get back to you within 24 hours.
+                    </p>
+
+                    <div class="contact-form">
+                        <form action="/api/method/frappe.website.doctype.web_form.web_form.accept" method="POST"
+                            id="contactForm">
+                            <input type="hidden" name="web_form" value="contact-form">
+                            <input type="hidden" name="doctype" value="Lead">
+
+                            <div class="form-group">
+                                <label class="form-label" for="full_name">Full Name *</label>
+                                <input type="text" id="full_name" name="lead_name" class="form-input" required
+                                    placeholder="John Doe">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="email">Email Address *</label>
+                                <input type="email" id="email" name="email_id" class="form-input" required
+                                    placeholder="john@example.com">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="phone">Phone Number</label>
+                                <input type="tel" id="phone" name="phone" class="form-input"
+                                    placeholder="+91-XXXXX-XXXXX">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="company">Company Name</label>
+                                <input type="text" id="company" name="company_name" class="form-input"
+                                    placeholder="Your Company">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="service">I'm Interested In *</label>
+                                <select id="service" name="custom_service_interest" class="form-select" required>
+                                    <option value="">Select a service...</option>
+                                    <option value="ERPNext Implementation">ERPNext Implementation</option>
+                                    <option value="PrintFlow Job Card">PrintFlow Job Card</option>
+                                    <option value="Custom Development">Custom Development</option>
+                                    <option value="Support Services">Support Services</option>
+                                    <option value="General Inquiry">General Inquiry</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="message">Message *</label>
+                                <textarea id="message" name="notes" class="form-textarea" required
+                                    placeholder="Tell us about your requirements..."></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
+                                Send Message
+                            </button>
+
+                            <p style="margin-top: 15px; color: #64748b; font-size: 14px; text-align: center;">
+                                We respect your privacy. Your information will never be shared.
+                            </p>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div>
+                    <h2 style="font-size: 32px; font-weight: 700; margin-bottom: 15px;">
+                        Contact Information
+                    </h2>
+                    <p style="color: #64748b; margin-bottom: 30px;">
+                        Reach out to us directly through any of these channels:
+                    </p>
+
+                    <div class="contact-info-box">
+                        <div class="contact-icon">📧</div>
+                        <div>
+                            <h4 style="font-weight: 700; margin-bottom: 5px;">Email Us</h4>
+                            <p style="color: #64748b; margin-bottom: 5px;">General Inquiries:</p>
+                            <a href="mailto:info@trilencetechnology.com"
+                                style="color: #2563eb; text-decoration: none; font-weight: 600;">
+                                info@trilencetechnology.com
+                            </a>
+                            <p style="color: #64748b; margin: 10px 0 5px;">Sales & Support:</p>
+                            <a href="mailto:sales@trilencetechnology.com"
+                                style="color: #2563eb; text-decoration: none; font-weight: 600;">
+                                sales@trilencetechnology.com
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="contact-info-box">
+                        <div class="contact-icon">📞</div>
+                        <div>
+                            <h4 style="font-weight: 700; margin-bottom: 5px;">Call Us</h4>
+                            <p style="color: #64748b; margin-bottom: 5px;">Sales: +91-XXXXX-XXXXX</p>
+                            <p style="color: #64748b; margin-bottom: 5px;">Support: +91-XXXXX-XXXXX</p>
+                            <p style="color: #64748b; font-size: 14px; margin-top: 10px;">
+                                Mon-Fri: 9:00 AM - 6:00 PM IST<br>
+                                Sat: 10:00 AM - 2:00 PM IST
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="contact-info-box">
+                        <div class="contact-icon">💬</div>
+                        <div>
+                            <h4 style="font-weight: 700; margin-bottom: 5px;">WhatsApp</h4>
+                            <p style="color: #64748b; margin-bottom: 5px;">Quick inquiries & support:</p>
+                            <a href="https://wa.me/91XXXXXXXXXX" target="_blank"
+                                style="color: #2563eb; text-decoration: none; font-weight: 600;">
+                                +91-XXXXX-XXXXX
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="contact-info-box" style="margin-bottom: 0;">
+                        <div class="contact-icon">📍</div>
+                        <div>
+                            <h4 style="font-weight: 700; margin-bottom: 5px;">Office Address</h4>
+                            <p style="color: #64748b; line-height: 1.6;">
+                                TrilenceTech<br>
+                                [Your Office Address]<br>
+                                [City, State - PIN Code]<br>
+                                India
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Business Hours -->
+                    <div style="background: #eff6ff; padding: 30px; border-radius: 12px; margin-top: 30px;">
+                        <h4 style="font-weight: 700; margin-bottom: 15px;">⏰ Business Hours</h4>
+                        <div style="display: grid; gap: 10px;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: #1e40af; font-weight: 600;">Monday - Friday:</span>
+                                <span style="color: #1e40af;">9:00 AM - 6:00 PM</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: #1e40af; font-weight: 600;">Saturday:</span>
+                                <span style="color: #1e40af;">10:00 AM - 2:00 PM</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: #64748b; font-weight: 600;">Sunday:</span>
+                                <span style="color: #64748b;">Closed</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Links -->
+    <section style="padding: 80px 0; background: #f8fafc;">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Quick Links</h2>
+                <p class="section-subtitle">Find what you're looking for</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🚀</div>
+                    <h3 class="feature-title">Start PrintFlow Trial</h3>
+                    <p class="feature-desc" style="margin-bottom: 20px;">
+                        Try PrintFlow free for 14 days. No credit card required.
+                    </p>
+                    <a href="/jobcard" class="btn btn-primary">Start Trial →</a>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3 class="feature-title">Schedule ERPNext Demo</h3>
+                    <p class="feature-desc" style="margin-bottom: 20px;">
+                        Book a personalized demo of ERPNext for your business.
+                    </p>
+                    <a href="mailto:sales@trilencetechnology.com?subject=ERPNext Demo Request"
+                        class="btn btn-primary">Book Demo →</a>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">💰</div>
+                    <h3 class="feature-title">Get Custom Quote</h3>
+                    <p class="feature-desc" style="margin-bottom: 20px;">
+                        Need custom development? Get a detailed project quote.
+                    </p>
+                    <a href="#contactForm" class="btn btn-primary">Request Quote →</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Map (Optional) -->
+    <section style="padding: 80px 0;">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Visit Our Office</h2>
+                <p class="section-subtitle">We'd love to meet you in person</p>
+            </div>
+
+            <div
+                style="background: #e5e7eb; height: 400px; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: #64748b;">
+                <!-- Replace with actual Google Maps embed -->
+                <div style="text-align: center;">
+                    <p style="font-size: 18px; margin-bottom: 10px;">📍 Google Maps</p>
+                    <p style="font-size: 14px;">Add your location coordinates here</p>
+                    <p style="font-size: 12px; margin-top: 10px; color: #94a3b8;">
+                        <!-- Embed code: -->
+                        <!-- <iframe src="https://www.google.com/maps/embed?..." width="100%" height="400" style="border:0;" allowfullscreen="" loading="lazy"></iframe> -->
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <div class="footer-logo">TrilenceTech</div>
+                    <p class="footer-desc">Empowering businesses with smart ERP solutions and custom development
+                        services.</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link">LinkedIn</a>
+                        <a href="#" class="social-link">Twitter</a>
+                    </div>
+                </div>
+
+                <div class="footer-col">
+                    <h4 class="footer-heading">Solutions</h4>
+                    <a href="/solutions" class="footer-link">ERPNext Implementation</a>
+                    <a href="/solutions" class="footer-link">Custom Development</a>
+                    <a href="/solutions" class="footer-link">Industry Solutions</a>
+                    <a href="/solutions" class="footer-link">Support & Training</a>
+                </div>
+
+                <div class="footer-col">
+                    <h4 class="footer-heading">Products</h4>
+                    <a href="/products" class="footer-link">PrintFlow Job Card</a>
+                    <a href="/pricing" class="footer-link">Pricing</a>
+                    <a href="/jobcard" class="footer-link">Login to PrintFlow</a>
+                </div>
+
+                <div class="footer-col">
+                    <h4 class="footer-heading">Contact</h4>
+                    <p class="footer-contact">Email: info@trilencetechnology.com</p>
+                    <p class="footer-contact">Phone: +91-XXXXX-XXXXX</p>
+                    <a href="/contact" class="footer-link">Contact Form</a>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>© 2026 TrilenceTech. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Form Success Message Script -->
+    <script>
+        document.getElementById('contactForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+
+            fetch('/api/method/frappe.website.doctype.web_form.web_form.accept', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message === 'success') {
+                        alert('Thank you! Your message has been sent successfully. We\'ll get back to you soon.');
+                        this.reset();
+                    } else {
+                        alert('Message sent! We\'ll contact you shortly.');
+                        this.reset();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Thank you for contacting us! We\'ll respond soon.');
+                    this.reset();
+                });
+        });
+    </script>
+</body>
+
+</html>

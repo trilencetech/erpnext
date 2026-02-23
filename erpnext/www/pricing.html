@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing - TrilenceTech | Transparent & Affordable ERP Solutions</title>
+    <meta name="description"
+        content="Clear, transparent pricing for ERPNext implementation, PrintFlow Job Card, and support services">
+    <link rel="stylesheet" href="/assets/erpnext/css/website.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .pricing-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 80px 0;
+            color: white;
+            text-align: center;
+        }
+
+        .pricing-section {
+            padding: 80px 0;
+        }
+
+        .pricing-section:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        .price-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .price-card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 40px 30px;
+            text-align: center;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .price-card:hover {
+            border-color: #2563eb;
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(37, 99, 235, 0.1);
+        }
+
+        .price-card.featured {
+            border-color: #2563eb;
+            border-width: 3px;
+            transform: scale(1.05);
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2563eb;
+            color: white;
+            padding: 6px 20px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .price-name {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .price-amount {
+            font-size: 48px;
+            font-weight: 800;
+            color: #2563eb;
+            margin: 20px 0;
+        }
+
+        .price-period {
+            font-size: 16px;
+            color: #64748b;
+        }
+
+        .price-features {
+            list-style: none;
+            padding: 0;
+            margin: 30px 0;
+            text-align: left;
+        }
+
+        .price-features li {
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            gap: 10px;
+        }
+
+        .price-features li:last-child {
+            border-bottom: none;
+        }
+
+        @media (max-width: 768px) {
+            .price-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .price-card.featured {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="/" class="logo">
+                <span class="logo-text">TrilenceTech</span>
+                <span class="logo-tagline">Smart ERP Solutions</span>
+            </a>
+
+            <div class="nav-menu">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/about" class="nav-link">About</a>
+                <a href="/solutions" class="nav-link">Solutions</a>
+                <a href="/products" class="nav-link">Products</a>
+                <a href="/pricing" class="nav-link active">Pricing</a>
+                <a href="/contact" class="nav-link">Contact</a>
+                <a href="/jobcard" class="btn-nav">PrintFlow Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="pricing-hero">
+        <div class="container">
+            <h1 style="font-size: 48px; font-weight: 800; margin-bottom: 20px;">
+                Simple, Transparent Pricing
+            </h1>
+            <p style="font-size: 20px; opacity: 0.9; max-width: 700px; margin: 0 auto;">
+                No hidden fees. No surprises. Just honest pricing for honest work.
+            </p>
+        </div>
+    </section>
+
+    <!-- PrintFlow Pricing -->
+    <section class="pricing-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">PrintFlow Job Card</h2>
+                <p class="section-subtitle">SaaS pricing - billed monthly, cancel anytime</p>
+            </div>
+
+            <div class="price-grid">
+                <div class="price-card">
+                    <div class="price-name">Basic</div>
+                    <div class="price-amount">₹1,500<span class="price-period">/month</span></div>
+                    <p style="color: #64748b; margin-bottom: 30px;">For small printing shops</p>
+
+                    <ul class="price-features">
+                        <li><span style="color: #10b981;">✓</span> <span>1-3 users</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>50 jobs/month</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>Customer portal</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>Custom job numbering</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>Basic reports</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>Email support</span></li>
+                    </ul>
+
+                    <a href="/jobcard" class="btn btn-outline" style="width: 100%;">Start Free Trial</a>
+                </div>
+
+                <div class="price-card featured">
+                    <div class="popular-badge">MOST POPULAR</div>
+                    <div class="price-name">Standard</div>
+                    <div class="price-amount">₹3,500<span class="price-period">/month</span></div>
+                    <p style="color: #64748b; margin-bottom: 30px;">For growing businesses</p>
+
+                    <ul class="price-features">
+                        <li><span style="color: #10b981;">✓</span> <span>Up to 10 users</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span><strong>Unlimited jobs</strong></span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>Customer portal</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>Custom job numbering</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span><strong>WhatsApp notifications</strong></span>
+                        </li>
+                        <li><span style="color: #10b981;">✓</span> <span><strong>Custom branding</strong></span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>Advanced reports</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>WhatsApp support</span></li>
+                    </ul>
+
+                    <a href="/jobcard" class="btn btn-primary" style="width: 100%;">Start Free Trial</a>
+                </div>
+
+                <div class="price-card">
+                    <div class="price-name">Premium</div>
+                    <div class="price-amount">₹7,000<span class="price-period">/month</span></div>
+                    <p style="color: #64748b; margin-bottom: 30px;">For enterprise teams</p>
+
+                    <ul class="price-features">
+                        <li><span style="color: #10b981;">✓</span> <span><strong>Unlimited users</strong></span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>Unlimited jobs</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>Everything in Standard</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span><strong>API access</strong></span></li>
+                        <li><span style="color: #10b981;">✓</span> <span><strong>Custom reports</strong></span></li>
+                        <li><span style="color: #10b981;">✓</span> <span><strong>Priority phone support</strong></span>
+                        </li>
+                        <li><span style="color: #10b981;">✓</span> <span><strong>Dedicated account
+                                    manager</strong></span></li>
+                        <li><span style="color: #10b981;">✓</span> <span><strong>Custom development (10
+                                    hrs)</strong></span></li>
+                    </ul>
+
+                    <a href="/contact" class="btn btn-outline" style="width: 100%;">Contact Sales</a>
+                </div>
+            </div>
+
+            <p style="text-align: center; margin-top: 40px; color: #64748b;">
+                14-day free trial on all plans • No credit card required • Cancel anytime
+            </p>
+        </div>
+    </section>
+
+    <!-- ERPNext Implementation -->
+    <section class="pricing-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">ERPNext Implementation</h2>
+                <p class="section-subtitle">One-time project pricing - includes setup, customization & training</p>
+            </div>
+
+            <div class="price-grid">
+                <div class="price-card">
+                    <div class="price-name">Starter</div>
+                    <div class="price-amount">₹50,000<span class="price-period">one-time</span></div>
+                    <p style="color: #64748b; margin-bottom: 30px;">Basic ERPNext setup</p>
+
+                    <ul class="price-features">
+                        <li><span style="color: #10b981;">✓</span> <span>ERPNext installation</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>Basic configuration</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>Up to 3 modules</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>Basic data migration</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>2 hours training</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>1 month support</span></li>
+                    </ul>
+
+                    <p style="margin-top: 20px; font-size: 14px; color: #64748b;">
+                        <strong>Timeline:</strong> 2-3 weeks
+                    </p>
+
+                    <a href="/contact" class="btn btn-outline" style="width: 100%; margin-top: 20px;">Get Quote</a>
+                </div>
+
+                <div class="price-card featured">
+                    <div class="popular-badge">RECOMMENDED</div>
+                    <div class="price-name">Professional</div>
+                    <div class="price-amount">₹1,50,000<span class="price-period">one-time</span></div>
+                    <p style="color: #64748b; margin-bottom: 30px;">Complete implementation</p>
+
+                    <ul class="price-features">
+                        <li><span style="color: #10b981;">✓</span> <span>Full ERPNext setup</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>Custom configuration</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>All modules</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>Complete data migration</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>Custom workflows</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>Custom reports</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>8 hours training</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>3 months support</span></li>
+                    </ul>
+
+                    <p style="margin-top: 20px; font-size: 14px; color: #64748b;">
+                        <strong>Timeline:</strong> 4-6 weeks
+                    </p>
+
+                    <a href="/contact" class="btn btn-primary" style="width: 100%; margin-top: 20px;">Get Quote</a>
+                </div>
+
+                <div class="price-card">
+                    <div class="price-name">Enterprise</div>
+                    <div class="price-amount">Custom<span class="price-period">pricing</span></div>
+                    <p style="color: #64748b; margin-bottom: 30px;">Tailored for large organizations</p>
+
+                    <ul class="price-features">
+                        <li><span style="color: #10b981;">✓</span> <span>Everything in Professional</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>Multiple locations setup</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>Advanced customization</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>API integrations</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>Dedicated project manager</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>On-site training</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>6 months support</span></li>
+                    </ul>
+
+                    <p style="margin-top: 20px; font-size: 14px; color: #64748b;">
+                        <strong>Timeline:</strong> 8-12 weeks
+                    </p>
+
+                    <a href="/contact" class="btn btn-outline" style="width: 100%; margin-top: 20px;">Contact Sales</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Support Plans -->
+    <section id="support" class="pricing-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Support & Maintenance Plans</h2>
+                <p class="section-subtitle">Ongoing support for your ERPNext system - billed monthly</p>
+            </div>
+
+            <div class="price-grid">
+                <div class="price-card">
+                    <div class="price-name">Bronze</div>
+                    <div class="price-amount">₹5,000<span class="price-period">/month</span></div>
+                    <p style="color: #64748b; margin-bottom: 30px;">Essential support</p>
+
+                    <ul class="price-features">
+                        <li><span style="color: #10b981;">✓</span> <span>Email support</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>48-hour response time</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>Bug fixes</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>System updates</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>Daily backups</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>Monthly reports</span></li>
+                    </ul>
+
+                    <a href="/contact" class="btn btn-outline" style="width: 100%;">Subscribe</a>
+                </div>
+
+                <div class="price-card featured">
+                    <div class="popular-badge">BEST VALUE</div>
+                    <div class="price-name">Silver</div>
+                    <div class="price-amount">₹10,000<span class="price-period">/month</span></div>
+                    <p style="color: #64748b; margin-bottom: 30px;">Priority support</p>
+
+                    <ul class="price-features">
+                        <li><span style="color: #10b981;">✓</span> <span>Email + Phone support</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span><strong>24-hour response time</strong></span>
+                        </li>
+                        <li><span style="color: #10b981;">✓</span> <span>Priority bug fixes</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>System updates & optimization</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>Daily backups + monitoring</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span><strong>2 hours
+                                    customization/month</strong></span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>Weekly reports</span></li>
+                    </ul>
+
+                    <a href="/contact" class="btn btn-primary" style="width: 100%;">Subscribe</a>
+                </div>
+
+                <div class="price-card">
+                    <div class="price-name">Gold</div>
+                    <div class="price-amount">₹20,000<span class="price-period">/month</span></div>
+                    <p style="color: #64748b; margin-bottom: 30px;">Premium support</p>
+
+                    <ul class="price-features">
+                        <li><span style="color: #10b981;">✓</span> <span><strong>24/7 support</strong></span></li>
+                        <li><span style="color: #10b981;">✓</span> <span><strong>4-hour response time</strong></span>
+                        </li>
+                        <li><span style="color: #10b981;">✓</span> <span>Immediate bug fixes</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>Proactive optimization</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>Real-time monitoring</span></li>
+                        <li><span style="color: #10b981;">✓</span> <span><strong>5 hours
+                                    customization/month</strong></span></li>
+                        <li><span style="color: #10b981;">✓</span> <span><strong>Dedicated account
+                                    manager</strong></span></li>
+                        <li><span style="color: #10b981;">✓</span> <span>Daily reports</span></li>
+                    </ul>
+
+                    <a href="/contact" class="btn btn-outline" style="width: 100%;">Subscribe</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Custom Development -->
+    <section class="pricing-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Custom Development</h2>
+                <p class="section-subtitle">Hourly rates for bespoke features and integrations</p>
+            </div>
+
+            <div style="max-width: 800px; margin: 0 auto;">
+                <div
+                    style="background: white; padding: 40px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 30px;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 48px; font-weight: 800; color: #2563eb; margin-bottom: 10px;">₹2,000
+                            </div>
+                            <div style="color: #64748b; font-size: 18px;">per hour</div>
+                            <p style="margin-top: 15px; color: #64748b; font-size: 14px;">Junior Developer<br>Simple
+                                tasks & maintenance</p>
+                        </div>
+
+                        <div style="text-align: center;">
+                            <div style="font-size: 48px; font-weight: 800; color: #10b981; margin-bottom: 10px;">₹3,500
+                            </div>
+                            <div style="color: #64748b; font-size: 18px;">per hour</div>
+                            <p style="margin-top: 15px; color: #64748b; font-size: 14px;">Senior Developer<br>Complex
+                                features & integrations</p>
+                        </div>
+                    </div>
+
+                    <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 15px;">What We Build:</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="padding: 10px 0; border-bottom: 1px solid #f1f5f9; display: flex; gap: 10px;">
+                            <span style="color: #10b981;">✓</span>
+                            <span>Custom DocTypes and Forms</span>
+                        </li>
+                        <li style="padding: 10px 0; border-bottom: 1px solid #f1f5f9; display: flex; gap: 10px;">
+                            <span style="color: #10b981;">✓</span>
+                            <span>Automated Workflows and Scripts</span>
+                        </li>
+                        <li style="padding: 10px 0; border-bottom: 1px solid #f1f5f9; display: flex; gap: 10px;">
+                            <span style="color: #10b981;">✓</span>
+                            <span>Custom Reports and Dashboards</span>
+                        </li>
+                        <li style="padding: 10px 0; border-bottom: 1px solid #f1f5f9; display: flex; gap: 10px;">
+                            <span style="color: #10b981;">✓</span>
+                            <span>Third-party API Integrations</span>
+                        </li>
+                        <li style="padding: 10px 0; border-bottom: 1px solid #f1f5f9; display: flex; gap: 10px;">
+                            <span style="color: #10b981;">✓</span>
+                            <span>Payment Gateway Integration</span>
+                        </li>
+                        <li style="padding: 10px 0; display: flex; gap: 10px;">
+                            <span style="color: #10b981;">✓</span>
+                            <span>Customer/Vendor Portals</span>
+                        </li>
+                    </ul>
+
+                    <div style="margin-top: 30px; background: #eff6ff; padding: 20px; border-radius: 12px;">
+                        <p style="margin: 0; color: #1e40af; font-size: 14px;">
+                            <strong>Note:</strong> Minimum engagement of 10 hours. Fixed-price projects available for
+                            larger scopes.
+                        </p>
+                    </div>
+
+                    <a href="/contact" class="btn btn-primary" style="width: 100%; margin-top: 30px;">Request Quote</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="pricing-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Frequently Asked Questions</h2>
+            </div>
+
+            <div style="max-width: 800px; margin: 0 auto;">
+                <div
+                    style="background: white; padding: 30px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                    <h4 style="font-weight: 700; margin-bottom: 10px;">Do you offer refunds?</h4>
+                    <p style="color: #64748b;">For SaaS products (PrintFlow), you can cancel anytime and we'll refund
+                        the unused portion. For implementation projects, we offer milestone-based payments.</p>
+                </div>
+
+                <div
+                    style="background: white; padding: 30px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                    <h4 style="font-weight: 700; margin-bottom: 10px;">Can I upgrade/downgrade my plan?</h4>
+                    <p style="color: #64748b;">Yes! You can upgrade or downgrade your PrintFlow plan anytime. Changes
+                        take effect immediately.</p>
+                </div>
+
+                <div
+                    style="background: white; padding: 30px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                    <h4 style="font-weight: 700; margin-bottom: 10px;">What payment methods do you accept?</h4>
+                    <p style="color: #64748b;">We accept bank transfer, UPI, credit/debit cards, and for international
+                        clients - PayPal and Stripe.</p>
+                </div>
+
+                <div
+                    style="background: white; padding: 30px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                    <h4 style="font-weight: 700; margin-bottom: 10px;">Is training included?</h4>
+                    <p style="color: #64748b;">All ERPNext implementation packages include training. PrintFlow includes
+                        video tutorials and documentation.</p>
+                </div>
+
+                <div
+                    style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                    <h4 style="font-weight: 700; margin-bottom: 10px;">Do you have enterprise plans?</h4>
+                    <p style="color: #64748b;">Yes! For large organizations requiring custom SLAs, dedicated
+                        infrastructure, or special features, please contact our sales team.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+        <div class="container">
+            <h2 class="cta-title">Ready to Get Started?</h2>
+            <p class="cta-subtitle">Choose a plan or schedule a consultation with our team</p>
+            <div class="cta-buttons">
+                <a href="/jobcard" class="btn btn-white btn-lg">Start Free Trial</a>
+                <a href="/contact" class="btn btn-outline-white btn-lg">Talk to Sales</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <div class="footer-logo">TrilenceTech</div>
+                    <p class="footer-desc">Empowering businesses with smart ERP solutions.</p>
+                </div>
+
+                <div class="footer-col">
+                    <h4 class="footer-heading">Solutions</h4>
+                    <a href="/solutions" class="footer-link">ERPNext Implementation</a>
+                    <a href="/solutions" class="footer-link">Custom Development</a>
+                    <a href="/products" class="footer-link">PrintFlow</a>
+                </div>
+
+                <div class="footer-col">
+                    <h4 class="footer-heading">Company</h4>
+                    <a href="/about" class="footer-link">About Us</a>
+                    <a href="/pricing" class="footer-link">Pricing</a>
+                    <a href="/contact" class="footer-link">Contact</a>
+                </div>
+
+                <div class="footer-col">
+                    <h4 class="footer-heading">Contact</h4>
+                    <p class="footer-contact">Email: info@trilencetechnology.com</p>
+                    <p class="footer-contact">Phone: +91-XXXXX-XXXXX</p>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>© 2026 TrilenceTech. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>
