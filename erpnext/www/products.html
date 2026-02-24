@@ -66,25 +66,7 @@
 </head>
 
 <body>
-    <!-- Navigation -->
-    <nav class="navbar">
-        <div class="container nav-container">
-            <a href="/" class="logo">
-                <span class="logo-text">TrilenceTech</span>
-                <span class="logo-tagline">Smart ERP Solutions</span>
-            </a>
-
-            <div class="nav-menu">
-                <a href="/" class="nav-link">Home</a>
-                <a href="/about" class="nav-link">About</a>
-                <a href="/solutions" class="nav-link">Solutions</a>
-                <a href="/products" class="nav-link active">Products</a>
-                <a href="/pricing" class="nav-link">Pricing</a>
-                <a href="/contact" class="nav-link">Contact</a>
-                <a href="/jobcard/login" class="btn-nav">PrintFlow Login</a>
-            </div>
-        </div>
-    </nav>
+    {% include "templates/includes/__navigation.html" %}
 
     <!-- Hero -->
     <section class="products-hero">
@@ -418,8 +400,8 @@
 
                 <div class="comparison-row" style="border-bottom: none;">
                     <div></div>
-                    <div style="text-align: center;"><a href="/jobcard" class="btn btn-outline">Start Trial</a></div>
-                    <div style="text-align: center;"><a href="/jobcard" class="btn btn-primary">Start Trial</a></div>
+                    <div style="text-align: center;"><a href="/jobcard-login" class="btn btn-primary">Start Trial</a>
+                    </div>
                     <div style="text-align: center;"><a href="/contact" class="btn btn-outline">Contact Us</a></div>
                 </div>
             </div>
@@ -436,47 +418,13 @@
             <h2 class="cta-title">Ready to Streamline Your Printing Business?</h2>
             <p class="cta-subtitle">Start your 14-day free trial today - no credit card required</p>
             <div class="cta-buttons">
-                <a href="/jobcard" class="btn btn-white btn-lg">Start Free Trial</a>
+                <a href="/jobcard-login" class="btn btn-white btn-lg">Start Free Trial</a>
                 <a href="/contact" class="btn btn-outline-white btn-lg">Schedule Demo</a>
             </div>
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-grid">
-                <div class="footer-col">
-                    <div class="footer-logo">TrilenceTech</div>
-                    <p class="footer-desc">Empowering businesses with smart ERP solutions.</p>
-                </div>
-
-                <div class="footer-col">
-                    <h4 class="footer-heading">Solutions</h4>
-                    <a href="/solutions" class="footer-link">ERPNext Implementation</a>
-                    <a href="/solutions" class="footer-link">Custom Development</a>
-                    <a href="/products" class="footer-link">PrintFlow</a>
-                </div>
-
-                <div class="footer-col">
-                    <h4 class="footer-heading">Company</h4>
-                    <a href="/about" class="footer-link">About Us</a>
-                    <a href="/pricing" class="footer-link">Pricing</a>
-                    <a href="/contact" class="footer-link">Contact</a>
-                </div>
-
-                <div class="footer-col">
-                    <h4 class="footer-heading">Contact</h4>
-                    <p class="footer-contact">Email: info@trilencetechnology.com</p>
-                    <p class="footer-contact">Phone: +91-XXXXX-XXXXX</p>
-                </div>
-            </div>
-
-            <div class="footer-bottom">
-                <p>© 2026 TrilenceTech. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
+    {% include "templates/includes/__footer.html" %}
 </body>
 
 </html>

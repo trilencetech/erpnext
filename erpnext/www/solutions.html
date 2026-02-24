@@ -70,26 +70,7 @@
 </head>
 
 <body>
-    <!-- Navigation -->
-    <nav class="navbar">
-        <div class="container nav-container">
-            <a href="/" class="logo">
-                <span class="logo-text">TrilenceTech</span>
-                <span class="logo-tagline">Smart ERP Solutions</span>
-            </a>
-
-            <div class="nav-menu">
-                <a href="/" class="nav-link">Home</a>
-                <a href="/about" class="nav-link">About</a>
-                <a href="/solutions" class="nav-link active">Solutions</a>
-                <a href="/products" class="nav-link">Products</a>
-                <a href="/pricing" class="nav-link">Pricing</a>
-                <a href="/contact" class="nav-link">Contact</a>
-                <a href="/jobcard/login" class="btn-nav">PrintFlow Login</a>
-            </div>
-        </div>
-    </nav>
-
+    {% include "templates/includes/__navigation.html"%}
     <!-- Hero -->
     <section class="solutions-hero">
         <div class="container">
@@ -463,41 +444,7 @@
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-grid">
-                <div class="footer-col">
-                    <div class="footer-logo">TrilenceTech</div>
-                    <p class="footer-desc">Empowering businesses with smart ERP solutions.</p>
-                </div>
-
-                <div class="footer-col">
-                    <h4 class="footer-heading">Solutions</h4>
-                    <a href="/solutions" class="footer-link">ERPNext Implementation</a>
-                    <a href="/solutions" class="footer-link">Custom Development</a>
-                    <a href="/solutions" class="footer-link">Industry Solutions</a>
-                </div>
-
-                <div class="footer-col">
-                    <h4 class="footer-heading">Products</h4>
-                    <a href="/products" class="footer-link">PrintFlow Job Card</a>
-                    <a href="/pricing" class="footer-link">Pricing</a>
-                    <a href="/jobcard" class="footer-link">Login to PrintFlow</a>
-                </div>
-
-                <div class="footer-col">
-                    <h4 class="footer-heading">Contact</h4>
-                    <p class="footer-contact">Email: info@trilencetechnology.com</p>
-                    <p class="footer-contact">Phone: +91-XXXXX-XXXXX</p>
-                </div>
-            </div>
-
-            <div class="footer-bottom">
-                <p>© 2026 TrilenceTech. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
+    {% include "templates/includes/__footer.html" %}
 </body>
 
 </html>
