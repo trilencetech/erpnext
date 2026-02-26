@@ -13,6 +13,7 @@
   "naming_series",
   "customer",
   "tax_id",
+  "custom_is_intercompany_transfer",
   "customer_name",
   "custom_name",
   "column_break1",
@@ -1427,13 +1428,19 @@
   {
    "fieldname": "column_break_xpyr",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "custom_is_intercompany_transfer",
+   "fieldtype": "Check",
+   "label": "Is Internal Company Transfer"
   }
  ],
  "icon": "fa fa-truck",
  "idx": 146,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-12-16 20:59:36.836152",
+ "modified": "2026-02-26 09:01:02.975865",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Delivery Note",

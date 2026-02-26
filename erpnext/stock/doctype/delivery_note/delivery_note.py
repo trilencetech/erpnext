@@ -57,6 +57,7 @@ class DeliveryNote(SellingController):
         conversion_rate: DF.Float
         cost_center: DF.Link | None
         currency: DF.Link
+        custom_is_intercompany_transfer: DF.Check
         custom_name: DF.Data | None
         customer: DF.Link
         customer_address: DF.Link | None
@@ -246,9 +247,15 @@ class DeliveryNote(SellingController):
 
         # e.g., April 2025 → March 2026 = "25-26"
         fiscal_year = f"{str(start_year)[-2:]}-{str(end_year)[-2:]}"
-
-        base_series = frappe.model.naming.make_autoname(
-            f"DC-{company_abbr}-.####")
+        # In DN before_save or before_naming hook
+        if self.custom_is_intercompany_transfer:
+            # Use inter company naming series
+            base_series = frappe.model.naming.make_autoname(
+                f"DN-TR-{company_abbr}-.###")
+            self.selling_price_list = "Buying and Selling"
+        else:
+            base_series = frappe.model.naming.make_autoname(
+                f"DC-{company_abbr}-.####")
 
         # Append fiscal year suffix
         self.name = f"{base_series}/{fiscal_year}"
@@ -399,6 +406,8 @@ class DeliveryNote(SellingController):
                     item.serial_and_batch_bundle = cls_obj.serial_and_batch_bundle
 
     def validate_references(self):
+        if self.custom_is_intercompany_transfer:
+            self.selling_price_list = "Buying and Selling"
         self.validate_sales_order_references()
         self.validate_sales_invoice_references()
 

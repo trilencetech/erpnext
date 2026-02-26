@@ -60,7 +60,7 @@ class Customer(TransactionBase):
         dn_required: DF.Check
         email_id: DF.ReadOnly | None
         gender: DF.Link | None
-        gstin: DF.Data | None
+        gstin: DF.Data
         image: DF.AttachImage | None
         industry: DF.Link | None
         is_frozen: DF.Check

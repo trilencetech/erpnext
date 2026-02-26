@@ -599,7 +599,8 @@
   {
    "fieldname": "gstin",
    "fieldtype": "Data",
-   "label": "GSTIN"
+   "label": "GSTIN",
+   "reqd": 1
   },
   {
    "fieldname": "section_break_tdva",
@@ -642,7 +643,7 @@
    "link_fieldname": "party"
   }
  ],
- "modified": "2026-02-07 13:26:26.479654",
+ "modified": "2026-02-26 08:53:25.285208",
  "modified_by": "Administrator",
  "module": "Selling",
  "name": "Customer",
