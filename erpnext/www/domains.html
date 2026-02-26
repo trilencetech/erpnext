@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Our Domains</title>
+  <link rel="stylesheet" href="/assets/erpnext/css/website.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f5f2ed;
+      --surface: #ffffff;
+      --ink: #667eea;
+      --muted: #7a7068;
+      --accent: #667eea;
+      --accent-light: #f4ece5;
+      --border: #e2ddd7;
+      --tab-active-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --tab-active-text: #f5f2ed;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    /* ── Section Wrapper ── */
+    .domains-section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 80px 24px 100px;
+    }
+
+    .section-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 800;
+      line-height: 1.1;
+      color: var(--ink);
+      max-width: 560px;
+      margin-bottom: 12px;
+    }
+
+    .section-title span {
+      color: var(--accent);
+    }
+
+    .section-sub {
+      font-size: 1rem;
+      color: var(--muted);
+      max-width: 520px;
+      line-height: 1.7;
+      margin-bottom: 52px;
+    }
+
+    /* ── Tab Nav ── */
+    .tab-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 40px;
+      position: relative;
+    }
+
+    .tab-btn {
+      /*font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 600;*/
+      font-weight: bold;
+      letter-spacing: 0.04em;
+      padding: 10px 20px;
+      border: 1.5px solid var(--border);
+      border-radius: 40px;
+      background: var(--surface);
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tab-btn:hover {
+      border-color: var(--ink);
+      color: var(--ink);
+    }
+
+    .tab-btn.active {
+      background: var(--tab-active-bg);
+      border-color: var(--tab-active-bg);
+      color: var(--tab-active-text);
+    }
+
+    .tab-btn .tab-icon {
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    /* ── Tab Content ── */
+    .tab-content {
+      display: none;
+      animation: fadeUp 0.4s ease forwards;
+    }
+
+    .tab-content.active {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Main Info Card ── */
+    .domain-main {
+      background: var(--ink);
+      border-radius: 20px;
+      padding: 44px 40px;
+      color: var(--tab-active-text);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 380px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .domain-main::before {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: 0.12;
+    }
+
+    .domain-icon-large {
+      font-size: 44px;
+      margin-bottom: 24px;
+      display: block;
+    }
+
+    .domain-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+      color: #fff;
+    }
+
+    .domain-desc {
+      font-size: 0.95rem;
+      line-height: 1.75;
+      color: white;
+      margin-bottom: 28px;
+      flex-grow: 1;
+    }
+
+    .domain-tag {
+      display: inline-block;
+      background: white;
+      color: #667eea;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 20px;
+      align-self: flex-start;
+    }
+
+    /* ── Features Card ── */
+    .domain-features {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 22px 24px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .feature-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 4px 20px rgba(200,80,26,0.08);
+    }
+
+    .feature-title {
+      font-size: 0.95rem;
+      font-weight: bold;
+      color: var(--ink);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .feature-title::before {
+      content: '';
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .feature-desc {
+      font-size: 0.875rem;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    /* ── Stats Strip ── */
+    .stats-strip {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .stat-box {
+      background: var(--accent-light);
+      border-radius: 14px;
+      padding: 24px 28px;
+      border: 1.5px solid #e8d4c8;
+    }
+
+    .stat-number1 {
+      /*font-family: 'Syne', sans-serif;*/
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--accent);
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .stat-number2 {
+      /*font-family: 'Syne', sans-serif;*/
+      font-size: 2rem;
+      font-weight: 800;
+      color: green;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .stat-number3 {
+      /*font-family: 'Syne', sans-serif;*/
+      font-size: 2rem;
+      font-weight: 800;
+      color: orange;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 0.82rem;
+      font-weight: bold;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .tab-content.active {
+        grid-template-columns: 1fr;
+      }
+      .stats-strip {
+        grid-template-columns: 1fr 1fr;
+      }
+      .domain-main {
+        min-height: auto;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .stats-strip {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+{% include "templates/includes/__navigation.html" %}
+<section class="domains-section">
+  <h2 class="section-title">Industries We <span>Transform</span></h2>
+  <p class="section-sub">We deliver purpose-built software solutions across diverse industries — combining deep domain expertise with cutting-edge technology.</p>
+
+  <!-- Tab Navigation -->
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('print')">
+      <span class="tab-icon">🖨️</span> Print & Publishing
+    </button>
+    <button class="tab-btn tab-btn--highlight" onclick="switchTab('trading')">
+      <span class="tab-icon">📊</span> Trading Business
+    </button>
+    <button class="tab-btn" onclick="switchTab('health')">
+      <span class="tab-icon">🏥</span> Healthcare
+    </button>
+    <button class="tab-btn" onclick="switchTab('retail')">
+      <span class="tab-icon">🛒</span> Retail & E-commerce
+    </button>
+    <button class="tab-btn" onclick="switchTab('education')">
+      <span class="tab-icon">🎓</span> Education & EdTech
+    </button>
+  </div>
+
+  <!-- ── PRINT & PUBLISHING ── -->
+  <div id="tab-print" class="tab-content active">
+    <div class="domain-main">
+      <span class="domain-icon-large">🖨️</span>
+      <div>
+        <h3 class="domain-name">Print & Publishing</h3>
+        <p class="domain-desc">We streamline end-to-end print workflows — from content creation and prepress to job scheduling, production tracking, and delivery. Our solutions eliminate manual bottlenecks and bring digital intelligence to your print operations.</p>
+        <span class="domain-tag">Print Flow Solutions</span>
+      </div>
+    </div>
+    <div class="domain-features">
+      <div class="feature-card">
+        <div class="feature-title">Automated Print Flow Management</div>
+        <p class="feature-desc">Automate job routing, prepress checks, and print queue management for faster turnaround and fewer errors.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title">Multi-Channel Publishing</div>
+        <p class="feature-desc">Publish content seamlessly across print, digital, and web channels from a single unified platform.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title">Real-Time Production Tracking</div>
+        <p class="feature-desc">Monitor every job's status from order intake to final delivery with live dashboards and alerts.</p>
+      </div>
+    </div>
+    <div class="stats-strip">
+      <div class="stat-box"><span class="stat-number1">60%</span><span class="stat-label">Reduction in production time</span></div>
+      <div class="stat-box"><span class="stat-number2">99%</span><span class="stat-label">Job accuracy rate</span></div>
+      <div class="stat-box"><span class="stat-number3">3x</span><span class="stat-label">Faster order processing</span></div>
+    </div>
+  </div>
+
+  <!-- ── TRADING APPLICATION ── -->
+  <div id="tab-trading" class="tab-content">
+    <div class="domain-main trading-card">
+      <span class="domain-icon-large">📊</span>
+      <div>
+        <h3 class="domain-name">Trading Business</h3>
+        <p class="domain-desc">A comprehensive trading business solution built for Indian markets — covering end-to-end operations from procurement and sales to GST-compliant accounting, E-way Bill generation, and multi-branch management.</p>
+        <span class="domain-tag trading-tag">Trading Solution</span>
+        
+      </div>
+    </div>
+
+    <div class="domain-features">
+        <div class="feature-card">
+          <div class="feature-title">GST and E-way Bill Integration</div>
+          <p class="feature-desc">Auto-calculate CGST, SGST & IGST. Generate GST invoices, file-ready reports & GSTR summaries.Generate & manage E-way Bills directly from sales/purchase orders with NIC portal sync.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-title">Accounting & Finance</div>
+          <p class="feature-desc">Double-entry bookkeeping, ledgers, P&L, balance sheet, and cash flow — fully India-compliant.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-title">Purchase & Sales Orders along with Vendor/Supplier Management</div>
+          <p class="feature-desc">End-to-end order lifecycle — from RFQ and purchase orders to sales orders, delivery notes & invoicing.Maintain supplier profiles, track payables, manage agreements and evaluate vendor performance.</p>
+        </div>
+      </div>
+      <div class="stats-strip">
+        <div class="stat-box"><span class="stat-number1">100%</span><span class="stat-label">GST & E-way Bill compliant</span></div>
+        <div class="stat-box"><span class="stat-number2">Multi</span><span class="stat-label">Branch & warehouse support</span></div>
+        <div class="stat-box"><span class="stat-number3">Multi</span><span class="stat-label">User access based on role</span></div>
+      </div>
+   </div>
+
+  <!-- ── HEALTHCARE ── -->
+  <div id="tab-health" class="tab-content">
+    <div class="domain-main">
+      <span class="domain-icon-large">🏥</span>
+      <div>
+        <h3 class="domain-name">Healthcare</h3>
+        <p class="domain-desc">We build inclusive healthcare software for both modern and traditional practitioners — from hospitals and clinics to AYUSH providers. Our platforms unify allopathic, Ayurvedic, Homeopathic, Unani, and Siddha workflows into one seamless system.</p>
+        <span class="domain-tag">HealthTech Solutions</span>
+      </div>
+    </div>
+    <div class="domain-features">
+      <div class="feature-card">
+        <div class="feature-title">Patient Management System</div>
+        <p class="feature-desc">Centralize patient records, appointments, and billing in one HIPAA-compliant platform designed for clinical efficiency.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title">Clinical Analytics & Wellness Portal</div>
+        <p class="feature-desc">Track patient progress, diet & lifestyle recommendations, and clinical outcomes — for both modern and traditional care pathways.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title">Multi-System Practice Management</div>
+        <p class="feature-desc">Unified workflows for Allopathic, Ayurveda, Homeopathy, Unani, Siddha & Yoga practitioners — all in one platform.</p>
+      </div>
+    </div>
+    <div class="stats-strip">
+      <div class="stat-box"><span class="stat-number1">40%</span><span class="stat-label">Improvement in patient throughput</span></div>
+      <div class="stat-box"><span class="stat-number2">100%</span><span class="stat-label">HIPAA compliance</span></div>
+      <div class="stat-box"><span class="stat-number3">20+</span><span class="stat-label">Interactive Dashboard </span></div>
+    </div>
+  </div>
+
+  <!-- ── RETAIL & E-COMMERCE ── -->
+  <div id="tab-retail" class="tab-content">
+    <div class="domain-main">
+      <span class="domain-icon-large">🛒</span>
+      <div>
+        <h3 class="domain-name">Retail & E-commerce</h3>
+        <p class="domain-desc">We help retail brands and online stores scale smarter — with unified commerce platforms, AI-driven personalization, inventory intelligence, and smart POS experiences.</p>
+        <span class="domain-tag">Commerce Solutions</span>
+      </div>
+    </div>
+    <div class="domain-features">
+      <div class="feature-card">
+        <div class="feature-title">Smart POS Platform</div>
+        <p class="feature-desc">Unify your multi store through POS system with Barcode scanning capabalities.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title">Smart Inventory Management</div>
+        <p class="feature-desc">Eliminate stockouts and overstock with AI-powered demand forecasting and real-time inventory sync.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title">Customer Analytics & Loyalty Program</div>
+        <p class="feature-desc">Understand purchase behavior, build loyalty programs, and drive repeat business with data-driven insights.</p>
+      </div>
+    </div>
+    <div class="stats-strip">
+      <div class="stat-box"><span class="stat-number1">35%</span><span class="stat-label">Average increase in sales</span></div>
+      <div class="stat-box"><span class="stat-number2">28%</span><span class="stat-label">Reduction in cart abandonment</span></div>
+      <div class="stat-box"><span class="stat-number3">4x</span><span class="stat-label">Customer retention improvement</span></div>
+    </div>
+  </div>
+
+    <!-- ── EDUCATION & EDTECH ── -->
+  <div id="tab-education" class="tab-content">
+    <div class="domain-main">
+      <span class="domain-icon-large">🎓</span>
+      <div>
+        <h3 class="domain-name">Education & EdTech</h3>
+        <p class="domain-desc">We design and develop next-generation learning platforms that make education more accessible, engaging, and measurable — for schools, universities, corporate L&D teams, and ed-tech startups alike.</p>
+        <span class="domain-tag">EdTech Solutions</span>
+      </div>
+    </div>
+    <div class="domain-features">
+      <div class="feature-card">
+        <div class="feature-title">Learning Management System (LMS)</div>
+        <p class="feature-desc">Deliver, track, and manage online courses and training programs with a feature-rich, scalable LMS platform.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title">Adaptive Learning Engine</div>
+        <p class="feature-desc">Personalize learning paths using AI — adapting content difficulty and format to each learner's pace and style.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title">Student & Performance Analytics</div>
+        <p class="feature-desc">Give educators and administrators real-time dashboards to track engagement, progress, and learning outcomes.</p>
+      </div>
+    </div>
+    <div class="stats-strip">
+      <div class="stat-box"><span class="stat-number1">70%</span><span class="stat-label">Increase in course completion</span></div>
+      <div class="stat-box"><span class="stat-number2">3x</span><span class="stat-label">Learner engagement boost</span></div>
+      <div class="stat-box"><span class="stat-number3">200+</span><span class="stat-label">Institutions empowered</span></div>
+    </div>
+  </div>
+
+</section>
+
+<script>
+  function switchTab(domain) {
+    // Update buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+
+    // Update content
+    document.querySelectorAll('.tab-content').forEach(tab => {
+      tab.classList.remove('active');
+    });
+    document.getElementById('tab-' + domain).classList.add('active');
+  }
+</script>
+ {% include "templates/includes/__footer.html" %}
+</body>
+</html>
