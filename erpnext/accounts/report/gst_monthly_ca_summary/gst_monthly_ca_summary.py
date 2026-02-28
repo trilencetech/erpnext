@@ -8,6 +8,20 @@ import frappe
 from frappe.utils import getdate, flt
 
 
+# GST Monthly CA Summary – Script Report for ERPNext
+# -----------------------------------------------------------------------
+# INCLUDES CREDIT NOTES & DEBIT NOTES
+# Works with standard ERPNext tables (no India Compliance dependency)
+# Reads from: Sales Invoice, Purchase Invoice + their tax child tables
+# -----------------------------------------------------------------------
+
+# GST Monthly CA Summary – Script Report for ERPNext
+# -----------------------------------------------------------------------
+# CORRECTED: Properly handles Journal Entry Credit/Debit Notes
+# Credit Notes: Output Tax is DEBITED (reduces liability)
+# Works with: Sales Invoice, Purchase Invoice + Journal Entry
+# -----------------------------------------------------------------------
+
 def execute(filters=None):
     if not filters:
         filters = {}
@@ -48,7 +62,7 @@ def get_report_data(filters):
     from_date = filters.get("from_date")
     to_date = filters.get("to_date")
 
-    # Current period
+    # Current period - INCLUDES JOURNAL ENTRIES
     sales = get_sales_gst(company, from_date, to_date)
     purch = get_purchase_gst(company, from_date, to_date)
 
@@ -102,29 +116,29 @@ def get_report_data(filters):
 
     rows = []
 
-    # SECTION A: SALES LIABILITY
+    # ─── SECTION A: SALES LIABILITY ──────────────────────────────────────
     rows.append(make_section("SALES LIABILITY"))
     rows.append(make_row("Previous Due",
                          0, flt(prev_sales_igst, 2), flt(prev_sales_cgst, 2), flt(prev_sales_sgst, 2), prev_sales_total))
-    rows.append(make_row("Sales @ " + tax_rate + "%",
+    rows.append(make_row("Sales @ " + tax_rate + "% (Incl. JV Credits)",
                          total_sales_taxable, flt(sales.get("igst"), 2),
                          flt(sales.get("cgst"), 2), flt(sales.get("sgst"), 2), cur_sales_gst))
     rows.append(make_total("TOTAL LIABILITY",
                            total_sales_taxable, total_sales_igst, total_sales_cgst, total_sales_sgst, total_sales_gst))
     rows.append(make_blank())
 
-    # SECTION B: PURCHASE ITC
+    # ─── SECTION B: PURCHASE ITC ─────────────────────────────────────────
     rows.append(make_section("PURCHASE ITC"))
     rows.append(make_row("Previous ITC",
                          0, flt(prev_itc_igst, 2), flt(prev_itc_cgst, 2), flt(prev_itc_sgst, 2), prev_itc_total))
-    rows.append(make_row("Purchase @ " + tax_rate + "%",
+    rows.append(make_row("Purchase @ " + tax_rate + "% (Incl. JV Debits)",
                          total_purch_taxable, flt(purch.get("igst"), 2),
                          flt(purch.get("cgst"), 2), flt(purch.get("sgst"), 2), cur_purch_gst))
     rows.append(make_total("TOTAL AVAILABLE ITC",
                            total_purch_taxable, total_itc_igst, total_itc_cgst, total_itc_sgst, total_itc_gst))
     rows.append(make_blank())
 
-    # SECTION C: POSITION BEFORE UTILISATION
+    # ─── SECTION C: POSITION BEFORE UTILISATION ──────────────────────────
     rows.append(make_section("GST POSITION BEFORE UTILISATION"))
     rows.append(make_row("GST Payable (Before Utilisation)",
                          0, total_sales_igst, total_sales_cgst, total_sales_sgst, total_sales_gst))
@@ -134,7 +148,7 @@ def get_report_data(filters):
                            0, surplus_igst, surplus_cgst, surplus_sgst, net_surplus))
     rows.append(make_blank())
 
-    # SECTION D: UTILISATION
+    # ─── SECTION D: UTILISATION ──────────────────────────────────────────
     rows.append(make_section("UTILISATION (SET OFF) OF ITC"))
     rows.append(make_row("IGST Payable",   0,
                 total_sales_igst, 0, 0, total_sales_igst))
@@ -153,7 +167,7 @@ def get_report_data(filters):
                            0, util["igst_net"], util["cgst_net"], util["sgst_net"], net_cash))
     rows.append(make_blank())
 
-    # SECTION E: CARRY FORWARD
+    # ─── SECTION E: CARRY FORWARD ────────────────────────────────────────
     rows.append(make_section("ITC AVAILABLE FOR NEXT MONTH"))
     rows.append(make_row("Available IGST", 0, carry_igst,
                 0,          0,          carry_igst))
@@ -167,17 +181,26 @@ def get_report_data(filters):
     return rows
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# DATA QUERIES — Standard ERPNext tables
-# ─────────────────────────────────────────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────────
+# DATA QUERIES — Standard ERPNext tables + Journal Entry
+# ────────────────────────────────────────────────────────────────────────────
 
 def get_sales_gst(company, from_date, to_date):
     """
-    Query Sales Invoice + Sales Taxes and Charges child table.
-    Identifies IGST/CGST/SGST by account head description.
+    Get Sales GST from:
+    1. Sales Invoice + taxes
+    2. Journal Entry (Credit Notes)
+
+    CRITICAL FORMULA FOR OUTPUT TAX:
+    - Normal Invoice: Output Tax CREDITED (increases liability)
+    - Credit Note: Output Tax DEBITED (reduces liability)
+    - Formula: Credit - Debit
+      - Invoice: 9000 - 0 = +9000 ✓
+      - Credit: 0 - 164 = -164 ✓
     """
-    # Get taxable amount
-    taxable = frappe.db.sql("""
+
+    # PART 1: Sales Invoice taxes
+    si_taxable = frappe.db.sql("""
         SELECT SUM(base_net_total) AS taxable_amt
         FROM `tabSales Invoice`
         WHERE
@@ -187,8 +210,7 @@ def get_sales_gst(company, from_date, to_date):
             AND is_return = 0
     """, {"company": company, "from_date": from_date, "to_date": to_date}, as_dict=True)
 
-    # Get tax amounts by type
-    taxes = frappe.db.sql("""
+    si_taxes = frappe.db.sql("""
         SELECT
             SUM(CASE
                 WHEN (stc.description LIKE '%%IGST%%'
@@ -215,12 +237,55 @@ def get_sales_gst(company, from_date, to_date):
             AND si.is_return = 0
     """, {"company": company, "from_date": from_date, "to_date": to_date}, as_dict=True)
 
-    t = taxable[0] if taxable else {}
-    x = taxes[0] if taxes else {}
+    # PART 2: Journal Entry Credit Notes
+    # Output Tax: Credit - Debit (Credit Note debits Output Tax = negative)
+    je_taxes = frappe.db.sql("""
+        SELECT
+            SUM(CASE
+                WHEN (jea.account LIKE '%%Output%%Tax%%IGST%%'
+                  OR  jea.account LIKE '%%IGST%%Output%%')
+                THEN jea.credit_in_account_currency - jea.debit_in_account_currency
+                ELSE 0 END) AS igst,
+            SUM(CASE
+                WHEN (jea.account LIKE '%%Output%%Tax%%CGST%%'
+                  OR  jea.account LIKE '%%CGST%%Output%%')
+                THEN jea.credit_in_account_currency - jea.debit_in_account_currency
+                ELSE 0 END) AS cgst,
+            SUM(CASE
+                WHEN (jea.account LIKE '%%Output%%Tax%%SGST%%'
+                  OR  jea.account LIKE '%%SGST%%Output%%'
+                  OR  jea.account LIKE '%%Output%%Tax%%UTGST%%')
+                THEN jea.credit_in_account_currency - jea.debit_in_account_currency
+                ELSE 0 END) AS sgst,
+            SUM(CASE
+                WHEN jea.account LIKE '%%Sales%%'
+                THEN jea.debit_in_account_currency - jea.credit_in_account_currency
+                ELSE 0 END) AS sales_amt
+        FROM `tabJournal Entry Account` jea
+        INNER JOIN `tabJournal Entry` je ON je.name = jea.parent
+        WHERE
+            je.docstatus = 1
+            AND je.company = %(company)s
+            AND je.posting_date BETWEEN %(from_date)s AND %(to_date)s
+            AND je.voucher_type IN ('Credit Note', 'Debit Note', 'Journal Entry')
+    """, {"company": company, "from_date": from_date, "to_date": to_date}, as_dict=True)
 
-    igst = flt(x.get("igst"), 2)
-    cgst = flt(x.get("cgst"), 2)
-    sgst = flt(x.get("sgst"), 2)
+    # Combine both
+    si_t = si_taxable[0] if si_taxable else {}
+    si_x = si_taxes[0] if si_taxes else {}
+    je_x = je_taxes[0] if je_taxes else {}
+
+    # Sales Invoice amounts (positive)
+    total_taxable = flt(si_t.get("taxable_amt"), 2)
+    total_igst = flt(si_x.get("igst"), 2)
+    total_cgst = flt(si_x.get("cgst"), 2)
+    total_sgst = flt(si_x.get("sgst"), 2)
+
+    # Add Journal Entry amounts (negative for credit notes)
+    total_taxable -= flt(je_x.get("sales_amt"), 2)  # Sales debited = reduce
+    total_igst += flt(je_x.get("igst"), 2)  # Will be negative
+    total_cgst += flt(je_x.get("cgst"), 2)  # Will be negative
+    total_sgst += flt(je_x.get("sgst"), 2)  # Will be negative
 
     # Auto-detect tax rate
     rate_result = frappe.db.sql("""
@@ -231,6 +296,7 @@ def get_sales_gst(company, from_date, to_date):
             si.company      = %(company)s
             AND si.posting_date BETWEEN %(from_date)s AND %(to_date)s
             AND si.docstatus = 1
+            AND si.is_return = 0
             AND stc.rate     > 0
         ORDER BY stc.rate DESC
         LIMIT 1
@@ -240,16 +306,31 @@ def get_sales_gst(company, from_date, to_date):
         "rate") else 18.0
 
     return {
-        "taxable_amt": flt(t.get("taxable_amt"), 2),
-        "igst": igst, "cgst": cgst, "sgst": sgst,
-        "total_gst": flt(igst + cgst + sgst, 2),
+        "taxable_amt": flt(total_taxable, 2),
+        "igst": flt(total_igst, 2),
+        "cgst": flt(total_cgst, 2),
+        "sgst": flt(total_sgst, 2),
+        "total_gst": flt(total_igst + total_cgst + total_sgst, 2),
         "tax_rate": tax_rate
     }
 
 
 def get_purchase_gst(company, from_date, to_date):
-    """Query Purchase Invoice + Purchase Taxes and Charges."""
-    taxable = frappe.db.sql("""
+    """
+    Get Purchase ITC from:
+    1. Purchase Invoice + taxes
+    2. Journal Entry (Debit Notes)
+
+    FORMULA FOR INPUT TAX:
+    - Normal Invoice: Input Tax DEBITED (increases ITC)
+    - Debit Note: Input Tax CREDITED (reduces ITC)
+    - Formula: Debit - Credit
+      - Invoice: 9000 - 0 = +9000 ✓
+      - Debit: 0 - 164 = -164 ✓
+    """
+
+    # PART 1: Purchase Invoice taxes
+    pi_taxable = frappe.db.sql("""
         SELECT SUM(base_net_total) AS taxable_amt
         FROM `tabPurchase Invoice`
         WHERE
@@ -259,7 +340,7 @@ def get_purchase_gst(company, from_date, to_date):
             AND is_return = 0
     """, {"company": company, "from_date": from_date, "to_date": to_date}, as_dict=True)
 
-    taxes = frappe.db.sql("""
+    pi_taxes = frappe.db.sql("""
         SELECT
             SUM(CASE
                 WHEN (ptc.description LIKE '%%IGST%%'
@@ -286,12 +367,44 @@ def get_purchase_gst(company, from_date, to_date):
             AND pi.is_return = 0
     """, {"company": company, "from_date": from_date, "to_date": to_date}, as_dict=True)
 
-    t = taxable[0] if taxable else {}
-    x = taxes[0] if taxes else {}
+    # PART 2: Journal Entry Debit Notes
+    # Input Tax: Debit - Credit (Debit Note credits Input Tax = negative)
+    je_taxes = frappe.db.sql("""
+        SELECT
+            SUM(CASE
+                WHEN (jea.account LIKE '%%Input%%Tax%%IGST%%'
+                  OR  jea.account LIKE '%%IGST%%Input%%')
+                THEN jea.debit_in_account_currency - jea.credit_in_account_currency
+                ELSE 0 END) AS igst,
+            SUM(CASE
+                WHEN (jea.account LIKE '%%Input%%Tax%%CGST%%'
+                  OR  jea.account LIKE '%%CGST%%Input%%')
+                THEN jea.debit_in_account_currency - jea.credit_in_account_currency
+                ELSE 0 END) AS cgst,
+            SUM(CASE
+                WHEN (jea.account LIKE '%%Input%%Tax%%SGST%%'
+                  OR  jea.account LIKE '%%SGST%%Input%%'
+                  OR  jea.account LIKE '%%Input%%Tax%%UTGST%%')
+                THEN jea.debit_in_account_currency - jea.credit_in_account_currency
+                ELSE 0 END) AS sgst
+        FROM `tabJournal Entry Account` jea
+        INNER JOIN `tabJournal Entry` je ON je.name = jea.parent
+        WHERE
+            je.docstatus = 1
+            AND je.company = %(company)s
+            AND je.posting_date BETWEEN %(from_date)s AND %(to_date)s
+            AND je.voucher_type IN ('Credit Note', 'Debit Note', 'Journal Entry')
+    """, {"company": company, "from_date": from_date, "to_date": to_date}, as_dict=True)
 
-    igst = flt(x.get("igst"), 2)
-    cgst = flt(x.get("cgst"), 2)
-    sgst = flt(x.get("sgst"), 2)
+    # Combine both
+    pi_t = pi_taxable[0] if pi_taxable else {}
+    pi_x = pi_taxes[0] if pi_taxes else {}
+    je_x = je_taxes[0] if je_taxes else {}
+
+    total_taxable = flt(pi_t.get("taxable_amt"), 2)
+    total_igst = flt(pi_x.get("igst"), 2) + flt(je_x.get("igst"), 2)
+    total_cgst = flt(pi_x.get("cgst"), 2) + flt(je_x.get("cgst"), 2)
+    total_sgst = flt(pi_x.get("sgst"), 2) + flt(je_x.get("sgst"), 2)
 
     rate_result = frappe.db.sql("""
         SELECT ptc.rate
@@ -301,6 +414,7 @@ def get_purchase_gst(company, from_date, to_date):
             pi.company      = %(company)s
             AND pi.posting_date BETWEEN %(from_date)s AND %(to_date)s
             AND pi.docstatus = 1
+            AND pi.is_return = 0
             AND ptc.rate     > 0
         ORDER BY ptc.rate DESC
         LIMIT 1
@@ -310,16 +424,20 @@ def get_purchase_gst(company, from_date, to_date):
         "rate") else 18.0
 
     return {
-        "taxable_amt": flt(t.get("taxable_amt"), 2),
-        "igst": igst, "cgst": cgst, "sgst": sgst,
-        "total_gst": flt(igst + cgst + sgst, 2),
+        "taxable_amt": flt(total_taxable, 2),
+        "igst": flt(total_igst, 2),
+        "cgst": flt(total_cgst, 2),
+        "sgst": flt(total_sgst, 2),
+        "total_gst": flt(total_igst + total_cgst + total_sgst, 2),
         "tax_rate": tax_rate
     }
 
 
 def get_previous_sales_due(company, current_from_date):
-    """Get unpaid sales GST from before this period."""
-    result = frappe.db.sql("""
+    """Get unpaid sales GST from before this period (SI + JE)."""
+
+    # Sales Invoice taxes
+    si_result = frappe.db.sql("""
         SELECT
             SUM(CASE
                 WHEN (stc.description LIKE '%%IGST%%'
@@ -346,13 +464,48 @@ def get_previous_sales_due(company, current_from_date):
             AND si.is_return  = 0
     """, {"company": company, "from_date": current_from_date}, as_dict=True)
 
-    r = result[0] if result else {}
-    return flt(r.get("igst"), 2), flt(r.get("cgst"), 2), flt(r.get("sgst"), 2)
+    # Journal Entry credits
+    je_result = frappe.db.sql("""
+        SELECT
+            SUM(CASE
+                WHEN (jea.account LIKE '%%Output%%Tax%%IGST%%'
+                  OR  jea.account LIKE '%%IGST%%Output%%')
+                THEN jea.credit_in_account_currency - jea.debit_in_account_currency
+                ELSE 0 END) AS igst,
+            SUM(CASE
+                WHEN (jea.account LIKE '%%Output%%Tax%%CGST%%'
+                  OR  jea.account LIKE '%%CGST%%Output%%')
+                THEN jea.credit_in_account_currency - jea.debit_in_account_currency
+                ELSE 0 END) AS cgst,
+            SUM(CASE
+                WHEN (jea.account LIKE '%%Output%%Tax%%SGST%%'
+                  OR  jea.account LIKE '%%SGST%%Output%%'
+                  OR  jea.account LIKE '%%Output%%Tax%%UTGST%%')
+                THEN jea.credit_in_account_currency - jea.debit_in_account_currency
+                ELSE 0 END) AS sgst
+        FROM `tabJournal Entry Account` jea
+        INNER JOIN `tabJournal Entry` je ON je.name = jea.parent
+        WHERE
+            je.company = %(company)s
+            AND je.posting_date < %(from_date)s
+            AND je.docstatus = 1
+    """, {"company": company, "from_date": current_from_date}, as_dict=True)
+
+    si_r = si_result[0] if si_result else {}
+    je_r = je_result[0] if je_result else {}
+
+    igst = flt(si_r.get("igst"), 2) + flt(je_r.get("igst"), 2)
+    cgst = flt(si_r.get("cgst"), 2) + flt(je_r.get("cgst"), 2)
+    sgst = flt(si_r.get("sgst"), 2) + flt(je_r.get("sgst"), 2)
+
+    return flt(igst, 2), flt(cgst, 2), flt(sgst, 2)
 
 
 def get_previous_itc(company, current_from_date):
-    """Get unused purchase ITC from before this period."""
-    result = frappe.db.sql("""
+    """Get unused purchase ITC from before this period (PI + JE)."""
+
+    # Purchase Invoice taxes
+    pi_result = frappe.db.sql("""
         SELECT
             SUM(CASE
                 WHEN (ptc.description LIKE '%%IGST%%'
@@ -379,13 +532,46 @@ def get_previous_itc(company, current_from_date):
             AND pi.is_return  = 0
     """, {"company": company, "from_date": current_from_date}, as_dict=True)
 
-    r = result[0] if result else {}
-    return flt(r.get("igst"), 2), flt(r.get("cgst"), 2), flt(r.get("sgst"), 2)
+    # Journal Entry debits
+    je_result = frappe.db.sql("""
+        SELECT
+            SUM(CASE
+                WHEN (jea.account LIKE '%%Input%%Tax%%IGST%%'
+                  OR  jea.account LIKE '%%IGST%%Input%%')
+                THEN jea.debit_in_account_currency - jea.credit_in_account_currency
+                ELSE 0 END) AS igst,
+            SUM(CASE
+                WHEN (jea.account LIKE '%%Input%%Tax%%CGST%%'
+                  OR  jea.account LIKE '%%CGST%%Input%%')
+                THEN jea.debit_in_account_currency - jea.credit_in_account_currency
+                ELSE 0 END) AS cgst,
+            SUM(CASE
+                WHEN (jea.account LIKE '%%Input%%Tax%%SGST%%'
+                  OR  jea.account LIKE '%%SGST%%Input%%'
+                  OR  jea.account LIKE '%%Input%%Tax%%UTGST%%')
+                THEN jea.debit_in_account_currency - jea.credit_in_account_currency
+                ELSE 0 END) AS sgst
+        FROM `tabJournal Entry Account` jea
+        INNER JOIN `tabJournal Entry` je ON je.name = jea.parent
+        WHERE
+            je.company = %(company)s
+            AND je.posting_date < %(from_date)s
+            AND je.docstatus = 1
+    """, {"company": company, "from_date": current_from_date}, as_dict=True)
+
+    pi_r = pi_result[0] if pi_result else {}
+    je_r = je_result[0] if je_result else {}
+
+    igst = flt(pi_r.get("igst"), 2) + flt(je_r.get("igst"), 2)
+    cgst = flt(pi_r.get("cgst"), 2) + flt(je_r.get("cgst"), 2)
+    sgst = flt(pi_r.get("sgst"), 2) + flt(je_r.get("sgst"), 2)
+
+    return flt(igst, 2), flt(cgst, 2), flt(sgst, 2)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────────
 # UTILISATION
-# ─────────────────────────────────────────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────────
 
 def calculate_utilisation(pay_igst, pay_cgst, pay_sgst,
                           avl_igst, avl_cgst, avl_sgst):
@@ -431,9 +617,9 @@ def calculate_utilisation(pay_igst, pay_cgst, pay_sgst,
     }
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────────
 # ROW HELPERS
-# ─────────────────────────────────────────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────────
 
 def make_row(particular, taxable_amt, igst, cgst, sgst, total_gst):
     return {
