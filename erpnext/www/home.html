@@ -10,6 +10,57 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 
+<style>
+    .hero-carousel {
+        position: relative;
+        max-width: 600px;
+        margin: 2rem auto;
+        text-align: center;
+        overflow: hidden;
+    }
+
+    .carousel-item {
+        display: none;
+        padding: 2rem;
+        transition: opacity 0.6s ease-in-out;
+    }
+
+    .carousel-item.active {
+        display: block;
+    }
+
+    .carousel-controls {
+        position: absolute;
+        top: 50%;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .carousel-controls button {
+        background: #ac6bca;
+        /* dark background for tech feel */
+        border: none;
+        color: #fff;
+        /* white arrow */
+        font-size: 1rem;
+        cursor: pointer;
+        padding: 0.5rem 0.75rem;
+        border-radius: 30%;
+        /* circular buttons */
+        box-shadow: 0 4px 8px #6e65c6;
+        transition: all 0.3s ease;
+    }
+
+    .carousel-controls button:hover {
+        background: #f59e0b;
+        /* accent color on hover */
+        color: #fff;
+        transform: scale(1.1);
+        /* subtle zoom */
+    }
+</style>
+
 <body>
 
     {% include "templates/includes/__navigation.html" %}
@@ -18,28 +69,41 @@
         <div class="container">
             <div class="hero-content">
                 <h1 class="hero-title">
-                    Empower Your Business with
-                    <span class="gradient-text">Smart ERP Solutions</span>
+                    Accelerate Growth with <span class="gradient-text">Next-Gen ERPNext Solutions</span>
                 </h1>
                 <p class="hero-subtitle">
-                    ERPNext Implementation | Custom Development | Industry Solutions
+                    Intelligent Implementation | Custom Development | Seamless Integrations
                 </p>
+
                 <div class="hero-cta">
                     <a href="/contact" class="btn btn-white btn-lg">Get Started</a>
                     <a href="/solutions" class="btn btn-outline btn-lg">Explore Solutions</a>
                 </div>
-                <div class="hero-stats">
-                    <div class="stat">
-                        <div class="stat-number">50+</div>
-                        <div class="stat-label">Happy Clients</div>
+                <!-- Carousel Section -->
+                <div class="hero-carousel">
+                    <div class="carousel-item">
+                        <h3>🛡️ 24/7 Tech Support</h3>
+                        <p>Always-on assistance for smooth operations.</p>
                     </div>
-                    <div class="stat">
-                        <div class="stat-number">100+</div>
-                        <div class="stat-label">Projects Delivered</div>
+                    <div class="carousel-item active">
+                        <h3>🚀 20+ Businesses Transformed</h3>
+                        <p>Across industries with ERPNext innovation.</p>
                     </div>
-                    <div class="stat">
-                        <div class="stat-number">24/7</div>
-                        <div class="stat-label">Support</div>
+                    <div class="carousel-item active">
+                        <h3>⚡ Custom Solutions</h3>
+                        <p>Tailored solutions designed across industries.</p>
+                    </div>
+                    <div class="carousel-item active">
+                        <h3>✅ Proven Track Record</h3>
+                        <p>Multiple successful implementations with high client satisfaction.</p>
+                    </div>
+                    <div class="carousel-item active">
+                        <h3>👨‍💻 Expert Team</h3>
+                        <p>ERPNext consultants with 5+ years of experience in ERP</p>
+                    </div>
+                    <div class="carousel-controls" style="display: none;">
+                        <button class="prev">‹</button> 
+                        <button class="next">›</button>
                     </div>
                 </div>
             </div>
@@ -51,7 +115,7 @@
         <div class="container">
             <div class="section-header">
                 <h2 class="section-title">Why Choose TrilenceTech?</h2>
-                <p class="section-subtitle">Comprehensive ERP solutions tailored to your business needs</p>
+                <p class="section-subtitle">Future-ready ERPNext solutions engineered for scalability and innovation</p>
             </div>
 
             <div class="features-grid">
@@ -95,70 +159,47 @@
                     <p class="feature-desc">Connect ERPNext with your existing tools, payment gateways, and third-party
                         services.</p>
                 </div>
-            </div>
-        </div>
-    </section>
 
-    <!-- Products Showcase -->
-    <section class="products-showcase">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">Our Products</h2>
-                <p class="section-subtitle">Purpose-built solutions for specific industries</p>
-            </div>
-
-            <div class="product-highlight">
-                <div class="product-content">
-                    <div class="product-badge">Featured Product</div>
-                    <h3 class="product-name">PrintFlow Job Card</h3>
-                    <p class="product-tagline">Complete Job Management for Printing Companies</p>
-                    <ul class="product-features">
-                        <li>✓ Real-time job tracking & status updates</li>
-                        <li>✓ Customer portal for transparency</li>
-                        <li>✓ WhatsApp notifications to customers</li>
-                        <li>✓ Multi-tenant support</li>
-                        <li>✓ Custom job numbering</li>
-                        <li>✓ Delivery tracking & analytics</li>
-                    </ul>
-                    <div class="product-cta">
-                        <a href="/products" class="btn btn-primary">Learn More</a>
-                        <a href="/jobcard-login" class="btn btn-primary">Try PrintFlow</a>
-                    </div>
+                <div class="feature-card">
+                    <div class="feature-icon">✅</div>
+                    <h3 class="feature-title">Proven Track Record</h3>
+                    <p class="feature-desc">Multiple successful implementations across diverse industries with 98% client
+                        satisfaction rate.</p>
                 </div>
-                <div class="product-visual">
-                    <div class="mockup-browser">
-                        <div class="browser-header">
-                            <div class="browser-dots">
-                                <span></span><span></span><span></span>
-                            </div>
-                            <div class="browser-url">trilencetechnology.com/jobcard</div>
-                        </div>
-                        <div class="browser-content">
-                            <div class="dashboard-preview">
-                                <div class="preview-header">
-                                    <div class="preview-title">📊 Job Dashboard</div>
-                                    <div class="preview-stats">
-                                        <span class="stat-badge">15 Active</span>
-                                        <span class="stat-badge">3 Overdue</span>
-                                    </div>
-                                </div>
-                                <div class="preview-cards">
-                                    <div class="preview-card">
-                                        <span>GRP-0001-FEB-2026</span>
-                                        <span class="badge-sm green">Printing</span>
-                                    </div>
-                                    <div class="preview-card">
-                                        <span>GRP-0002-FEB-2026</span>
-                                        <span class="badge-sm blue">Plate Making</span>
-                                    </div>
-                                    <div class="preview-card">
-                                        <span>GRP-0003-FEB-2026</span>
-                                        <span class="badge-sm orange">Email Received</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">👨‍💻</div>
+                    <h3 class="feature-title">Expert Team</h3>
+                    <p class="feature-desc">Certified ERPNext consultants with 5+ years of experience in ERP
+                        implementation and customization.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🚀</div>
+                    <h3 class="feature-title">Fast Deployment</h3>
+                    <p class="feature-desc">Average implementation time of 4-6 weeks with minimal disruption to your
+                        operations.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">💰</div>
+                    <h3 class="feature-title">Cost-Effective</h3>
+                    <p class="feature-desc">Transparent pricing with no hidden costs. Best ROI in the market for ERP
+                        solutions.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📞</div>
+                    <h3 class="feature-title">24/7 Support</h3>
+                    <p class="feature-desc">Dedicated support team available round the clock to help you with any
+                        issues.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔧</div>
+                    <h3 class="feature-title">Custom Solutions</h3>
+                    <p class="feature-desc">Tailored solutions designed specifically for your industry and business
+                        processes.</p>
                 </div>
             </div>
         </div>
@@ -169,7 +210,8 @@
         <div class="container">
             <div class="cta-content">
                 <h2 class="cta-title">Ready to Transform Your Business?</h2>
-                <p class="cta-subtitle">Schedule a free consultation with our ERP experts today</p>
+                <p class="cta-subtitle">Book a free consultation and discover how intelligent ERP can redefine your
+                    business</p>
                 <div class="cta-buttons">
                     <a href="/contact" class="btn btn-white btn-lg">Contact Us</a>
                     <a href="/pricing" class="btn btn-outline-white btn-lg">View Pricing</a>
@@ -181,6 +223,42 @@
     {% include "templates/includes/__footer.html" %}
 
     <script src="/assets/erpnext/js/website.js"></script>
+
+    <script>
+        window.onload = function () {
+            const items = document.querySelectorAll('.carousel-item');
+            const prevBtn = document.querySelector('.prev');
+            const nextBtn = document.querySelector('.next');
+            let index = 0;
+
+            function showSlide(i) {
+                items.forEach((item, idx) => {
+                    item.classList.toggle('active', idx === i);
+                });
+            }
+
+            // Manual controls
+            prevBtn.addEventListener('click', () => {
+                index = (index > 0) ? index - 1 : items.length - 1;
+                showSlide(index);
+            });
+
+            nextBtn.addEventListener('click', () => {
+                index = (index < items.length - 1) ? index + 1 : 0;
+                showSlide(index);
+            });
+
+            // Auto-play every 4 seconds
+            setInterval(() => {
+                index = (index < items.length - 1) ? index + 1 : 0;
+                showSlide(index);
+            }, 4000);
+
+            // Initialize first slide
+            showSlide(index);
+        };
+    </script>
+
 </body>
 
 </html>
