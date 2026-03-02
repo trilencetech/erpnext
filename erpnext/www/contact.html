@@ -132,8 +132,10 @@
                     <div class="contact-form">
                         <form action="/api/method/frappe.website.doctype.web_form.web_form.accept" method="POST"
                             id="contactForm">
+                            <!-- ADD CSRF TOKEN -->
+                            <input type="hidden" name="csrf_token" value="{{ frappe.session.csrf_token }}">
                             <input type="hidden" name="web_form" value="contact-form">
-                            <input type="hidden" name="doctype" value="Lead">
+                            <input type="hidden" name="doctype" value="Contact Request">
 
                             <div class="form-group">
                                 <label class="form-label" for="full_name">Full Name *</label>
@@ -339,32 +341,59 @@
 
     <!-- Form Success Message Script -->
     <script>
-        document.getElementById('contactForm').addEventListener('submit', function (e) {
-            e.preventDefault();
+        document.addEventListener('DOMContentLoaded', function () {
+            const contactForm = document.getElementById('contactForm');
 
-            const formData = new FormData(this);
+            if (contactForm) {
+                contactForm.addEventListener('submit', async function (e) {
+                    e.preventDefault();
 
-            fetch('/api/method/frappe.website.doctype.web_form.web_form.accept', {
-                method: 'POST',
-                body: formData
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.message === 'success') {
-                        alert('Thank you! Your message has been sent successfully. We\'ll get back to you soon.');
-                        this.reset();
-                    } else {
-                        alert('Message sent! We\'ll contact you shortly.');
-                        this.reset();
+                    const formData = new FormData(this);
+                    const submitBtn = this.querySelector('button[type="submit"]');
+                    console.log('=== FormData Contents ===');
+                    for (let [key, value] of formData.entries()) {
+                        console.log(key + ': ' + value);
                     }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Thank you for contacting us! We\'ll respond soon.');
-                    this.reset();
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Sending...';
+
+                    try {
+                        // Send FormData directly - NO JSON!
+                        const response = await fetch('/api/method/printing_jobcard.api.submit_contact_form', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                lead_name: formData.get('lead_name'),
+                                email_id: formData.get('email_id'),
+                                phone: formData.get('phone'),
+                                company_name: formData.get('company_name'),
+                                service_interest: formData.get('service_interest'),
+                                notes: formData.get('notes')
+                            })
+                            // ← No headers!
+                        });
+
+                        const result = await response.json();
+                        console.log(result)
+                        if (result.message && result.message.success) {
+                            alert('✅ ' + result.message.message);
+                            this.reset();
+                        } else {
+                            alert('❌ ' + (result.message?.message || 'Error'));
+                        }
+
+                    } catch (error) {
+                        console.error(error);
+                        alert('❌ Error. Please try again.');
+                    } finally {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Send Message';
+                    }
                 });
+            }
         });
     </script>
+
 </body>
 
 </html>
