@@ -9,7 +9,7 @@
  "field_order": [
   "customer_section",
   "title",
-  "naming_series",
+  "next_invoice_no",
   "customer",
   "customer_name",
   "tax_id",
@@ -33,6 +33,7 @@
   "is_debit_note",
   "amended_from",
   "accounting_dimensions_section",
+  "naming_series",
   "cost_center",
   "dimension_col_break",
   "project",
@@ -2203,6 +2204,16 @@
    "options": "Delivery Note",
    "remember_last_selected_value": 1,
    "reqd": 1
+  },
+  {
+   "fieldname": "next_invoice_no",
+   "fieldtype": "Data",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Invoice No",
+   "no_copy": 1,
+   "print_hide": 1,
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
@@ -2216,7 +2227,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2026-02-15 13:47:31.158665",
+ "modified": "2026-03-03 10:11:44.246381",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Sales Invoice",

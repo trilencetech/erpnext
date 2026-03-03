@@ -145,9 +145,9 @@ class SalesInvoice(SellingController):
         loyalty_redemption_account: DF.Link | None
         loyalty_redemption_cost_center: DF.Link | None
         named_place: DF.Data | None
-        naming_series: DF.Literal["ACC-SINV-.YYYY.-",
-                                  "ACC-SINV-RET-.YYYY.-", "GE-/25-26"]
+        naming_series: DF.Literal["ACC-SINV-.YYYY.-", "ACC-SINV-RET-.YYYY.-", "GE-/25-26"]
         net_total: DF.Currency
+        next_invoice_no: DF.Data | None
         only_include_allocated_payments: DF.Check
         other_charges_calculation: DF.TextEditor | None
         outstanding_amount: DF.Currency
@@ -184,8 +184,7 @@ class SalesInvoice(SellingController):
         shipping_address_name: DF.Link | None
         shipping_rule: DF.Link | None
         source: DF.Link | None
-        status: DF.Literal["", "Draft", "Return", "Credit Note Issued", "Submitted", "Paid", "Partly Paid", "Unpaid",
-                           "Unpaid and Discounted", "Partly Paid and Discounted", "Overdue and Discounted", "Overdue", "Cancelled", "Internal Transfer"]
+        status: DF.Literal["", "Draft", "Return", "Credit Note Issued", "Submitted", "Paid", "Partly Paid", "Unpaid", "Unpaid and Discounted", "Partly Paid and Discounted", "Overdue and Discounted", "Overdue", "Cancelled", "Internal Transfer"]
         subscription: DF.Link | None
         tax_category: DF.Link | None
         tax_id: DF.Data | None

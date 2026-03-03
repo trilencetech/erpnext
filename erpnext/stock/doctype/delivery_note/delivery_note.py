@@ -2,6 +2,7 @@
 # License: GNU General Public License v3. See license.txt
 
 
+from frappe.utils import getdate, nowdate
 import frappe
 from frappe import _
 from frappe.contacts.doctype.address.address import get_company_address
@@ -93,6 +94,7 @@ class DeliveryNote(SellingController):
         named_place: DF.Data | None
         naming_series: DF.Literal["MAT-DN-.YYYY.-", "MAT-DN-RET-.YYYY.-"]
         net_total: DF.Currency
+        next_challan_no: DF.Data | None
         other_charges_calculation: DF.TextEditor | None
         packed_items: DF.Table[PackedItem]
         per_billed: DF.Percent
@@ -123,8 +125,7 @@ class DeliveryNote(SellingController):
         shipping_address_name: DF.Link | None
         shipping_rule: DF.Link | None
         source: DF.Link | None
-        status: DF.Literal["", "Draft", "To Bill",
-                           "Completed", "Return Issued", "Cancelled", "Closed"]
+        status: DF.Literal["", "Draft", "To Bill", "Completed", "Return Issued", "Cancelled", "Closed"]
         tax_category: DF.Link | None
         tax_id: DF.Data | None
         taxes: DF.Table[SalesTaxesandCharges]
@@ -894,6 +895,9 @@ def make_sales_invoice(source_name, target_doc=None, args=None):
 
         target.run_method("calculate_taxes_and_totals")
 
+        target.update({"posting_date": source.posting_date})
+        target.update({"posting_time": source.posting_time})
+
         # set company address
         if source.company_address:
             target.update({"company_address": source.company_address})
@@ -1173,6 +1177,29 @@ def make_sales_return(source_name, target_doc=None):
     from erpnext.controllers.sales_and_purchase_return import make_return_doc
 
     return make_return_doc("Delivery Note", source_name, target_doc)
+
+
+@frappe.whitelist()
+def get_next_challan_number(company, is_intercompany=0, isDeliveryChallan=True):
+    company_abbr = frappe.db.get_value("Company", company, "abbr") or "XX"
+
+    if int(is_intercompany) and isDeliveryChallan:
+        series_pattern = f"DN-TR-{company_abbr}-"
+    if isDeliveryChallan == False:
+        series_pattern = f"{company_abbr}-"
+    else:
+        series_pattern = f"DC-{company_abbr}-"
+
+    # Preview next number without incrementing
+    current = frappe.db.sql(
+        "SELECT current FROM `tabSeries` WHERE name=%s", (series_pattern,), as_dict=True)
+
+    if current:
+        next_number = int(current[0]["current"] or 0) + 1
+    else:
+        next_number = 1
+
+    return next_number
 
 
 @frappe.whitelist()
