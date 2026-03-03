@@ -1181,7 +1181,7 @@ def make_sales_return(source_name, target_doc=None):
 
 
 @frappe.whitelist()
-def get_next_challan_number(company, is_intercompany=0, isDeliveryChallan=True):
+def get_next_challan_number(company, is_intercompany=0, category="X"):
     company_abbr = frappe.db.get_value("Company", company, "abbr") or "XX"
     today = getdate(nowdate())
     year = today.year
@@ -1197,9 +1197,9 @@ def get_next_challan_number(company, is_intercompany=0, isDeliveryChallan=True):
 
         # e.g., April 2025 → March 2026 = "25-26"
     fiscal_year = f"{str(start_year)[-2:]}-{str(end_year)[-2:]}"
-    if int(is_intercompany) and isDeliveryChallan:
+    if int(is_intercompany) and category == 'D':
         series_pattern = f"DN-TR-{company_abbr}-"
-    if isDeliveryChallan == False:
+    if category == "S":
         series_pattern = f"{company_abbr}-"
     else:
         series_pattern = f"DC-{company_abbr}-"
