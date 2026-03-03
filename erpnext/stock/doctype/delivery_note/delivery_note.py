@@ -125,7 +125,8 @@ class DeliveryNote(SellingController):
         shipping_address_name: DF.Link | None
         shipping_rule: DF.Link | None
         source: DF.Link | None
-        status: DF.Literal["", "Draft", "To Bill", "Completed", "Return Issued", "Cancelled", "Closed"]
+        status: DF.Literal["", "Draft", "To Bill",
+                           "Completed", "Return Issued", "Cancelled", "Closed"]
         tax_category: DF.Link | None
         tax_id: DF.Data | None
         taxes: DF.Table[SalesTaxesandCharges]
@@ -1182,7 +1183,20 @@ def make_sales_return(source_name, target_doc=None):
 @frappe.whitelist()
 def get_next_challan_number(company, is_intercompany=0, isDeliveryChallan=True):
     company_abbr = frappe.db.get_value("Company", company, "abbr") or "XX"
+    today = getdate(nowdate())
+    year = today.year
+    month = today.month
 
+    # Indian fiscal year runs April (4) to March (3)
+    if month < 4:  # Jan, Feb, Mar → still previous FY
+        start_year = year - 1
+        end_year = year
+    else:          # Apr–Dec → current FY
+        start_year = year
+        end_year = year + 1
+
+        # e.g., April 2025 → March 2026 = "25-26"
+    fiscal_year = f"{str(start_year)[-2:]}-{str(end_year)[-2:]}"
     if int(is_intercompany) and isDeliveryChallan:
         series_pattern = f"DN-TR-{company_abbr}-"
     if isDeliveryChallan == False:
@@ -1199,7 +1213,7 @@ def get_next_challan_number(company, is_intercompany=0, isDeliveryChallan=True):
     else:
         next_number = 1
 
-    return next_number
+    return f"{next_number}/{fiscal_year}"
 
 
 @frappe.whitelist()

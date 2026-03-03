@@ -104,7 +104,7 @@ gajanand.stock_selector.show_stock_dialog = function (frm) {
                 const qty = dialog.get_value("search_qty");
                 const size = dialog.get_value("search_size");
                 const filtered = items.filter(item => {
-                    console.log(item.size)
+
                     const name_match = name ? item.item_name.toLowerCase().includes(name) : true;
                     const qty_match = qty ? item.actual_qty.toString().startsWith(qty.toString()) : true;
                     const size_match = size && item.size != null ? item.size.toString().startsWith(size.toString()) : true;
