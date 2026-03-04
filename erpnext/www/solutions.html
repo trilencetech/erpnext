@@ -1,466 +1,502 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Our Solutions - TrilenceTech | ERPNext & Custom Development</title>
-    <meta name="description"
-        content="ERPNext Implementation, Custom Development, Industry Solutions, and Support Services by TrilenceTech">
-    <link rel="stylesheet" href="/assets/erpnext/css/website.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        .solutions-hero {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 80px 0;
-            color: white;
-            text-align: center;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Our Domains</title>
+  <link rel="stylesheet" href="/assets/erpnext/css/website.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        .solution-section {
-            padding: 80px 0;
-        }
+    :root {
+      --bg: #f5f2ed;
+      --surface: #ffffff;
+      --ink: #667eea;
+      --muted: #7a7068;
+      --accent: #667eea;
+      --accent-light: #f4ece5;
+      --border: #e2ddd7;
+      --tab-active-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --tab-active-text: #f5f2ed;
+    }
 
-        .solution-section:nth-child(even) {
-            background: #f8fafc;
-        }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+    }
 
-        .solution-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 60px;
-            align-items: center;
-        }
+    /* ── Section Wrapper ── */
+    .domains-section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 80px 24px 100px;
+    }
 
-        .process-steps {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 30px;
-            margin-top: 40px;
-        }
+    .section-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
 
-        .step-card {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        }
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 800;
+      line-height: 1.1;
+      color: var(--ink);
+      max-width: 560px;
+      margin-bottom: 12px;
+    }
 
-        .step-number {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            font-weight: 800;
-            color: white;
-            margin: 0 auto 20px;
-        }
+    .section-title span {
+      color: var(--accent);
+    }
 
-        @media (max-width: 768px) {
-            .solution-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    .section-sub {
+      font-size: 1rem;
+      color: var(--muted);
+      max-width: 520px;
+      line-height: 1.7;
+      margin-bottom: 52px;
+    }
+
+    /* ── Tab Nav ── */
+    .tab-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 40px;
+      position: relative;
+    }
+
+    .tab-btn {
+      /*font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 600;*/
+      font-weight: bold;
+      letter-spacing: 0.04em;
+      padding: 10px 20px;
+      border: 1.5px solid var(--border);
+      border-radius: 40px;
+      background: var(--surface);
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tab-btn:hover {
+      border-color: var(--ink);
+      color: var(--ink);
+    }
+
+    .tab-btn.active {
+      background: var(--tab-active-bg);
+      border-color: var(--tab-active-bg);
+      color: var(--tab-active-text);
+    }
+
+    .tab-btn .tab-icon {
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    /* ── Tab Content ── */
+    .tab-content {
+      display: none;
+      animation: fadeUp 0.4s ease forwards;
+    }
+
+    .tab-content.active {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Main Info Card ── */
+    .domain-main {
+      background: var(--ink);
+      border-radius: 20px;
+      padding: 44px 40px;
+      color: var(--tab-active-text);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 380px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .domain-main::before {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: 0.12;
+    }
+
+    .domain-icon-large {
+      font-size: 44px;
+      margin-bottom: 24px;
+      display: block;
+    }
+
+    .domain-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+      color: #fff;
+    }
+
+    .domain-desc {
+      font-size: 0.95rem;
+      line-height: 1.75;
+      color: white;
+      margin-bottom: 28px;
+      flex-grow: 1;
+    }
+
+    .domain-tag {
+      display: inline-block;
+      background: white;
+      color: #667eea;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 20px;
+      align-self: flex-start;
+    }
+
+    /* ── Features Card ── */
+    .domain-features {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 22px 24px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .feature-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 4px 20px rgba(200,80,26,0.08);
+    }
+
+    .feature-title {
+      font-size: 0.95rem;
+      font-weight: bold;
+      color: var(--ink);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .feature-title::before {
+      content: '';
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .feature-desc {
+      font-size: 0.875rem;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    /* ── Stats Strip ── */
+    .stats-strip {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .stat-box {
+      background: var(--accent-light);
+      border-radius: 14px;
+      padding: 24px 28px;
+      border: 1.5px solid #e8d4c8;
+    }
+
+    .stat-number1 {
+      /*font-family: 'Syne', sans-serif;*/
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--accent);
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .stat-number2 {
+      /*font-family: 'Syne', sans-serif;*/
+      font-size: 2rem;
+      font-weight: 800;
+      color: green;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .stat-number3 {
+      /*font-family: 'Syne', sans-serif;*/
+      font-size: 2rem;
+      font-weight: 800;
+      color: orange;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 0.82rem;
+      font-weight: bold;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .tab-content.active {
+        grid-template-columns: 1fr;
+      }
+      .stats-strip {
+        grid-template-columns: 1fr 1fr;
+      }
+      .domain-main {
+        min-height: auto;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .stats-strip {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
-
 <body>
-    {% include "templates/includes/__navigation.html"%}
-    <!-- Hero -->
-    <section class="solutions-hero">
-        <div class="container">
-            <h1 style="font-size: 48px; font-weight: 800; margin-bottom: 20px;">
-                Our Solutions
-            </h1>
-            <p style="font-size: 20px; opacity: 0.9; max-width: 700px; margin: 0 auto;">
-                Comprehensive ERP solutions and custom development services tailored to your business needs
-            </p>
+{% include "templates/includes/__navigation.html" %}
+<section class="domains-section">
+  <h2 class="section-title">Industries We <span>Transform</span></h2>
+  <p class="section-sub">We deliver purpose-built software solutions across diverse industries — combining deep domain expertise with cutting-edge technology.</p>
+
+  <!-- Tab Navigation -->
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('print')">
+      <span class="tab-icon">🖨️</span> Print & Publishing
+    </button>
+    <button class="tab-btn tab-btn--highlight" onclick="switchTab('trading')">
+      <span class="tab-icon">📊</span> Trading Business
+    </button>
+    <button class="tab-btn" onclick="switchTab('health')">
+      <span class="tab-icon">🏥</span> Healthcare
+    </button>
+    <button class="tab-btn" onclick="switchTab('retail')">
+      <span class="tab-icon">🛒</span> Retail & E-commerce
+    </button>
+    <button class="tab-btn" onclick="switchTab('education')">
+      <span class="tab-icon">🎓</span> Education & EdTech
+    </button>
+  </div>
+
+  <!-- ── PRINT & PUBLISHING ── -->
+  <div id="tab-print" class="tab-content active">
+    <div class="domain-main">
+      <span class="domain-icon-large">🖨️</span>
+      <div>
+        <h3 class="domain-name">Print & Publishing</h3>
+        <p class="domain-desc">We streamline end-to-end print workflows — from content creation and prepress to job scheduling, production tracking, and delivery. Our solutions eliminate manual bottlenecks and bring digital intelligence to your print operations.</p>
+        <span class="domain-tag">Print Flow Solutions</span>
+      </div>
+    </div>
+    <div class="domain-features">
+      <div class="feature-card">
+        <div class="feature-title">Automated Print Flow Management</div>
+        <p class="feature-desc">Automate job routing, prepress checks, and print queue management for faster turnaround and fewer errors.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title">Multi-Channel Publishing</div>
+        <p class="feature-desc">Publish content seamlessly across print, digital, and web channels from a single unified platform.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title">Real-Time Production Tracking</div>
+        <p class="feature-desc">Monitor every job's status from order intake to final delivery with live dashboards and alerts.</p>
+      </div>
+    </div>
+    <div class="stats-strip">
+      <div class="stat-box"><span class="stat-number1">60%</span><span class="stat-label">Reduction in production time</span></div>
+      <div class="stat-box"><span class="stat-number2">99%</span><span class="stat-label">Job accuracy rate</span></div>
+      <div class="stat-box"><span class="stat-number3">3x</span><span class="stat-label">Faster order processing</span></div>
+    </div>
+  </div>
+
+  <!-- ── TRADING APPLICATION ── -->
+  <div id="tab-trading" class="tab-content">
+    <div class="domain-main trading-card">
+      <span class="domain-icon-large">📊</span>
+      <div>
+        <h3 class="domain-name">Trading Business</h3>
+        <p class="domain-desc">A comprehensive trading business solution built for Indian markets — covering end-to-end operations from procurement and sales to GST-compliant accounting, E-way Bill generation, and multi-branch management.</p>
+        <span class="domain-tag trading-tag">Trading Solution</span>
+        
+      </div>
+    </div>
+
+    <div class="domain-features">
+        <div class="feature-card">
+          <div class="feature-title">GST and E-way Bill Integration</div>
+          <p class="feature-desc">Auto-calculate CGST, SGST & IGST. Generate GST invoices, file-ready reports & GSTR summaries.Generate & manage E-way Bills directly from sales/purchase orders with NIC portal sync.</p>
         </div>
-    </section>
-
-    <!-- Industry Solutions -->
-    <section class="solution-section">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">Industry-Specific Solutions</h2>
-                <p class="section-subtitle">Tailored ERPNext configurations for different sectors</p>
-            </div>
-
-            <div class="features-grid">
-                <!-- Manufacturing -->
-                <div class="feature-card">
-                    <div class="feature-icon">🏭</div>
-                    <h3 class="feature-title">Manufacturing</h3>
-                    <p class="feature-desc"> Production planning, BOM management, shop floor control, quality
-                        inspection, and inventory tracking tailored for manufacturers. </p>
-                </div> <!-- Trading & Distribution -->
-                <div class="feature-card">
-                    <div class="feature-icon">📦</div>
-                    <h3 class="feature-title">Trading & Distribution</h3>
-                    <p class="feature-desc"> Procurement, order management, and supply chain optimization for
-                        distributors. </p>
-                </div> <!-- Retail & POS -->
-                <div class="feature-card">
-                    <div class="feature-icon">🛒</div>
-                    <h3 class="feature-title">Retail & POS</h3>
-                    <p class="feature-desc"> POS systems, inventory management, customer loyalty programs, and
-                        multi-store support. </p>
-                </div> <!-- Engineering & Construction -->
-                <div class="feature-card">
-                    <div class="feature-icon">🏗️</div>
-                    <h3 class="feature-title">Engineering & Construction</h3>
-                    <p class="feature-desc"> Project management, resource allocation, budgeting, and subcontractor
-                        handling. </p>
-                </div> <!-- E-commerce -->
-                <div class="feature-card">
-                    <div class="feature-icon">💻</div>
-                    <h3 class="feature-title">E-commerce</h3>
-                    <p class="feature-desc"> Order tracking, customer management, and seamless integration with online
-                        platforms. </p>
-                </div> <!-- Education -->
-                <div class="feature-card">
-                    <div class="feature-icon">🎓</div>
-                    <h3 class="feature-title">Education</h3>
-                    <p class="feature-desc"> Student admissions, course scheduling, fee management, and learning
-                        management systems. </p>
-                </div> <!-- Healthcare -->
-                <div class="feature-card">
-                    <div class="feature-icon">🏥</div>
-                    <h3 class="feature-title">Healthcare</h3>
-                    <p class="feature-desc"> Patient records, hospital information systems, billing, and pharmacy
-                        management. </p>
-                </div> <!-- Professional Services -->
-                <div class="feature-card">
-                    <div class="feature-icon">📊</div>
-                    <h3 class="feature-title">Professional Services</h3>
-                    <p class="feature-desc"> Project tracking, billing, timesheets, and client collaboration tools. </p>
-                </div> <!-- Financial Services -->
-                <div class="feature-card">
-                    <div class="feature-icon">💰</div>
-                    <h3 class="feature-title">Financial Services</h3>
-                    <p class="feature-desc"> Accounting, portfolio management, compliance, and advanced reporting. </p>
-                </div> <!-- Agriculture -->
-                <div class="feature-card">
-                    <div class="feature-icon">🌱</div>
-                    <h3 class="feature-title">Agriculture</h3>
-                    <p class="feature-desc"> Farm management, crop planning, and agri-supply chain solutions. </p>
-                </div>
-                <!-- Non-Profit -->
-                <div class="feature-card">
-                    <div class="feature-icon">🤝</div>
-                    <h3 class="feature-title">Non-Profit</h3>
-                    <p class="feature-desc"> Donor management, fundraising campaigns, and volunteer tracking. </p>
-                </div> <!-- Hospitality -->
-                <div class="feature-card">
-                    <div class="feature-icon">🏨</div>
-                    <h3 class="feature-title">Hospitality</h3>
-                    <p class="feature-desc"> Hotel bookings, restaurant POS, inventory, and staff scheduling. </p>
-                </div>
-            </div>
+        <div class="feature-card">
+          <div class="feature-title">Accounting & Finance</div>
+          <p class="feature-desc">Double-entry bookkeeping, ledgers, P&L, balance sheet, and cash flow — fully India-compliant.</p>
         </div>
-    </section>
-    
-    <!-- ERPNext Implementation -->
-    <section class="solution-section">
-        <div class="container">
-            <div class="solution-grid">
-                <div>
-                    <h2 style="font-size: 36px; font-weight: 700; margin-bottom: 20px;">
-                        ERPNext Implementation
-                    </h2>
-                    <p style="font-size: 18px; color: #64748b; line-height: 1.8; margin-bottom: 30px;">
-                        Complete end-to-end ERPNext implementation services from planning to go-live.
-                        We handle everything so you can focus on running your business.
-                    </p>
-
-                    <div style="margin-bottom: 25px;">
-                        <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 15px;">What We Offer:</h3>
-                        <ul style="list-style: none; padding: 0;">
-                            <li style="padding: 10px 0; display: flex; gap: 10px;">
-                                <span style="color: #10b981; font-weight: 700;">✓</span>
-                                <span>Requirements analysis and business process mapping</span>
-                            </li>
-                            <li style="padding: 10px 0; display: flex; gap: 10px;">
-                                <span style="color: #10b981; font-weight: 700;">✓</span>
-                                <span>ERPNext installation and configuration</span>
-                            </li>
-                            <li style="padding: 10px 0; display: flex; gap: 10px;">
-                                <span style="color: #10b981; font-weight: 700;">✓</span>
-                                <span>Module customization and workflow setup</span>
-                            </li>
-                            <li style="padding: 10px 0; display: flex; gap: 10px;">
-                                <span style="color: #10b981; font-weight: 700;">✓</span>
-                                <span>Data migration from existing systems</span>
-                            </li>
-                            <li style="padding: 10px 0; display: flex; gap: 10px;">
-                                <span style="color: #10b981; font-weight: 700;">✓</span>
-                                <span>User training and documentation</span>
-                            </li>
-                            <li style="padding: 10px 0; display: flex; gap: 10px;">
-                                <span style="color: #10b981; font-weight: 700;">✓</span>
-                                <span>Go-live support and post-implementation assistance</span>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <a href="/contact" class="btn btn-primary">Request Implementation Quote</a>
-                </div>
-
-                <div>
-                    <div style="background: #f8fafc; padding: 40px; border-radius: 16px;">
-                        <h3 style="font-size: 24px; font-weight: 700; margin-bottom: 20px;">Implementation Timeline</h3>
-
-                        <div style="margin-bottom: 25px;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                                <span style="font-weight: 600;">Discovery & Planning</span>
-                                <span style="color: #64748b;">1-2 weeks</span>
-                            </div>
-                            <div style="background: #e5e7eb; height: 8px; border-radius: 4px;">
-                                <div style="background: #2563eb; width: 20%; height: 100%; border-radius: 4px;"></div>
-                            </div>
-                        </div>
-
-                        <div style="margin-bottom: 25px;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                                <span style="font-weight: 600;">Configuration & Customization</span>
-                                <span style="color: #64748b;">2-3 weeks</span>
-                            </div>
-                            <div style="background: #e5e7eb; height: 8px; border-radius: 4px;">
-                                <div style="background: #10b981; width: 40%; height: 100%; border-radius: 4px;"></div>
-                            </div>
-                        </div>
-
-                        <div style="margin-bottom: 25px;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                                <span style="font-weight: 600;">Data Migration & Testing</span>
-                                <span style="color: #64748b;">1 week</span>
-                            </div>
-                            <div style="background: #e5e7eb; height: 8px; border-radius: 4px;">
-                                <div style="background: #f59e0b; width: 60%; height: 100%; border-radius: 4px;"></div>
-                            </div>
-                        </div>
-
-                        <div style="margin-bottom: 25px;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                                <span style="font-weight: 600;">Training & Go-Live</span>
-                                <span style="color: #64748b;">1 week</span>
-                            </div>
-                            <div style="background: #e5e7eb; height: 8px; border-radius: 4px;">
-                                <div style="background: #8b5cf6; width: 80%; height: 100%; border-radius: 4px;"></div>
-                            </div>
-                        </div>
-
-                        <p style="margin-top: 20px; color: #64748b; font-size: 14px;">
-                            <strong>Total Duration:</strong> 4-6 weeks on average
-                        </p>
-                    </div>
-                </div>
-            </div>
+        <div class="feature-card">
+          <div class="feature-title">Purchase & Sales Orders along with Vendor/Supplier Management</div>
+          <p class="feature-desc">End-to-end order lifecycle — from RFQ and purchase orders to sales orders, delivery notes & invoicing.Maintain supplier profiles, track payables, manage agreements and evaluate vendor performance.</p>
         </div>
-    </section>
+      </div>
+      <div class="stats-strip">
+        <div class="stat-box"><span class="stat-number1">100%</span><span class="stat-label">GST & E-way Bill compliant</span></div>
+        <div class="stat-box"><span class="stat-number2">Multi</span><span class="stat-label">Branch & warehouse support</span></div>
+        <div class="stat-box"><span class="stat-number3">Multi</span><span class="stat-label">User access based on role</span></div>
+      </div>
+   </div>
 
-    <!-- Custom Development -->
-    <section class="solution-section">
-        <div class="container">
-            <div class="solution-grid" style="grid-template-columns: 1fr 1fr;">
-                <div style="order: 2;">
-                    <h2 style="font-size: 36px; font-weight: 700; margin-bottom: 20px;">
-                        Custom Development
-                    </h2>
-                    <p style="font-size: 18px; color: #64748b; line-height: 1.8; margin-bottom: 30px;">
-                        Bespoke modules, features, and integrations designed specifically for your unique business
-                        requirements.
-                    </p>
+  <!-- ── HEALTHCARE ── -->
+  <div id="tab-health" class="tab-content">
+    <div class="domain-main">
+      <span class="domain-icon-large">🏥</span>
+      <div>
+        <h3 class="domain-name">Healthcare</h3>
+        <p class="domain-desc">We build inclusive healthcare software for both modern and traditional practitioners — from hospitals and clinics to AYUSH providers. Our platforms unify allopathic, Ayurvedic, Homeopathic, Unani, and Siddha workflows into one seamless system.</p>
+        <span class="domain-tag">HealthTech Solutions</span>
+      </div>
+    </div>
+    <div class="domain-features">
+      <div class="feature-card">
+        <div class="feature-title">Patient Management System</div>
+        <p class="feature-desc">Centralize patient records, appointments, and billing in one HIPAA-compliant platform designed for clinical efficiency.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title">Clinical Analytics & Wellness Portal</div>
+        <p class="feature-desc">Track patient progress, diet & lifestyle recommendations, and clinical outcomes — for both modern and traditional care pathways.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title">Multi-System Practice Management</div>
+        <p class="feature-desc">Unified workflows for Allopathic, Ayurveda, Homeopathy, Unani, Siddha & Yoga practitioners — all in one platform.</p>
+      </div>
+    </div>
+    <div class="stats-strip">
+      <div class="stat-box"><span class="stat-number1">40%</span><span class="stat-label">Improvement in patient throughput</span></div>
+      <div class="stat-box"><span class="stat-number2">100%</span><span class="stat-label">HIPAA compliance</span></div>
+      <div class="stat-box"><span class="stat-number3">20+</span><span class="stat-label">Interactive Dashboard </span></div>
+    </div>
+  </div>
 
-                    <div style="margin-bottom: 25px;">
-                        <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 15px;">Our Expertise:</h3>
-                        <ul style="list-style: none; padding: 0;">
-                            <li style="padding: 10px 0;">🎨 Custom DocTypes and Forms</li>
-                            <li style="padding: 10px 0;">⚙️ Automated Workflows and Scripts</li>
-                            <li style="padding: 10px 0;">📊 Custom Reports and Dashboards</li>
-                            <li style="padding: 10px 0;">🔗 Third-party API Integrations</li>
-                            <li style="padding: 10px 0;">💳 Payment Gateway Integration</li>
-                            <li style="padding: 10px 0;">📱 Mobile App Development</li>
-                            <li style="padding: 10px 0;">🌐 Customer/Vendor Portals</li>
-                            <li style="padding: 10px 0;">📧 Email & WhatsApp Automation</li>
-                        </ul>
-                    </div>
+  <!-- ── RETAIL & E-COMMERCE ── -->
+  <div id="tab-retail" class="tab-content">
+    <div class="domain-main">
+      <span class="domain-icon-large">🛒</span>
+      <div>
+        <h3 class="domain-name">Retail & E-commerce</h3>
+        <p class="domain-desc">We help retail brands and online stores scale smarter — with unified commerce platforms, AI-driven personalization, inventory intelligence, and smart POS experiences.</p>
+        <span class="domain-tag">Commerce Solutions</span>
+      </div>
+    </div>
+    <div class="domain-features">
+      <div class="feature-card">
+        <div class="feature-title">Smart POS Platform</div>
+        <p class="feature-desc">Unify your multi store through POS system with Barcode scanning capabalities.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title">Smart Inventory Management</div>
+        <p class="feature-desc">Eliminate stockouts and overstock with AI-powered demand forecasting and real-time inventory sync.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title">Customer Analytics & Loyalty Program</div>
+        <p class="feature-desc">Understand purchase behavior, build loyalty programs, and drive repeat business with data-driven insights.</p>
+      </div>
+    </div>
+    <div class="stats-strip">
+      <div class="stat-box"><span class="stat-number1">35%</span><span class="stat-label">Average increase in sales</span></div>
+      <div class="stat-box"><span class="stat-number2">28%</span><span class="stat-label">Reduction in cart abandonment</span></div>
+      <div class="stat-box"><span class="stat-number3">4x</span><span class="stat-label">Customer retention improvement</span></div>
+    </div>
+  </div>
 
-                    <a href="/contact" class="btn btn-primary">Discuss Your Project</a>
-                </div>
+    <!-- ── EDUCATION & EDTECH ── -->
+  <div id="tab-education" class="tab-content">
+    <div class="domain-main">
+      <span class="domain-icon-large">🎓</span>
+      <div>
+        <h3 class="domain-name">Education & EdTech</h3>
+        <p class="domain-desc">We design and develop next-generation learning platforms that make education more accessible, engaging, and measurable — for schools, universities, corporate L&D teams, and ed-tech startups alike.</p>
+        <span class="domain-tag">EdTech Solutions</span>
+      </div>
+    </div>
+    <div class="domain-features">
+      <div class="feature-card">
+        <div class="feature-title">Learning Management System (LMS)</div>
+        <p class="feature-desc">Deliver, track, and manage online courses and training programs with a feature-rich, scalable LMS platform.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title">Adaptive Learning Engine</div>
+        <p class="feature-desc">Personalize learning paths using AI — adapting content difficulty and format to each learner's pace and style.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title">Student & Performance Analytics</div>
+        <p class="feature-desc">Give educators and administrators real-time dashboards to track engagement, progress, and learning outcomes.</p>
+      </div>
+    </div>
+    <div class="stats-strip">
+      <div class="stat-box"><span class="stat-number1">70%</span><span class="stat-label">Increase in course completion</span></div>
+      <div class="stat-box"><span class="stat-number2">3x</span><span class="stat-label">Learner engagement boost</span></div>
+      <div class="stat-box"><span class="stat-number3">200+</span><span class="stat-label">Institutions empowered</span></div>
+    </div>
+  </div>
 
-                <div style="order: 1;">
-                    <div class="features-grid" style="grid-template-columns: 1fr; gap: 20px;">
-                        <div
-                            style="background: white; padding: 30px; border-radius: 12px; border-left: 4px solid #2563eb;">
-                            <h4 style="font-weight: 700; margin-bottom: 10px;">PrintFlow Job Card</h4>
-                            <p style="color: #64748b; font-size: 14px;">Complete job management system for printing
-                                companies with customer portal and WhatsApp integration.</p>
-                        </div>
+</section>
 
-                        <div
-                            style="background: white; padding: 30px; border-radius: 12px; border-left: 4px solid #10b981;">
-                            <h4 style="font-weight: 700; margin-bottom: 10px;">E-commerce Integration</h4>
-                            <p style="color: #64748b; font-size: 14px;">Seamless sync between ERPNext and Shopify,
-                                WooCommerce, Magento for inventory and order management.</p>
-                        </div>
+<script>
+  function switchTab(domain) {
+    // Update buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    event.currentTarget.classList.add('active');
 
-                        <div
-                            style="background: white; padding: 30px; border-radius: 12px; border-left: 4px solid #f59e0b;">
-                            <h4 style="font-weight: 700; margin-bottom: 10px;">Manufacturing MES</h4>
-                            <p style="color: #64748b; font-size: 14px;">Custom Manufacturing Execution System with
-                                real-time production tracking and quality control.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Implementation Process -->
-    <section class="solution-section">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">Our Implementation Process</h2>
-                <p class="section-subtitle">A proven methodology for successful ERP deployment</p>
-            </div>
-
-            <div class="process-steps">
-                <div class="step-card">
-                    <div class="step-number">1</div>
-                    <h4 style="font-weight: 700; margin-bottom: 10px;">Discovery</h4>
-                    <p style="color: #64748b; font-size: 14px;">
-                        Understand your business processes, pain points, and requirements
-                    </p>
-                </div>
-
-                <div class="step-card">
-                    <div class="step-number">2</div>
-                    <h4 style="font-weight: 700; margin-bottom: 10px;">Planning</h4>
-                    <p style="color: #64748b; font-size: 14px;">
-                        Create detailed project plan with timelines and milestones
-                    </p>
-                </div>
-
-                <div class="step-card">
-                    <div class="step-number">3</div>
-                    <h4 style="font-weight: 700; margin-bottom: 10px;">Configuration</h4>
-                    <p style="color: #64748b; font-size: 14px;">
-                        Setup and customize ERPNext to match your workflows
-                    </p>
-                </div>
-
-                <div class="step-card">
-                    <div class="step-number">4</div>
-                    <h4 style="font-weight: 700; margin-bottom: 10px;">Migration</h4>
-                    <p style="color: #64748b; font-size: 14px;">
-                        Import your existing data with validation and cleanup
-                    </p>
-                </div>
-
-                <div class="step-card">
-                    <div class="step-number">5</div>
-                    <h4 style="font-weight: 700; margin-bottom: 10px;">Training</h4>
-                    <p style="color: #64748b; font-size: 14px;">
-                        Comprehensive training for all users and administrators
-                    </p>
-                </div>
-
-                <div class="step-card">
-                    <div class="step-number">6</div>
-                    <h4 style="font-weight: 700; margin-bottom: 10px;">Go-Live</h4>
-                    <p style="color: #64748b; font-size: 14px;">
-                        Launch with dedicated support during transition period
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Support Services -->
-    <section class="solution-section">
-        <div class="container">
-            <div class="solution-grid">
-                <div>
-                    <h2 style="font-size: 36px; font-weight: 700; margin-bottom: 20px;">
-                        Support & Maintenance
-                    </h2>
-                    <p style="font-size: 18px; color: #64748b; line-height: 1.8; margin-bottom: 30px;">
-                        Continuous support to ensure your ERP system runs smoothly and evolves with your business.
-                    </p>
-
-                    <div style="background: #eff6ff; padding: 30px; border-radius: 12px; margin-bottom: 30px;">
-                        <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 15px;">24/7 Support Includes:</h3>
-                        <ul style="list-style: none; padding: 0;">
-                            <li style="padding: 8px 0;">📞 Phone, Email & WhatsApp Support</li>
-                            <li style="padding: 8px 0;">🔧 Bug Fixes and Issue Resolution</li>
-                            <li style="padding: 8px 0;">⬆️ Regular System Updates</li>
-                            <li style="padding: 8px 0;">💾 Daily Backups and Monitoring</li>
-                            <li style="padding: 8px 0;">📊 Performance Optimization</li>
-                            <li style="padding: 8px 0;">🎓 Ongoing User Training</li>
-                        </ul>
-                    </div>
-
-                    <a href="/pricing#support" class="btn btn-primary">View Support Plans</a>
-                </div>
-
-                <div>
-                    <div
-                        style="background: white; padding: 40px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
-                        <h3 style="font-size: 24px; font-weight: 700; margin-bottom: 20px;">Support Plans</h3>
-
-                        <div style="border-bottom: 1px solid #e5e7eb; padding-bottom: 20px; margin-bottom: 20px;">
-                            <div
-                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                                <span style="font-weight: 700; font-size: 18px;">Bronze</span>
-                                <span style="font-size: 24px; font-weight: 700; color: #cd7f32;">₹5,000/mo</span>
-                            </div>
-                            <p style="color: #64748b; font-size: 14px;">Email support, 48-hour response</p>
-                        </div>
-
-                        <div style="border-bottom: 1px solid #e5e7eb; padding-bottom: 20px; margin-bottom: 20px;">
-                            <div
-                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                                <span style="font-weight: 700; font-size: 18px;">Silver</span>
-                                <span style="font-size: 24px; font-weight: 700; color: #c0c0c0;">₹10,000/mo</span>
-                            </div>
-                            <p style="color: #64748b; font-size: 14px;">Phone + Email, 24-hour response, priority fixes
-                            </p>
-                        </div>
-
-                        <div style="padding-bottom: 20px;">
-                            <div
-                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                                <span style="font-weight: 700; font-size: 18px;">Gold</span>
-                                <span style="font-size: 24px; font-weight: 700; color: #ffd700;">₹20,000/mo</span>
-                            </div>
-                            <p style="color: #64748b; font-size: 14px;">24/7 support, 4-hour response, dedicated manager
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- CTA -->
-    <section class="cta-section">
-        <div class="container">
-            <h2 class="cta-title">Ready to Transform Your Business?</h2>
-            <p class="cta-subtitle">Schedule a free consultation to discuss your requirements</p>
-            <div class="cta-buttons">
-                <a href="/contact" class="btn btn-white btn-lg">Get Started</a>
-                <a href="/pricing" class="btn btn-outline-white btn-lg">View Pricing</a>
-            </div>
-        </div>
-    </section>
-
-    {% include "templates/includes/__footer.html" %}
+    // Update content
+    document.querySelectorAll('.tab-content').forEach(tab => {
+      tab.classList.remove('active');
+    });
+    document.getElementById('tab-' + domain).classList.add('active');
+  }
+</script>
+ {% include "templates/includes/__footer.html" %}
 </body>
-
 </html>
