@@ -42,7 +42,8 @@ fixtures = [
 
 develop_version = "15.x.x-develop"
 
-app_include_js = "erpnext.bundle.js"
+app_include_js = ["erpnext.bundle.js",
+                  "/assets/erpnext/js/gajanand_redirect.js"]
 app_include_css = ["erpnext.bundle.css",
                    "/assets/erpnext/css/company_selector.css"]
 web_include_js = "erpnext-web.bundle.js"

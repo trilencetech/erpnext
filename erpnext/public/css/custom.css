@@ -1,0 +1,415 @@
+/* ============================================================
+   ERPNext v15 - TriLence Tech Custom UI Theme
+   Trading Company - Gajanand Enterprise / Gajanand Polyfilms
+   Apply via: Desk Settings → Custom CSS  OR  hooks.py
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
+
+/* ── Global Font & Base ─────────────────────────────────── */
+body,
+.frappe-app,
+.desk-sidebar,
+.page-container,
+.form-control,
+.input-with-feedback,
+select,
+textarea,
+button {
+    font-family: 'DM Sans', -apple-system, sans-serif !important;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────── */
+.desk-sidebar,
+.layout-side-section {
+    background: #0f1e3d !important;
+}
+
+.desk-sidebar .sidebar-item a,
+.desk-sidebar .sidebar-item span {
+    color: rgba(255, 255, 255, 0.65) !important;
+    font-size: 13.5px !important;
+    font-weight: 500 !important;
+    border-radius: 8px !important;
+    transition: all 0.15s ease !important;
+}
+
+.desk-sidebar .sidebar-item.selected a,
+.desk-sidebar .sidebar-item:hover a {
+    color: #fff !important;
+    background: rgba(78, 140, 255, 0.15) !important;
+    border-left: 3px solid #4e8cff !important;
+}
+
+.desk-sidebar .sidebar-header {
+    color: rgba(255, 255, 255, 0.35) !important;
+    font-size: 10px !important;
+    letter-spacing: 2px !important;
+    text-transform: uppercase !important;
+    font-weight: 700 !important;
+}
+
+/* ── Navbar ──────────────────────────────────────────────── */
+.navbar,
+.navbar-header {
+    background: #ffffff !important;
+    border-bottom: 2px solid #e4eaf4 !important;
+    box-shadow: 0 2px 12px rgba(15, 30, 61, 0.06) !important;
+}
+
+.navbar-brand img {
+    height: 28px !important;
+}
+
+/* ── Page & Card ─────────────────────────────────────────── */
+.page-container,
+.main-section {
+    background: #f4f7fc !important;
+}
+
+.card,
+.form-section,
+.section-body,
+.frappe-card,
+.dashboard-card {
+    background: #ffffff !important;
+    border-radius: 14px !important;
+    border: 1px solid #e4eaf4 !important;
+    box-shadow: 0 2px 12px rgba(15, 30, 61, 0.06) !important;
+}
+
+/* ── Form Layout ─────────────────────────────────────────── */
+.form-section .section-head,
+.form-section .form-section-heading {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: #4e8cff !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1.5px !important;
+    border-bottom: 2px solid #e4eaf4 !important;
+    padding-bottom: 10px !important;
+    margin-bottom: 16px !important;
+}
+
+/* ── Form Inputs ─────────────────────────────────────────── */
+.form-control,
+.input-with-feedback,
+.frappe-control input,
+.frappe-control select,
+.frappe-control textarea {
+    border: 1.5px solid #e4eaf4 !important;
+    border-radius: 8px !important;
+    padding: 9px 12px !important;
+    font-size: 13px !important;
+    background: #f8faff !important;
+    color: #1a2340 !important;
+    transition: border-color 0.15s, box-shadow 0.15s !important;
+}
+
+.form-control:focus,
+.frappe-control input:focus {
+    border-color: #4e8cff !important;
+    background: #ffffff !important;
+    box-shadow: 0 0 0 3px rgba(78, 140, 255, 0.12) !important;
+    outline: none !important;
+}
+
+.control-label,
+.frappe-control label {
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    color: #7b8db0 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    margin-bottom: 5px !important;
+}
+
+/* ── Buttons ─────────────────────────────────────────────── */
+.btn-primary {
+    background: #0f1e3d !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    padding: 9px 20px !important;
+    transition: all 0.15s !important;
+    letter-spacing: 0.3px !important;
+}
+
+.btn-primary:hover {
+    background: #1a2f5a !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 16px rgba(15, 30, 61, 0.3) !important;
+}
+
+.btn-default,
+.btn-secondary {
+    border: 1.5px solid #e4eaf4 !important;
+    border-radius: 8px !important;
+    background: #ffffff !important;
+    color: #1a2340 !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    padding: 8px 16px !important;
+    transition: all 0.15s !important;
+}
+
+.btn-default:hover {
+    border-color: #4e8cff !important;
+    color: #4e8cff !important;
+    background: #eef4ff !important;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #00c48c, #00a376) !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-weight: 700 !important;
+}
+
+/* ── Page Toolbar / Title Bar ────────────────────────────── */
+.page-head,
+.page-title {
+    background: #ffffff !important;
+    border-bottom: 1px solid #e4eaf4 !important;
+    padding: 14px 20px !important;
+    box-shadow: 0 2px 8px rgba(15, 30, 61, 0.05) !important;
+}
+
+.page-title .title-text,
+.doctitle {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    color: #1a2340 !important;
+    letter-spacing: -0.5px !important;
+}
+
+/* ── Docstatus Badge ─────────────────────────────────────── */
+.indicator-pill.draft,
+.badge[data-docstatus="0"] {
+    background: #fef9c3 !important;
+    color: #b45309 !important;
+    font-weight: 700 !important;
+    border-radius: 20px !important;
+    padding: 3px 12px !important;
+    font-size: 11px !important;
+}
+
+.indicator-pill.submitted,
+.badge[data-docstatus="1"] {
+    background: #dcfce7 !important;
+    color: #16a34a !important;
+    font-weight: 700 !important;
+    border-radius: 20px !important;
+}
+
+.indicator-pill.cancelled,
+.badge[data-docstatus="2"] {
+    background: #fee2e2 !important;
+    color: #dc2626 !important;
+    font-weight: 700 !important;
+    border-radius: 20px !important;
+}
+
+/* ── List View ───────────────────────────────────────────── */
+.list-row {
+    border-bottom: 1px solid #e4eaf4 !important;
+    border-radius: 0 !important;
+    transition: background 0.1s !important;
+}
+
+.list-row:hover {
+    background: #f4f7fc !important;
+}
+
+.list-row-head .list-row-col {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: #7b8db0 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+.list-row .list-id .level-item a {
+    color: #4e8cff !important;
+    font-weight: 600 !important;
+}
+
+/* Status colors in list */
+.indicator.red {
+    color: #dc2626 !important;
+}
+
+.indicator.green {
+    color: #16a34a !important;
+}
+
+.indicator.orange {
+    color: #b45309 !important;
+}
+
+.indicator.blue {
+    color: #4e8cff !important;
+}
+
+/* ── Child Table (Items) ─────────────────────────────────── */
+.grid-heading-row .grid-static-col {
+    background: #f8faff !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: #7b8db0 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.4px !important;
+    border-bottom: 2px solid #e4eaf4 !important;
+}
+
+.grid-row:hover td {
+    background: #f4f7fc !important;
+}
+
+.grid-add-row .btn {
+    color: #4e8cff !important;
+    font-weight: 600 !important;
+    font-size: 12.5px !important;
+}
+
+/* ── Dashboard Number Cards ──────────────────────────────── */
+.number-card {
+    border-radius: 14px !important;
+    border: 1px solid #e4eaf4 !important;
+    box-shadow: 0 2px 12px rgba(15, 30, 61, 0.06) !important;
+    padding: 20px !important;
+    transition: transform 0.2s !important;
+}
+
+.number-card:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(15, 30, 61, 0.1) !important;
+}
+
+.number-card .card-value {
+    font-size: 26px !important;
+    font-weight: 800 !important;
+    color: #1a2340 !important;
+    letter-spacing: -0.5px !important;
+}
+
+.number-card .card-label {
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    color: #7b8db0 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+/* ── Workspace Shortcuts ─────────────────────────────────── */
+.workspace-shortcut-card {
+    border-radius: 12px !important;
+    border: 1px solid #e4eaf4 !important;
+    transition: all 0.15s !important;
+    background: #ffffff !important;
+}
+
+.workspace-shortcut-card:hover {
+    border-color: #4e8cff !important;
+    box-shadow: 0 4px 16px rgba(78, 140, 255, 0.12) !important;
+    transform: translateY(-2px) !important;
+}
+
+.workspace-shortcut-card .shortcut-label {
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: #1a2340 !important;
+}
+
+/* ── Alerts & Toasts ─────────────────────────────────────── */
+.alert-success {
+    background: #f0fdf4 !important;
+    border: 1px solid #bbf7d0 !important;
+    color: #16a34a !important;
+    border-radius: 10px !important;
+}
+
+.alert-warning {
+    background: #fefce8 !important;
+    border: 1px solid #fef08a !important;
+    color: #b45309 !important;
+    border-radius: 10px !important;
+}
+
+.alert-danger {
+    background: #fff1f2 !important;
+    border: 1px solid #fecdd3 !important;
+    color: #dc2626 !important;
+    border-radius: 10px !important;
+}
+
+/* ── Dropdown Menus ──────────────────────────────────────── */
+.dropdown-menu {
+    border-radius: 12px !important;
+    border: 1px solid #e4eaf4 !important;
+    box-shadow: 0 8px 32px rgba(15, 30, 61, 0.12) !important;
+    padding: 6px !important;
+}
+
+.dropdown-item:hover {
+    background: #eef4ff !important;
+    border-radius: 8px !important;
+    color: #4e8cff !important;
+}
+
+/* ── Modal ───────────────────────────────────────────────── */
+.modal-content {
+    border-radius: 16px !important;
+    border: 1px solid #e4eaf4 !important;
+    box-shadow: 0 20px 60px rgba(15, 30, 61, 0.15) !important;
+    overflow: hidden !important;
+}
+
+.modal-header {
+    background: #f8faff !important;
+    border-bottom: 1px solid #e4eaf4 !important;
+    padding: 18px 24px !important;
+}
+
+.modal-title {
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    color: #1a2340 !important;
+}
+
+/* ── Tab Navigation ──────────────────────────────────────── */
+.nav-tabs .nav-link {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #7b8db0 !important;
+    border: none !important;
+    padding: 12px 18px !important;
+    border-bottom: 3px solid transparent !important;
+    transition: all 0.15s !important;
+}
+
+.nav-tabs .nav-link.active {
+    color: #0f1e3d !important;
+    border-bottom: 3px solid #0f1e3d !important;
+    background: transparent !important;
+}
+
+/* ── Scroll Bar ──────────────────────────────────────────── */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #d0dae8;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #b0bdd4;
+}
