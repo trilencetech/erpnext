@@ -15,10 +15,7 @@ frappe.ui.form.on("Delivery Note", {
 
 
     refresh: function (frm) {
-        // Top-menu "Browse Stock" button (existing behaviour)
-        frm.add_custom_button(__("🗄️ Browse Stock"), function () {
-            gajanand.stock_selector.show_stock_dialog(frm);
-        });
+
 
         // Filter item_code dropdown to only items with available stock
         // frm.set_query("child_field", "child_table", fn) is the correct
