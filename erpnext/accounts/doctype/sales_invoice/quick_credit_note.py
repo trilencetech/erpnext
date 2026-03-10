@@ -7,6 +7,7 @@
 import frappe
 from frappe.utils import flt
 from datetime import datetime, timedelta
+import erpnext.controllers.sales_and_purchase_return as _ret_module
 
 
 @frappe.whitelist()
@@ -96,22 +97,69 @@ def create_quick_credit_note(return_against, posting_date, credit_amount, reason
         'taxes':               taxes,
     })
 
-    # FIX 1: skip return item validation — CR ADJUST is not in original invoice
-    cn.flags.ignore_validate_return_items = True
+    # ── FIX 1: bypass validate_returned_items ────────────────────────
+    # ERPNext v15 calls _ret_module.validate_returned_items() during validate.
+    # No flag exists to skip it — temporarily replace with a no-op for the
+    # duration of insert+submit, then restore.
+    _original_validate = _ret_module.validate_returned_items
 
-    cn.insert(ignore_permissions=False)
+    def _noop(*args, **kwargs):
+        pass
 
-    # Re-affirm posting_date and posting_time after insert (belt-and-suspenders)
-    frappe.db.set_value('Sales Invoice', cn.name, {
-        'posting_date':     posting_date,
-        'posting_time':     posting_time,
-        'set_posting_time': 1,
-    })
-    frappe.db.commit()
+    _ret_module.validate_returned_items = _noop
 
-    # ── Submit ────────────────────────────────────────────────
-    cn.reload()
-    cn.flags.ignore_validate_return_items = True
-    cn.submit()
+    try:
+        cn.insert(ignore_permissions=False)
+
+        # Re-affirm posting_date and posting_time after insert (belt-and-suspenders)
+        frappe.db.set_value('Sales Invoice', cn.name, {
+            'posting_date':     posting_date,
+            'posting_time':     posting_time,
+            'set_posting_time': 1,
+        })
+        frappe.db.commit()
+
+        # ── Submit ────────────────────────────────────────────────
+        cn.reload()
+        cn.submit()
+
+    finally:
+        # Always restore — even if insert/submit throws
+        _ret_module.validate_returned_items = _original_validate
 
     return cn.name
+
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def get_items_in_stock(doctype, txt, searchfield, start, page_len, filters):
+    """
+    Link field query — returns only item codes that have
+    actual stock available in the given company.
+    Called from Delivery Challan Item → item_code get_query.
+    """
+    company = (filters or {}).get(
+        "company") or frappe.defaults.get_user_default("Company")
+
+    return frappe.db.sql("""
+        SELECT DISTINCT
+            sle.item_code,
+            item.item_name
+        FROM `tabStock Ledger Entry` sle
+        JOIN `tabItem` item ON item.name = sle.item_code
+        WHERE
+            sle.company    = %(company)s
+            AND sle.is_cancelled = '0'
+            AND sle.docstatus    = 1
+            AND sle.display_stock != 1
+            AND (sle.item_code LIKE %(txt)s OR item.item_name LIKE %(txt)s)
+        GROUP BY sle.item_code
+        HAVING SUM(sle.actual_qty) > 0
+        ORDER BY sle.item_code
+        LIMIT %(start)s, %(page_len)s
+    """, {
+        "company":  company,
+        "txt":      "%" + txt + "%",
+        "start":    start,
+        "page_len": page_len
+    })
