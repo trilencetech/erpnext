@@ -28,10 +28,11 @@ frappe.ui.form.on("Delivery Note", {
             };
         });
 
-        // Load full stock list once into cache — all item_code selections
-        // will filter from this in-memory list (no repeated API calls)
+        // Load full stock list once into cache
         gj_load_stock_cache(frm);
-    }
+    },
+
+
 });
 
 // ─────────────────────────────────────────────────────────────
@@ -169,6 +170,52 @@ function gj_show_mini_picker(frm, cdt, cdn, entries, abbr, income_account) {
     });
 
     d.show();
+
+    // Bind all picker events via jQuery AFTER dialog renders
+    // (Frappe strips <script> tags from HTML fields — must bind here)
+    var $w = d.$wrapper;
+
+    function gj_apply_weight_filter() {
+        var txt = $w.find("#gj-weight-filter").val().trim();
+        var visible = 0;
+
+        $w.find("#gj-stock-tbody .gj-stock-row").each(function () {
+            var rowQty = $(this).data("qty").toString();
+            // prefix match on raw string so "25" matches "25.500", "25.1" etc
+            var show = txt === "" || rowQty.startsWith(txt);
+            $(this).toggleClass("gj-hidden", !show);
+            if (show) visible++;
+        });
+
+        $w.find("#gj-weight-clear").toggle(txt !== "");
+        $w.find("#gj-no-results").toggle(visible === 0 && txt !== "");
+        $w.find("#gj-match-count").text(txt ? visible + " match" + (visible !== 1 ? "es" : "") : "");
+    }
+
+    // Weight filter input
+    $w.on("input", "#gj-weight-filter", function () {
+        gj_apply_weight_filter();
+    });
+
+    // Clear button
+    $w.on("click", "#gj-weight-clear", function () {
+        $w.find("#gj-weight-filter").val("");
+        gj_apply_weight_filter();
+    });
+
+    // Select-all — only affects visible rows
+    $w.on("change", "#gj-select-all", function () {
+        var checked = this.checked;
+        $w.find("#gj-stock-tbody .gj-stock-row:not(.gj-hidden) .gj-stock-cb").each(function () {
+            this.checked = checked;
+            $(this).closest("tr").toggleClass("gj-checked", checked);
+        });
+    });
+
+    // Individual checkbox row highlight
+    $w.on("change", ".gj-stock-cb", function () {
+        $(this).closest("tr").toggleClass("gj-checked", this.checked);
+    });
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -192,7 +239,7 @@ function gj_picker_html(entries) {
             <td><b>${item.item_name || item.item_code}</b></td>
             <td style="text-align:right">${size}"</td>
             <td style="text-align:right">${mm} mm</td>
-            <td style="text-align:right;font-weight:600;color:#16a34a">${qty} kg</td>
+            <td style="text-align:right;font-weight:600;color:#16a34a">${qty}</td>
             <td style="text-align:right">₹ ${price}</td>
             <td style="color:#6b7280;font-size:12px">${date}</td>
             <td style="color:#6b7280;font-size:12px">${supp}</td>
@@ -281,7 +328,7 @@ function gj_picker_html(entries) {
                     <th>Item</th>
                     <th style="width:70px;text-align:right">Size</th>
                     <th style="width:70px;text-align:right">MM</th>
-                    <th style="width:90px;text-align:right">Weight/Quantity (KG/Nos)</th>
+                    <th style="width:90px;text-align:right">Weight/Qty (kg/Unit)</th>
                     <th style="width:90px;text-align:right">Price (₹)</th>
                     <th style="width:100px">Date</th>
                     <th>Supplier</th>
@@ -289,65 +336,9 @@ function gj_picker_html(entries) {
             </thead>
             <tbody id="gj-stock-tbody">${rows}</tbody>
         </table>
-        <div class="gj-no-results" id="gj-no-results">No entries match this weight filter.</div>
+        <div class="gj-no-results" id="gj-no-results">No entries match this weight/unit filter.</div>
     </div>
-    <script>
-        (function () {
-            // ── Weight filter ──────────────────────────────────────────
-            var filterInput = document.getElementById("gj-weight-filter");
-            var clearBtn    = document.getElementById("gj-weight-clear");
-            var matchCount  = document.getElementById("gj-match-count");
-            var noResults   = document.getElementById("gj-no-results");
-
-            function apply_filter() {
-                var val = parseFloat(filterInput.value);
-                var rows = document.querySelectorAll("#gj-stock-tbody .gj-stock-row");
-                var visible = 0;
-
-                rows.forEach(function (row) {
-                    if (isNaN(val)) {
-                        row.classList.remove("gj-hidden");
-                        visible++;
-                    } else {
-                        var rowQty = parseFloat(row.dataset.qty || 0);
-                        // Match rows whose weight starts with the typed digits
-                        var matches = rowQty.toFixed(3).startsWith(val.toString())
-                                   || rowQty === val;
-                        row.classList.toggle("gj-hidden", !matches);
-                        if (matches) visible++;
-                    }
-                });
-
-                clearBtn.style.display  = isNaN(val) ? "none" : "inline";
-                noResults.style.display = (visible === 0) ? "block" : "none";
-                matchCount.textContent  = isNaN(val) ? "" : visible + " match" + (visible !== 1 ? "es" : "");
-            }
-
-            filterInput.addEventListener("input", apply_filter);
-
-            clearBtn.addEventListener("click", function () {
-                filterInput.value = "";
-                apply_filter();
-            });
-
-            // ── Select-all (only visible rows) ────────────────────────
-            document.getElementById("gj-select-all").addEventListener("change", function () {
-                var checked = this.checked;
-                document.querySelectorAll("#gj-stock-tbody .gj-stock-row:not(.gj-hidden) .gj-stock-cb")
-                    .forEach(function (cb) {
-                        cb.checked = checked;
-                        cb.closest("tr").classList.toggle("gj-checked", checked);
-                    });
-            });
-
-            // ── Row highlight on individual checkbox ──────────────────
-            document.querySelectorAll(".gj-stock-cb").forEach(function (cb) {
-                cb.addEventListener("change", function () {
-                    this.closest("tr").classList.toggle("gj-checked", this.checked);
-                });
-            });
-        })();
-    </script>`;
+`;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -372,7 +363,7 @@ function gj_fill_row_sync(frm, cdt, cdn, item, abbr, income_account) {
 
     frappe.show_alert({
         message: "✅ <b>" + item.item_name + "</b> — "
-            + item.actual_qty + " kg @ ₹" + parseFloat(item.item_price || 0).toFixed(2),
+            + item.actual_qty + " kg/unit @ ₹" + parseFloat(item.item_price || 0).toFixed(2),
         indicator: "green"
     }, 4);
 }
