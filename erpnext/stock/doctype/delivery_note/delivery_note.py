@@ -898,6 +898,7 @@ def make_sales_invoice(source_name, target_doc=None, args=None):
 
         target.update({"posting_date": source.posting_date})
         target.update({"posting_time": source.posting_time})
+        target.update({"delivery_challan": source.name})
 
         # set company address
         if source.company_address:
