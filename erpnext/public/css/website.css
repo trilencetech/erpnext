@@ -63,13 +63,13 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 20px;
+    /*padding: 1rem 20px;*/
 }
 
 .logo {
     text-decoration: none;
     display: flex;
-    flex-direction: column;
+    /*flex-direction: column;*/
     transition: transform 0.3s;
 }
 
