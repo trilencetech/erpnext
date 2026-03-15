@@ -74,5 +74,24 @@
   "reference_doctype": "Sales Invoice",
   "script": "frappe.call(\"erpnext.accounts.doctype.sales_invoice.sales_invoice.send_invoice_email\", docId=doc.name)",
   "script_type": "DocType Event"
+ },
+ {
+  "allow_guest": 0,
+  "api_method": null,
+  "cron_format": null,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Server Script",
+  "doctype_event": "After Save",
+  "enable_rate_limit": 0,
+  "event_frequency": "All",
+  "modified": "2026-03-15 17:27:20.304100",
+  "module": "Selling",
+  "name": "Update Address Link",
+  "rate_limit_count": 5,
+  "rate_limit_seconds": 86400,
+  "reference_doctype": "Customer",
+  "script": "# ============================================================\n# SERVER SCRIPT SETUP:\n#   Settings → Server Script → New\n#   Script Type  : DocType Event\n#   Reference    : Customer\n#   DocType Event: After Save\n#   Enabled      : Yes\n# ============================================================\n\naddress = doc.customer_primary_address\n\nif address and frappe.db.exists(\"Address\", address):\n\n    already_linked = frappe.db.exists(\"Dynamic Link\", {\n        \"parent\":       address,\n        \"parenttype\":   \"Address\",\n        \"link_doctype\": \"Customer\",\n        \"link_name\":    doc.name\n    })\n\n    if not already_linked:\n        addr_doc = frappe.get_doc(\"Address\", address)\n        addr_doc.append(\"links\", {\n            \"link_doctype\": \"Customer\",\n            \"link_name\":    doc.name\n        })\n        addr_doc.flags.ignore_permissions = True\n        addr_doc.flags.ignore_mandatory   = True\n        addr_doc.flags.ignore_validate    = True\n        addr_doc.save()",
+  "script_type": "DocType Event"
  }
 ]

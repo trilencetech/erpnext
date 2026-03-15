@@ -862,3 +862,55 @@ def parse_full_name(full_name: str) -> tuple[str, str | None, str | None]:
     last_name = names[-1] if len(names) > 1 else None
 
     return first_name, middle_name, last_name
+
+
+@frappe.whitelist()
+def link_primary_address(doc, method=None):
+    """
+    After every Customer save, ensure the primary address has a
+    Dynamic Link row pointing back to this customer.
+
+    Runs silently — no error thrown if address is missing,
+    just skips gracefully.
+    """
+    if not doc.customer_primary_address:
+        return
+
+    address = doc.customer_primary_address
+
+    # Address doc must exist
+    if not frappe.db.exists('Address', address):
+        return
+
+    # Already linked — nothing to do
+    already_linked = frappe.db.exists('Dynamic Link', {
+        'parent':       address,
+        'parenttype':   'Address',
+        'link_doctype': 'Customer',
+        'link_name':    doc.name
+    })
+
+    if already_linked:
+        return
+
+    # Add the missing link
+    try:
+        addr_doc = frappe.get_doc('Address', address)
+        addr_doc.append('links', {
+            'link_doctype': 'Customer',
+            'link_name':    doc.name
+        })
+        addr_doc.flags.ignore_permissions = True
+        addr_doc.flags.ignore_mandatory = True
+        addr_doc.flags.ignore_validate = True
+        addr_doc.save()
+
+        frappe.logger().info(
+            f"[gajanand] Address link added: {address} → Customer {doc.name}"
+        )
+
+    except Exception as e:
+        # Log but never block the customer save
+        frappe.logger().error(
+            f"[gajanand] Failed to link address {address} to customer {doc.name}: {e}"
+        )
