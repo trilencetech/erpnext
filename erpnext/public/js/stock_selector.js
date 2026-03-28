@@ -437,10 +437,11 @@ gajanand.stock_selector.show_stock_dialog = function (frm) {
 
                 frm.doc.items = frm.doc.items.filter(row => row.item_code);
                 frm.refresh_field("items");
-                frm.trigger("calculate_taxes_and_totals");
-                if (frm.doc.doctype === "Update Stock") {
-                    calculate_totals(frm);
-                }
+                console.log("Teststs")
+                frm.script_manager.trigger("calculate_taxes_and_totals");
+                calculate_totals(frm);
+
+
                 dialog.hide();
             }
         });
@@ -461,10 +462,12 @@ gajanand.stock_selector.show_stock_dialog = function (frm) {
 
         function calculate_totals(frm) {
             let total_qty = 0, total_amount = 0;
-            (frm.doc.items || []).forEach(row => {
-                total_qty += row.qty || 0;
-                total_amount += row.amount || (row.qty * row.rate) || 0;
-            });
+            console.log("Teststts")
+                (frm.doc.items || []).forEach(row => {
+                    total_qty += row.qty || 0;
+                    console.log(total_qty)
+                    total_amount += row.amount || (row.qty * row.rate) || 0;
+                });
             frm.set_value("total_qty", total_qty);
             frm.set_value("total_amount", total_amount);
         }
