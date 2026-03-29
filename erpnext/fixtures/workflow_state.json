@@ -2,6 +2,15 @@
  {
   "docstatus": 0,
   "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-03-02 09:54:08.331537",
+  "name": "Plate Received",
+  "style": "",
+  "workflow_state_name": "Plate Received"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
   "icon": "question-sign",
   "modified": "2026-02-18 12:11:55.436445",
   "name": "Pending",
@@ -61,5 +70,23 @@
   "name": "Plate Making",
   "style": "",
   "workflow_state_name": "Plate Making"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-03-15 18:12:15.817347",
+  "name": "Paper Received",
+  "style": "",
+  "workflow_state_name": "Paper Received"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-03-15 18:12:41.549354",
+  "name": "Paper Cutting Completed",
+  "style": "",
+  "workflow_state_name": "Paper Cutting Completed"
  }
 ]
