@@ -255,6 +255,12 @@ class SalesInvoice(SellingController):
 
         # e.g., April 2025 → March 2026 = "25-26"
         fiscal_year = f"{str(start_year)[-2:]}-{str(end_year)[-2:]}"
+
+        if company_abbr == 'VCW':
+            fiscal_year = fiscal_year = f"{str(start_year)[-2:]}-{str(end_year)[-2:]}"
+        else:
+            fiscal_year = "25-26"
+
         if self.is_return:
             base_series = frappe.model.naming.make_autoname(
                 f"CR-{company_abbr}-.##")
