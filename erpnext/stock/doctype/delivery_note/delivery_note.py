@@ -1200,6 +1200,7 @@ def get_next_challan_number(company, is_intercompany=0, category="X"):
 
         # e.g., April 2025 → March 2026 = "25-26"
     fiscal_year = f"{str(start_year)[-2:]}-{str(end_year)[-2:]}"
+    fiscal_year = "25-26"
 
     if int(is_intercompany) and category == 'D':
         series_pattern = f"DN-TR-{company_abbr}-"
