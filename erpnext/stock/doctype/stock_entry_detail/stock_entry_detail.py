@@ -27,6 +27,7 @@ class StockEntryDetail(Document):
 		bom_no: DF.Link | None
 		conversion_factor: DF.Float
 		cost_center: DF.Link | None
+		custom_supplier: DF.Link | None
 		description: DF.TextEditor | None
 		expense_account: DF.Link | None
 		has_item_scanned: DF.Check

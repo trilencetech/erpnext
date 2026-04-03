@@ -22,6 +22,7 @@
   "is_scrap_item",
   "quality_inspection",
   "subcontracted_item",
+  "custom_supplier",
   "section_break_8",
   "description",
   "column_break_10",
@@ -614,6 +615,12 @@
    "hidden": 1,
    "label": "Item ID",
    "print_hide": 1
+  },
+  {
+   "fieldname": "custom_supplier",
+   "fieldtype": "Link",
+   "label": "Supplier",
+   "options": "Supplier"
   }
  ],
  "grid_page_length": 50,
@@ -621,7 +628,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-01-02 11:03:36.989812",
+ "modified": "2026-04-03 14:35:53.080108",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Stock Entry Detail",

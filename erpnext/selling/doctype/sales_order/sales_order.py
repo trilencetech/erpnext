@@ -1920,37 +1920,65 @@ def get_individual_stock_entries(customer=None, company=None):
         "Customer", customer, "default_price_list") or "Standard Selling"
 
     return frappe.db.sql("""
-        SELECT 
-           sle.item_id,
-            sle.item_code,
-            item.item_name,
-            sle.warehouse,
-            SUM(sle.actual_qty) AS actual_qty,
-            sle.valuation_rate,
-            sle.batch_no,
-            sle.serial_no,
-            item.stock_uom,
-			item.size,
-			item.mm,
-			sle.posting_date,
-   			MAX(pr.supplier) AS supplier_name,
-		    (
-                SELECT price_list_rate 
-                FROM `tabItem Price` 
-                WHERE item_code = sle.item_code 
-                AND selling = 1 
-                AND price_list = %s
-                ORDER BY modified DESC LIMIT 1
-            ) AS item_price
-        FROM `tabStock Ledger Entry` sle
-        JOIN `tabItem` item ON sle.item_code = item.name
-        LEFT JOIN `tabPurchase Receipt` pr 
-        ON pr.name = sle.voucher_no AND sle.voucher_type = 'Purchase Receipt'
-        WHERE 
-        sle.display_stock != 1
-         and sle.is_cancelled = '0'
-        AND sle.docstatus = 1 AND sle.company = %s
-        group by sle.item_id,item.item_code
-        HAVING SUM(sle.actual_qty) > 0
-        ORDER BY sle.posting_date DESC, sle.posting_time DESC
+
+SELECT
+    sle.item_id,
+    sle.item_code,
+    item.item_name,
+    sle.warehouse,
+    SUM(sle.actual_qty)  AS actual_qty,
+    sle.valuation_rate,
+    sle.batch_no,
+    sle.serial_no,
+    item.stock_uom,
+    item.size,
+    item.mm,
+    sle.posting_date,
+
+    -- Supplier: from PR if purchase, from Stock Entry custom field if opening stock
+    COALESCE(
+        MAX(pr.supplier),
+        MAX(sed.custom_supplier)
+    ) AS supplier_name,
+
+    (
+        SELECT price_list_rate
+        FROM `tabItem Price`
+        WHERE item_code  = sle.item_code
+          AND selling    = 1
+          AND price_list = %s
+        ORDER BY modified DESC LIMIT 1
+    ) AS item_price
+
+FROM `tabStock Ledger Entry` sle
+
+JOIN `tabItem` item
+    ON item.name = sle.item_code
+
+-- Join Purchase Receipt for normal purchase vouchers
+LEFT JOIN `tabPurchase Receipt` pr
+    ON  pr.name          = sle.voucher_no
+    AND sle.voucher_type = 'Purchase Receipt'
+
+-- Join Stock Entry Detail for opening stock vouchers
+-- matches via voucher_detail_no (child row name)
+LEFT JOIN `tabStock Entry Detail` sed
+    ON  sed.name         = sle.voucher_detail_no
+    AND sle.voucher_type = 'Stock Entry'
+
+WHERE
+    sle.display_stock  != 1
+    AND sle.is_cancelled = '0'
+    AND sle.docstatus    = 1
+    AND sle.company      = %s
+
+GROUP BY
+    sle.item_id,
+    item.item_code
+
+HAVING SUM(sle.actual_qty) > 0
+
+ORDER BY
+    sle.posting_date DESC,
+    sle.posting_time DESC
     """, (price_list, company,), as_dict=True)
