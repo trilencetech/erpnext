@@ -250,7 +250,6 @@ class DeliveryNote(SellingController):
         # e.g., April 2025 → March 2026 = "25-26"
         fiscal_year = f"{str(start_year)[-2:]}-{str(end_year)[-2:]}"
 
-        fiscal_year = "25-26"
         # In DN before_save or before_naming hook
         if self.custom_is_intercompany_transfer:
             # Use inter company naming series
@@ -260,6 +259,10 @@ class DeliveryNote(SellingController):
         else:
             base_series = frappe.model.naming.make_autoname(
                 f"DC-{company_abbr}-.####")
+
+        if self.is_return:
+            base_series = frappe.model.naming.make_autoname(
+                f"CR-{company_abbr}-.##")
 
         # Append fiscal year suffix
         self.name = f"{base_series}/{fiscal_year}"
@@ -1200,7 +1203,6 @@ def get_next_challan_number(company, is_intercompany=0, category="X"):
 
         # e.g., April 2025 → March 2026 = "25-26"
     fiscal_year = f"{str(start_year)[-2:]}-{str(end_year)[-2:]}"
-    fiscal_year = "25-26"
 
     if int(is_intercompany) and category == 'D':
         series_pattern = f"DN-TR-{company_abbr}-"
