@@ -445,7 +445,19 @@ def get_debit_notes_gst(company, from_date, to_date):
 
 
 def get_previous_sales_due(company, current_from_date):
-    si_result = frappe.db.sql("""
+    """
+    Net unpaid GST liability as of the last day before current_from_date.
+
+    Formula:
+        Previous Due = Gross Output GST (all SI before from_date)
+                     − ITC from Purchases (all PI before from_date)
+                     − GST already paid to Govt (JEs that DEBIT output tax accounts)
+
+    If result is negative the liability was already cleared — return 0,0,0.
+    """
+
+    # ── 1. Gross Output GST from Sales Invoices ───────────────
+    si_out = frappe.db.sql("""
         SELECT
             SUM(CASE WHEN (stc.description LIKE '%%IGST%%' OR stc.account_head LIKE '%%IGST%%'
                        OR stc.description LIKE '%%Integrated%%')
@@ -458,30 +470,70 @@ def get_previous_sales_due(company, current_from_date):
                 THEN stc.base_tax_amount ELSE 0 END) AS sgst
         FROM `tabSales Taxes and Charges` stc
         INNER JOIN `tabSales Invoice` si ON si.name = stc.parent
-        WHERE si.company = %(company)s AND si.posting_date < %(from_date)s
-          AND si.docstatus = 1 AND si.is_return = 0
+        WHERE si.company   = %(company)s
+          AND si.posting_date < %(from_date)s
+          AND si.docstatus = 1
     """, {"company": company, "from_date": current_from_date}, as_dict=True)
 
-    je_result = frappe.db.sql("""
+    # ── 2. ITC from Purchase Invoices (reduces net liability) ─
+    pi_itc = frappe.db.sql("""
         SELECT
-            SUM(CASE WHEN (jea.account LIKE '%%Output%%Tax%%IGST%%' OR jea.account LIKE '%%IGST%%Output%%')
-                THEN jea.credit_in_account_currency - jea.debit_in_account_currency ELSE 0 END) AS igst,
-            SUM(CASE WHEN (jea.account LIKE '%%Output%%Tax%%CGST%%' OR jea.account LIKE '%%CGST%%Output%%')
-                THEN jea.credit_in_account_currency - jea.debit_in_account_currency ELSE 0 END) AS cgst,
-            SUM(CASE WHEN (jea.account LIKE '%%Output%%Tax%%SGST%%' OR jea.account LIKE '%%SGST%%Output%%'
-                       OR jea.account LIKE '%%Output%%Tax%%UTGST%%')
-                THEN jea.credit_in_account_currency - jea.debit_in_account_currency ELSE 0 END) AS sgst
+            SUM(CASE WHEN (ptc.description LIKE '%%IGST%%' OR ptc.account_head LIKE '%%IGST%%'
+                       OR ptc.description LIKE '%%Integrated%%')
+                THEN ptc.base_tax_amount ELSE 0 END) AS igst,
+            SUM(CASE WHEN (ptc.description LIKE '%%CGST%%' OR ptc.account_head LIKE '%%CGST%%'
+                       OR ptc.description LIKE '%%Central%%')
+                THEN ptc.base_tax_amount ELSE 0 END) AS cgst,
+            SUM(CASE WHEN (ptc.description LIKE '%%SGST%%' OR ptc.account_head LIKE '%%SGST%%'
+                       OR ptc.description LIKE '%%State%%' OR ptc.description LIKE '%%UTGST%%')
+                THEN ptc.base_tax_amount ELSE 0 END) AS sgst
+        FROM `tabPurchase Taxes and Charges` ptc
+        INNER JOIN `tabPurchase Invoice` pi ON pi.name = ptc.parent
+        WHERE pi.company   = %(company)s
+          AND pi.posting_date < %(from_date)s
+          AND pi.docstatus = 1
+          AND pi.is_return = 0
+    """, {"company": company, "from_date": current_from_date}, as_dict=True)
+
+    # ── 3. GST already paid to Govt via Journal Entry ─────────
+    # When GST is paid: Output Tax account is DEBITED
+    # debit_in_account_currency > 0 on output tax account = payment made
+    je_paid = frappe.db.sql("""
+        SELECT
+            SUM(CASE WHEN (jea.account LIKE '%%Output%%Tax%%IGST%%'
+                        OR jea.account LIKE '%%IGST%%Output%%')
+                THEN jea.debit_in_account_currency ELSE 0 END) AS igst,
+            SUM(CASE WHEN (jea.account LIKE '%%Output%%Tax%%CGST%%'
+                        OR jea.account LIKE '%%CGST%%Output%%')
+                THEN jea.debit_in_account_currency ELSE 0 END) AS cgst,
+            SUM(CASE WHEN (jea.account LIKE '%%Output%%Tax%%SGST%%'
+                        OR jea.account LIKE '%%SGST%%Output%%'
+                        OR jea.account LIKE '%%Output%%Tax%%UTGST%%')
+                THEN jea.debit_in_account_currency ELSE 0 END) AS sgst
         FROM `tabJournal Entry Account` jea
         INNER JOIN `tabJournal Entry` je ON je.name = jea.parent
-        WHERE je.company = %(company)s AND je.posting_date < %(from_date)s AND je.docstatus = 1
+        WHERE je.company   = %(company)s
+          AND je.posting_date < %(from_date)s
+          AND je.docstatus = 1
     """, {"company": company, "from_date": current_from_date}, as_dict=True)
 
-    si_r = si_result[0] if si_result else {}
-    je_r = je_result[0] if je_result else {}
+    si_r = si_out[0] if si_out else {}
+    pi_r = pi_itc[0] if pi_itc else {}
+    je_r = je_paid[0] if je_paid else {}
+
+    # Net unpaid = Output − ITC − Paid to Govt
+    net_igst = flt(si_r.get("igst", 0), 2) - \
+        flt(pi_r.get("igst", 0), 2) - flt(je_r.get("igst", 0), 2)
+    net_cgst = flt(si_r.get("cgst", 0), 2) - \
+        flt(pi_r.get("cgst", 0), 2) - flt(je_r.get("cgst", 0), 2)
+    net_sgst = flt(si_r.get("sgst", 0), 2) - \
+        flt(pi_r.get("sgst", 0), 2) - flt(je_r.get("sgst", 0), 2)
+
+    # If net ≤ 0 the previous month had no outstanding liability
     return (
-        flt(flt(si_r.get("igst"), 2) + flt(je_r.get("igst"), 2), 2),
-        flt(flt(si_r.get("cgst"), 2) + flt(je_r.get("cgst"), 2), 2),
-        flt(flt(si_r.get("sgst"), 2) + flt(je_r.get("sgst"), 2), 2)
+        flt(max(0, net_igst), 2),
+        flt(max(0, net_cgst), 2),
+        flt(max(0, net_sgst), 2),
     )
 
 
