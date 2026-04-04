@@ -1,71 +1,28 @@
-# GST Monthly CA Summary – Script Report for ERPNext v15
-# -----------------------------------------------------------------------
-# Credit Notes (Sales Invoice is_return=1) → separate row in Sales section
-# Debit Notes  (Purchase Invoice is_return=1) → separate row in Purchase section
-# Journal Entry entries still included for manual JV adjustments
-# -----------------------------------------------------------------------
+# ============================================================
+# apps/gajanand/gajanand/utils/gst_carry_forward_utils.py
+# ============================================================
+# Standalone utility — takes company, from_date, to_date
+# Returns carry-forward CGST/SGST/IGST if > 0 after utilisation
+#
+# Usage from anywhere:
+#   from gajanand.utils.gst_carry_forward_utils import get_gst_carry_forward
+#   result = get_gst_carry_forward("Gajanand Enterprise", "2026-02-01", "2026-02-28")
+#   # returns: {"igst": 0, "cgst": 1234.50, "sgst": 1234.50, "total": 2469.00}
+# ============================================================
 
 import frappe
-from frappe.utils import getdate, flt
-from datetime import timedelta
-from erpnext.accounts.report.gst_monthly_ca_summary.get_gst_carry_forward import get_gst_carry_forward
+from frappe.utils import flt
 
 
-def execute(filters=None):
-    if not filters:
-        filters = {}
-    validate_filters(filters)
-    columns = get_columns()
-    data = get_report_data(filters)
-    return columns, data
-
-
-def validate_filters(filters):
-    if not filters.get("from_date") or not filters.get("to_date"):
-        frappe.throw("Please select From Date and To Date")
-    if getdate(filters["from_date"]) > getdate(filters["to_date"]):
-        frappe.throw("From Date cannot be greater than To Date")
-    if not filters.get("company"):
-        filters["company"] = frappe.defaults.get_user_default("Company")
-
-
-def get_columns():
-    return [
-        {"label": "Particular",   "fieldname": "particular",
-            "fieldtype": "Data",     "width": 260},
-        {"label": "Taxable Amt.", "fieldname": "taxable_amt",
-            "fieldtype": "Currency", "width": 140},
-        {"label": "IGST",         "fieldname": "igst",
-            "fieldtype": "Currency", "width": 120},
-        {"label": "CGST",         "fieldname": "cgst",
-            "fieldtype": "Currency", "width": 120},
-        {"label": "SGST",         "fieldname": "sgst",
-            "fieldtype": "Currency", "width": 120},
-        {"label": "Total GST",    "fieldname": "total_gst",
-            "fieldtype": "Currency", "width": 140},
-    ]
-
-
-def get_report_data(filters):
-    company = filters.get("company")
-    from_date = filters.get("from_date")
-    to_date = filters.get("to_date")
+def get_gst_carry_forward(company, from_date, to_date):
 
     sales = get_sales_gst(company, from_date, to_date)
     credits = get_credit_notes_gst(company, from_date, to_date)   # NEW
     purch = get_purchase_gst(company, from_date, to_date)
     debits = get_debit_notes_gst(company, from_date, to_date)    # NEW
 
-    current_from = getdate(from_date)
-    # last day of prev month
-    prev_to = current_from - timedelta(days=1)
-    prev_from = prev_to.replace(day=1)
-    prev_sales_igst, prev_sales_cgst, prev_sales_sgst = get_gst_carry_forward(
-        company, prev_from, prev_to)
-
-    # prev_sales_igst, prev_sales_cgst, prev_sales_sgst = get_previous_sales_due(
-    #   company, from_date)
-
+    prev_sales_igst, prev_sales_cgst, prev_sales_sgst = get_previous_sales_due(
+        company, from_date)
     prev_itc_igst,   prev_itc_cgst,   prev_itc_sgst = get_previous_itc(
         company, from_date)
 
@@ -139,81 +96,12 @@ def get_report_data(filters):
     carry_igst = flt(max(0, total_itc_igst - util["igst_used"]), 2)
     carry_cgst = flt(max(0, total_itc_cgst - util["cgst_used"]), 2)
     carry_sgst = flt(max(0, total_itc_sgst - util["sgst_used"]), 2)
-    carry_total = flt(carry_igst + carry_cgst + carry_sgst, 2)
-    net_cash = flt(util["igst_net"] + util["cgst_net"] + util["sgst_net"], 2)
 
-    tax_rate = str(flt(sales.get("tax_rate", 18.0), 2))
-
-    rows = []
-
-    # ─── SECTION A: SALES LIABILITY ───────────────────────────────────
-    rows.append(make_section("SALES LIABILITY"))
-    rows.append(make_row("Previous Due",
-                         0, flt(prev_sales_igst, 2), flt(prev_sales_cgst, 2), flt(prev_sales_sgst, 2), prev_sales_total))
-    rows.append(make_row("Sales @ " + tax_rate + "%",
-                         cur_sales_taxable, cur_sales_igst, cur_sales_cgst, cur_sales_sgst, cur_sales_gst))
-    rows.append(make_row("  (-) Credit Notes",
-                         cn_taxable, cn_igst, cn_cgst, cn_sgst, cn_gst))
-    rows.append(make_row("Net Sales (After Credit Notes)",
-                         net_sales_taxable, net_sales_igst, net_sales_cgst, net_sales_sgst, net_sales_gst))
-    rows.append(make_total("TOTAL LIABILITY",
-                           total_sales_taxable, total_sales_igst, total_sales_cgst, total_sales_sgst, total_sales_gst))
-    rows.append(make_blank())
-
-    # ─── SECTION B: PURCHASE ITC ──────────────────────────────────────
-    rows.append(make_section("PURCHASE ITC"))
-    rows.append(make_row("Previous ITC",
-                         0, flt(prev_itc_igst, 2), flt(prev_itc_cgst, 2), flt(prev_itc_sgst, 2), prev_itc_total))
-    rows.append(make_row("Purchase @ " + tax_rate + "%",
-                         cur_purch_taxable, cur_purch_igst, cur_purch_cgst, cur_purch_sgst, cur_purch_gst))
-    rows.append(make_row("  (-) Debit Notes",
-                         dn_taxable, dn_igst, dn_cgst, dn_sgst, dn_gst))
-    rows.append(make_row("Net Purchase (After Debit Notes)",
-                         net_purch_taxable, net_purch_igst, net_purch_cgst, net_purch_sgst, net_purch_gst))
-    rows.append(make_total("TOTAL AVAILABLE ITC",
-                           total_purch_taxable, total_itc_igst, total_itc_cgst, total_itc_sgst, total_itc_gst))
-    rows.append(make_blank())
-
-    # ─── SECTION C: POSITION BEFORE UTILISATION ───────────────────────
-    rows.append(make_section("GST POSITION BEFORE UTILISATION"))
-    rows.append(make_row("GST Payable (Before Utilisation)",
-                         0, total_sales_igst, total_sales_cgst, total_sales_sgst, total_sales_gst))
-    rows.append(make_row("GST Available ITC",
-                         0, total_itc_igst, total_itc_cgst, total_itc_sgst, total_itc_gst))
-    rows.append(make_total("NET GST AVAILABLE (SURPLUS)",
-                           0, surplus_igst, surplus_cgst, surplus_sgst, net_surplus))
-    rows.append(make_blank())
-
-    # ─── SECTION D: UTILISATION ───────────────────────────────────────
-    rows.append(make_section("UTILISATION (SET OFF) OF ITC"))
-    rows.append(make_row("IGST Payable",   0,
-                total_sales_igst, 0, 0, total_sales_igst))
-    rows.append(make_row("  Paid via ITC", 0,
-                util["igst_used"], 0, 0, util["igst_used"]))
-    rows.append(make_row("CGST Payable",   0, 0,
-                total_sales_cgst, 0, total_sales_cgst))
-    rows.append(make_row("  Paid via ITC", 0, 0,
-                util["cgst_used"], 0, util["cgst_used"]))
-    rows.append(make_row("SGST Payable",   0, 0, 0,
-                total_sales_sgst, total_sales_sgst))
-    rows.append(make_row("  Paid via ITC", 0, 0, 0,
-                util["sgst_used"], util["sgst_used"]))
-    rows.append(make_total("TOTAL GST PAYABLE (CASH)",
-                           0, util["igst_net"], util["cgst_net"], util["sgst_net"], net_cash))
-    rows.append(make_blank())
-
-    # ─── SECTION E: CARRY FORWARD ─────────────────────────────────────
-    rows.append(make_section("ITC AVAILABLE FOR NEXT MONTH"))
-    rows.append(make_row("Available IGST", 0, carry_igst,
-                0,          0,          carry_igst))
-    rows.append(make_row("Available CGST", 0, 0,
-                carry_cgst, 0,          carry_cgst))
-    rows.append(make_row("Available SGST", 0, 0,
-                0,          carry_sgst, carry_sgst))
-    rows.append(make_total("TOTAL CARRY FORWARD ITC",
-                           0, carry_igst, carry_cgst, carry_sgst, carry_total))
-
-    return rows
+    return (
+        flt(carry_igst, 2),
+        flt(carry_cgst, 2),
+        flt(carry_sgst, 2)
+    )
 
 
 # ── DATA QUERIES ───────────────────────────────────────────────────────────
