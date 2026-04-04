@@ -60,14 +60,14 @@ def get_report_data(filters):
     # last day of prev month
     prev_to = current_from - timedelta(days=1)
     prev_from = prev_to.replace(day=1)
-    prev_sales_igst, prev_sales_cgst, prev_sales_sgst = get_gst_carry_forward(
+    prev_sales_igst, prev_sales_cgst, prev_sales_sgst, prev_itc_igst,   prev_itc_cgst,   prev_itc_sgst = get_gst_carry_forward(
         company, prev_from, prev_to)
 
     # prev_sales_igst, prev_sales_cgst, prev_sales_sgst = get_previous_sales_due(
     #   company, from_date)
 
-    prev_itc_igst,   prev_itc_cgst,   prev_itc_sgst = get_previous_itc(
-        company, from_date)
+    # prev_itc_igst,   prev_itc_cgst,   prev_itc_sgst = get_previous_itc(
+    #   company, from_date)
 
     # ── Sales totals (net of credit notes) ────────────────────────────
     cur_sales_igst = flt(sales.get("igst"), 2)

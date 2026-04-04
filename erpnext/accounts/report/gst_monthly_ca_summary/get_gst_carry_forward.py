@@ -98,9 +98,12 @@ def get_gst_carry_forward(company, from_date, to_date):
     carry_sgst = flt(max(0, total_itc_sgst - util["sgst_used"]), 2)
 
     return (
-        flt(carry_igst, 2),
-        flt(carry_cgst, 2),
-        flt(carry_sgst, 2)
+        flt(total_sales_igst, 2),
+        flt(total_sales_cgst, 2),
+        flt(total_sales_sgst, 2),
+        flt(total_itc_igst, 2),
+        flt(total_itc_cgst, 2),
+        flt(total_itc_sgst, 2)
     )
 
 
