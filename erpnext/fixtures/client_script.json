@@ -2,6 +2,17 @@
  {
   "docstatus": 0,
   "doctype": "Client Script",
+  "dt": "Party Master",
+  "enabled": 1,
+  "modified": "2026-04-08 09:39:30.897980",
+  "module": "Printing Job Card",
+  "name": "Party_User_Creation",
+  "script": "frappe.ui.form.on('Party Master', {\n    refresh: function(frm) {\n        if (!frm.is_new()) {\n            frm.add_custom_button(__('Create Portal User'), function() {\n                // Prompt for details\n                frappe.prompt([\n                    {\n                        fieldname: 'user_name',\n                        label: 'User Name',\n                        fieldtype: 'Data',\n                        reqd: 1\n                    },\n                    {\n                        fieldname: 'email',\n                        label: 'Email',\n                        fieldtype: 'Data',\n                        reqd: 1\n                    },\n                    {\n                        fieldname: 'send_email',\n                        label: 'Send Welcome Email',\n                        fieldtype: 'Check',\n                        default: 1\n                    }\n                ],\n                function(values) {\n                    // Create user\n                    frappe.call({\n                        method: 'printing_jobcard.printing_jobcard.doctype.job_detail.party_portal_utils.create_portal_user',\n                        args: {\n                            party: frm.doc.name,\n                            user_name: values.user_name,\n                            email: values.email,\n                            send_welcome_email: values.send_email\n                        },\n                        callback: function(r) {\n                            if (r.message && r.message.success) {\n                                frappe.msgprint(__('Portal user created successfully!'));\n                                frm.reload_doc();\n                            }\n                        }\n                    });\n                },\n                __('Create Portal User'),\n                __('Create')\n                );\n            }, __('Portal'));\n        }\n    }\n});",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
   "dt": "Sales Invoice",
   "enabled": 1,
   "modified": "2026-02-15 15:22:31.995265",
