@@ -1,4 +1,5 @@
 import frappe
+import frappe.defaults
 
 
 @frappe.whitelist()

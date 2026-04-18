@@ -262,16 +262,6 @@ function get_ca_format_html(data, filters) {
                     <td>${fmt(data.sales_cur.igst)}</td><td>${fmt(data.sales_cur.cgst)}</td>
                     <td>${fmt(data.sales_cur.sgst)}</td><td>${fmt(data.sales_cur.total_gst)}</td>
                 </tr>
-                <tr class="cn-row">
-                    <td>(-) Credit Notes</td><td>${fmt(data.sales_cn.taxable_amt)}</td>
-                    <td>${fmt(data.sales_cn.igst)}</td><td>${fmt(data.sales_cn.cgst)}</td>
-                    <td>${fmt(data.sales_cn.sgst)}</td><td>${fmt(data.sales_cn.total_gst)}</td>
-                </tr>
-                <tr class="net-row">
-                    <td>Net Sales (After Credit Notes)</td><td>${fmt(data.sales_net.taxable_amt)}</td>
-                    <td>${fmt(data.sales_net.igst)}</td><td>${fmt(data.sales_net.cgst)}</td>
-                    <td>${fmt(data.sales_net.sgst)}</td><td>${fmt(data.sales_net.total_gst)}</td>
-                </tr>
                 <tr class="total-row">
                     <td>Total Liability</td><td>${fmt(data.sales_total.taxable_amt)}</td>
                     <td>${fmt(data.sales_total.igst)}</td><td>${fmt(data.sales_total.cgst)}</td>
@@ -300,16 +290,6 @@ function get_ca_format_html(data, filters) {
                     <td>Purchase @ ${data.tax_rate}%</td><td>${fmt(data.purch_cur.taxable_amt)}</td>
                     <td>${fmt(data.purch_cur.igst)}</td><td>${fmt(data.purch_cur.cgst)}</td>
                     <td>${fmt(data.purch_cur.sgst)}</td><td>${fmt(data.purch_cur.total_gst)}</td>
-                </tr>
-                <tr class="dn-row">
-                    <td>(-) Debit Notes</td><td>${fmt(data.purch_dn.taxable_amt)}</td>
-                    <td>${fmt(data.purch_dn.igst)}</td><td>${fmt(data.purch_dn.cgst)}</td>
-                    <td>${fmt(data.purch_dn.sgst)}</td><td>${fmt(data.purch_dn.total_gst)}</td>
-                </tr>
-                <tr class="net-row">
-                    <td>Net Purchase (After Debit Notes)</td><td>${fmt(data.purch_net.taxable_amt)}</td>
-                    <td>${fmt(data.purch_net.igst)}</td><td>${fmt(data.purch_net.cgst)}</td>
-                    <td>${fmt(data.purch_net.sgst)}</td><td>${fmt(data.purch_net.total_gst)}</td>
                 </tr>
                 <tr class="total-row">
                     <td>Total Available ITC</td><td>${fmt(data.purch_total.taxable_amt)}</td>
