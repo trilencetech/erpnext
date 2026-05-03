@@ -1,0 +1,395 @@
+{%- set company_doc = frappe.get_doc("Company", doc.company) -%}
+{%- set addr = frappe.get_doc("Address", company_doc.company_address) if company_doc.company_address else none -%}
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <style>
+        @page {
+            size: A4;
+            margin: 10mm 10mm 12mm 10mm;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .outer {
+                border: 2px solid #000 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+
+        .outer {
+            border: 2px solid #000;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            color: #000;
+            background: #fff;
+        }
+
+        /* ── HEADER ── */
+        .header-wrap {
+            border: 1.5px solid #000;
+            margin-bottom: 0;
+        }
+
+        .header-top {
+            display: flex;
+            align-items: stretch;
+            border-bottom: 1.5px solid #000;
+        }
+
+        .header-logo-col {
+            width: 70px;
+            border-right: 1px solid #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px;
+        }
+
+        .header-company-col {
+            flex: 1;
+            padding: 6px 10px;
+            text-align: center;
+        }
+
+        .doc-title {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-align: center;
+            border-bottom: 1px solid #000;
+            padding: 5px 0;
+            background: #f5f5f5;
+        }
+
+        .company-name {
+            font-size: 16px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            margin-bottom: 3px;
+        }
+
+        .company-addr {
+            font-size: 11px;
+            line-height: 1.5;
+            color: #333;
+        }
+
+        .company-gstin {
+            font-size: 12px;
+            font-weight: 700;
+            margin-top: 4px;
+        }
+
+        /* ── META ROW ── */
+        .meta-row {
+            display: flex;
+            border-bottom: 1px solid #000;
+        }
+
+        .meta-cell {
+            flex: 1;
+            padding: 5px 8px;
+            border-right: 1px solid #000;
+            font-size: 11px;
+        }
+
+        .meta-cell:last-child {
+            border-right: none;
+        }
+
+        .meta-label {
+            color: #555;
+            font-size: 11px;
+        }
+
+        .meta-value {
+            font-weight: 700;
+            font-size: 12px;
+            margin-top: 1px;
+        }
+
+        /* ── PARTY ROW ── */
+        .party-row {
+            display: flex;
+            border-bottom: 1px solid #000;
+        }
+
+        .party-cell {
+            flex: 1;
+            padding: 5px 8px;
+            border-right: 1px solid #000;
+            font-size: 12px;
+        }
+
+        .party-cell:last-child {
+            border-right: none;
+        }
+
+        .party-label {
+            font-size: 13px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .party-name {
+            font-weight: 800;
+            font-size: 13px;
+            margin-top: 2px;
+        }
+
+        .party-addr {
+            font-size: 12px;
+            color: #333;
+            margin-top: 2px;
+            line-height: 1.4;
+        }
+
+        .party-gstin {
+            font-size: 12px;
+            font-weight: 700;
+            margin-top: 3px;
+        }
+
+        /* ── ITEMS TABLE ── */
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0;
+        }
+
+        .items-table th {
+            background: #f0f0f0;
+            border: 1px solid #000 !important;
+            padding: 5px 6px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .items-table td {
+            padding: 4px 6px;
+            font-size: 12px;
+            vertical-align: middle;
+        }
+
+        .items-table td.center {
+            text-align: center;
+        }
+
+        .items-table td.right {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+        }
+
+        .items-table td.desc {
+            max-width: 260px;
+        }
+
+        /* ── TOTALS ROW ── */
+        .total-row td {
+            font-weight: 700;
+            background: #f9f9f9;
+            font-size: 12px;
+        }
+
+        /* ── RATE BOX ── */
+        .rate-box {
+            border: 1px solid #000;
+            border-top: none;
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+
+        /* ── FOOTER ── */
+        .footer-wrap {
+            border: 1px solid #000;
+            border-top: none;
+            display: flex;
+        }
+
+        .footer-left {
+            flex: 1;
+            padding: 8px 10px;
+            border-right: 1px solid #000;
+            font-size: 9.5px;
+            line-height: 1.7;
+        }
+
+        .footer-vehicle {
+            flex: 1;
+            padding: 8px 10px;
+            border-right: 1px solid #000;
+            font-size: 12px;
+        }
+
+        .footer-sig {
+            flex: 1;
+            padding: 8px 10px;
+            text-align: center;
+            font-size: 10px;
+        }
+
+        .sig-line {
+            border-top: 1px solid #000;
+            margin-top: 28px;
+            padding-top: 4px;
+            font-size: 9.5px;
+            color: #333;
+        }
+
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="outer">
+        <!-- ── HEADER ── -->
+        <div class="header-wrap">
+            <div class="doc-title">DELIVERY CHALLAN</div>
+
+
+            <!-- Meta row: Date / DC No / Vehicle -->
+            <div class="meta-row">
+                <div class="meta-cell">
+                    <div class="meta-label">Date</div>
+                    <div class="meta-value">{{ doc.posting_date }}</div>
+                </div>
+                <div class="meta-cell">
+                    <div class="meta-label">D.C. No.</div>
+                    <div class="meta-value">{{ doc.name }}</div>
+                </div>
+                <div class="party-cell">
+                    <div class="party-label">Our GSTIN</div>
+                    <div class="party-gstin" style="margin-top:4px">{{ company_doc.gstin or '' }}</div>
+                </div>
+
+            </div>
+
+            <!-- Party row -->
+            <div class="party-row">
+                <div class="party-cell" style="flex:2">
+                    <div class="party-label">Party Name: {{ doc.customer_name or doc.customer }}
+
+
+                    </div>
+
+                    {%- set cust_addr = frappe.get_doc("Address", doc.customer_address) if doc.customer_address else
+                    none
+                    -%}
+                    {%- if cust_addr -%}
+                    <div class="party-addr">
+                        {{ cust_addr.address_line1 }}{% if cust_addr.address_line2 %}, {{ cust_addr.address_line2 }}{%
+                        endif
+                        %},
+                        {{ cust_addr.city }}{% if cust_addr.state %} - {{ cust_addr.state }}{% endif %}
+                    </div>
+                    {%- endif -%}
+                    {%- set cust_gstin = frappe.db.get_value("Customer", doc.customer, "gstin") -%}
+                    {%- if cust_gstin -%}
+                    <div class="party-gstin">GSTIN : {{ cust_gstin }}</div>
+                    {%- endif -%}
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ── ITEMS TABLE ── -->
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th style="width:32px">Sr.</th>
+                    <th>Description of Goods</th>
+                    <th style="width:50px">Nos.</th>
+                    <th style="width:80px">Kgs.</th>
+                </tr>
+            </thead>
+            <tbody>
+                {%- for item in doc.items -%}
+                <tr>
+                    <td class="center">{{ loop.index }}</td>
+                    <td class="desc">{{ item.item_name }}
+
+                    </td>
+                    <td class="center">1</td>
+                    <td class="right">{{ "%.3f" | format(item.qty) }}</td>
+                </tr>
+                {%- endfor -%}
+                <!-- Blank filler rows for clean look -->
+                {%- for i in range([10 - doc.items|length, 0]|max) -%}
+                <tr>
+                    <td>&nbsp;</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                {%- endfor -%}
+            </tbody>
+            <tr class="total-row">
+                <td class="center" colspan="2" style="text-align:right;padding-right:10px">Total</td>
+                <td class="center">{{ doc.items | length }}</td>
+                <td class="right">{{ "%.3f" | format(doc.total_qty or doc.items | sum(attribute='qty')) }}</td>
+            </tr>
+        </table>
+
+        <!-- Rate box -->
+        <div class="rate-box">
+            {%- set first_item = doc.items[0] if doc.items else none -%}
+            {%- if first_item -%}
+            Rate : <strong>{{ "%.2f" | format(first_item.rate) }}</strong>
+            &nbsp;&nbsp;+&nbsp;&nbsp;
+            {%- set tax_rate = 0 -%}
+            {%- for t in doc.taxes -%}{%- if t.rate -%}{%- set tax_rate = t.rate * 2 -%}{%- endif -%}{%- endfor -%}
+            <strong>{{ "%.0f" | format(tax_rate) }}% GST</strong>
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            Net Total : <strong>{{ doc.items | length }}</strong> Rolls &nbsp; <strong>{{ "%.3f" | format(doc.total_qty
+                or
+                doc.items | sum(attribute='qty')) }}</strong> Kgs
+            {%- endif -%}
+        </div>
+
+        <!-- ── FOOTER ── -->
+        <div class="footer-wrap">
+            <div class="footer-left">
+                <strong>E. &amp; O. E.</strong><br>
+                Goods once dispatched will not be taken back.Subject to Ahmedabad Jurisdiction.<br>
+            </div>
+            <div class="footer-vehicle">
+                <strong>Vehicle No. :</strong> {{ doc.del_vehical_no or '—' }}<br>
+                <strong>Driver :</strong> {{ doc.deliver_by or '—' }}
+            </div>
+            <div class="footer-sig">
+                <div>Receiver's Signature</div>
+                <div class="sig-line">Authorized Signature<br>For {{ doc.company }}</div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
