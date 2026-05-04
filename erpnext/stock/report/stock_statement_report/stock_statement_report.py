@@ -173,7 +173,7 @@ def _render_html(filters, data):
 
   body {{
     font-family: Arial, Helvetica, sans-serif;
-    font-size: 8.5pt;
+    font-size: 10pt;
     color: #111;
     background: #fff;
   }}
@@ -187,13 +187,13 @@ def _render_html(filters, data):
     margin-bottom: 6px;
   }}
   .doc-header .company-name {{
-    font-size: 15pt;
+    font-size: 17pt;
     font-weight: bold;
     letter-spacing: 3px;
     text-transform: uppercase;
   }}
   .doc-header .report-title {{
-    font-size: 9.5pt;
+    font-size: 11pt;
     margin-top: 2px;
     color: #333;
   }}
@@ -214,20 +214,19 @@ def _render_html(filters, data):
 
   thead th {{
     background: #e4e4e4;
-    border: 1px solid #555;
-    padding: 4px 5px;
-    font-size: 8.5pt;
+    border: 1.5px solid #444;
+    padding: 5px 6px;
+    font-size: 10pt;
     font-weight: bold;
     text-align: left;
   }}
   thead th.r {{ text-align: right; }}
 
-  /* generic cell */
+  /* generic cell — full border box on every data row */
   tbody td {{
-    border-left:  1px solid #bbb;
-    border-right: 1px solid #bbb;
-    padding: 1.5px 5px;
-    font-size: 8.5pt;
+    border: 1px solid #bbb;
+    padding: 3px 6px;
+    font-size: 10pt;
     vertical-align: middle;
     overflow: hidden;
     white-space: nowrap;
@@ -238,37 +237,39 @@ def _render_html(filters, data):
   /* group header row */
   tr.grp-hdr td {{
     background: #d8e8f5;
-    border-top:    1px solid #3a6ea5;
-    border-bottom: 1px solid #3a6ea5;
+    border: 1.5px solid #3a6ea5;
     font-weight: bold;
-    font-size: 8.5pt;
-    padding: 3px 5px;
+    font-size: 10.5pt;
+    padding: 4px 6px;
     color: #1a3a6a;
   }}
 
   /* subtotal row */
   tr.subtotal td {{
-    border-top:    1.5px solid #555;
-    border-bottom: 2px solid #555;
+    border-top:    2px solid #444;
+    border-bottom: 2px solid #444;
+    border-left:   1px solid #bbb;
+    border-right:  1px solid #bbb;
     font-weight: bold;
-    background: #f5f5f5;
-    padding: 2.5px 5px;
+    background: #f0f0f0;
+    padding: 3px 6px;
+    font-size: 10pt;
   }}
 
   /* spacer between groups */
   tr.spacer td {{
     border: none;
-    height: 5px;
+    height: 6px;
     background: transparent;
   }}
 
   /* grand total */
   tr.grand-total td {{
     background: #c8d8ee;
-    border: 1.5px solid #1a3a6a;
+    border: 2px solid #1a3a6a;
     font-weight: bold;
-    font-size: 9pt;
-    padding: 4px 5px;
+    font-size: 11pt;
+    padding: 5px 6px;
   }}
 
   /* ── Print tweaks ── */
@@ -285,12 +286,12 @@ def _render_html(filters, data):
     margin-bottom: 8px;
   }}
   .print-btn {{
-    padding: 6px 18px;
+    padding: 7px 20px;
     background: #1a73e8;
     color: #fff;
     border: none;
     border-radius: 4px;
-    font-size: 9pt;
+    font-size: 10pt;
     cursor: pointer;
   }}
   .print-btn:hover {{ background: #1558b0; }}
