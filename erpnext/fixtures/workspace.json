@@ -15395,5 +15395,39 @@
   "sequence_id": 22.0,
   "shortcuts": [],
   "title": "Welcome Workspace"
+ },
+ {
+  "charts": [],
+  "content": "[{\"id\":\"kOPzBUUNA4\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"New Design Block\",\"col\":12}}]",
+  "custom_blocks": [
+   {
+    "custom_block_name": "New Design Block",
+    "label": "New Design Block",
+    "parent": "Gajanand New Dashboard",
+    "parentfield": "custom_blocks",
+    "parenttype": "Workspace"
+   }
+  ],
+  "docstatus": 0,
+  "doctype": "Workspace",
+  "for_user": "",
+  "hide_custom": 0,
+  "icon": "solid-success",
+  "indicator_color": "green",
+  "is_hidden": 0,
+  "label": "Gajanand New Dashboard",
+  "links": [],
+  "modified": "2026-05-04 23:39:18.838108",
+  "module": null,
+  "name": "Gajanand New Dashboard",
+  "number_cards": [],
+  "parent_page": "",
+  "public": 1,
+  "quick_lists": [],
+  "restrict_to_domain": null,
+  "roles": [],
+  "sequence_id": 25.0,
+  "shortcuts": [],
+  "title": "Gajanand New Dashboard"
  }
 ]
