@@ -64,13 +64,13 @@ function parse_report_data(data) {
     var result = {
         sales_prev: {},
         sales_cur: {},
-        sales_cn: {},   // NEW — Credit Notes
-        sales_net: {},   // NEW — Net Sales after CN
+        sales_cn: {},
+        sales_je: {},
         sales_total: {},
         purch_prev: {},
         purch_cur: {},
-        purch_dn: {},   // NEW — Debit Notes
-        purch_net: {},   // NEW — Net Purchase after DN
+        purch_dn: {},
+        purch_je: {},
         purch_total: {},
         position: {},
         util_igst: {},
@@ -94,8 +94,8 @@ function parse_report_data(data) {
             result.tax_rate = m ? m[0] : "18.00";
         } else if (p === "(-) CREDIT NOTES") {
             result.sales_cn = row;
-        } else if (p === "NET SALES (AFTER CREDIT NOTES)") {
-            result.sales_net = row;
+        } else if (p === "JOURNAL ENTRY OUTPUT GST") {
+            result.sales_je = row;
         } else if (p === "TOTAL LIABILITY") {
             result.sales_total = row;
         }
@@ -106,8 +106,8 @@ function parse_report_data(data) {
             result.purch_cur = row;
         } else if (p === "(-) DEBIT NOTES") {
             result.purch_dn = row;
-        } else if (p === "NET PURCHASE (AFTER DEBIT NOTES)") {
-            result.purch_net = row;
+        } else if (p === "JOURNAL ENTRY ITC") {
+            result.purch_je = row;
         } else if (p === "TOTAL AVAILABLE ITC") {
             result.purch_total = row;
         }
@@ -267,6 +267,11 @@ function get_ca_format_html(data, filters) {
                     <td>${fmt(data.sales_cn.igst)}</td><td>${fmt(data.sales_cn.cgst)}</td>
                     <td>${fmt(data.sales_cn.sgst)}</td><td>${fmt(data.sales_cn.total_gst)}</td>
                 </tr>
+                <tr>
+                    <td>Bank Payment GST</td><td>${fmt(0)}</td>
+                    <td>${fmt(data.sales_je.igst)}</td><td>${fmt(data.sales_je.cgst)}</td>
+                    <td>${fmt(data.sales_je.sgst)}</td><td>${fmt(data.sales_je.total_gst)}</td>
+                </tr>
                 <tr class="total-row">
                     <td>Total Liability</td><td>${fmt(data.sales_total.taxable_amt)}</td>
                     <td>${fmt(data.sales_total.igst)}</td><td>${fmt(data.sales_total.cgst)}</td>
@@ -300,6 +305,11 @@ function get_ca_format_html(data, filters) {
                     <td>(-) Debit Notes</td><td>${fmt(data.purch_dn.taxable_amt)}</td>
                     <td>${fmt(data.purch_dn.igst)}</td><td>${fmt(data.purch_dn.cgst)}</td>
                     <td>${fmt(data.purch_dn.sgst)}</td><td>${fmt(data.purch_dn.total_gst)}</td>
+                </tr>
+                <tr>
+                    <td>Bank Payment GST</td><td>${fmt(0)}</td>
+                    <td>${fmt(data.purch_je.igst)}</td><td>${fmt(data.purch_je.cgst)}</td>
+                    <td>${fmt(data.purch_je.sgst)}</td><td>${fmt(data.purch_je.total_gst)}</td>
                 </tr>
                 <tr class="total-row">
                     <td>Total Available ITC</td><td>${fmt(data.purch_total.taxable_amt)}</td>

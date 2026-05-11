@@ -79,6 +79,9 @@ def get_report_data(filters):
                       "Purchase Invoice", "Purchase Taxes and Charges", 1)
     tax_rate    = str(get_tax_rate(company, from_date, to_date))
 
+    # ── Journal Entry GST (direct GL postings, not via invoices) ─────
+    je_itc, je_out = get_journal_entry_gst(company, from_date, to_date, accounts)
+
     # ── Previous month closing balances ───────────────────────────────
     prev_from, prev_to = get_prev_month_range(from_date)
     prev_gl_closing = get_gl_balance(company, "1900-01-01", str(prev_to))
@@ -99,16 +102,27 @@ def get_report_data(filters):
     prev_itc_sgst = flt(max(0, prev_itc_closing["sgst"]), 2)
     prev_itc_total = flt(prev_itc_igst + prev_itc_cgst + prev_itc_sgst, 2)
 
-    # ── Current period net values (gross minus returns) ───────────────
-    cur_sales_igst    = flt(sales_gross["igst"]    - sales_cn["igst"],    2)
-    cur_sales_cgst    = flt(sales_gross["cgst"]    - sales_cn["cgst"],    2)
-    cur_sales_sgst    = flt(sales_gross["sgst"]    - sales_cn["sgst"],    2)
+    # ── JE display values ─────────────────────────────────────────────
+    je_itc_igst = flt(je_itc["igst"], 2)
+    je_itc_cgst = flt(je_itc["cgst"], 2)
+    je_itc_sgst = flt(je_itc["sgst"], 2)
+    je_itc_gst  = flt(je_itc_igst + je_itc_cgst + je_itc_sgst, 2)
+
+    je_out_igst = flt(je_out["igst"], 2)
+    je_out_cgst = flt(je_out["cgst"], 2)
+    je_out_sgst = flt(je_out["sgst"], 2)
+    je_out_gst  = flt(je_out_igst + je_out_cgst + je_out_sgst, 2)
+
+    # ── Current period net values (invoices − returns + JE) ───────────
+    cur_sales_igst    = flt(sales_gross["igst"] - sales_cn["igst"] + je_out_igst, 2)
+    cur_sales_cgst    = flt(sales_gross["cgst"] - sales_cn["cgst"] + je_out_cgst, 2)
+    cur_sales_sgst    = flt(sales_gross["sgst"] - sales_cn["sgst"] + je_out_sgst, 2)
     cur_sales_taxable = flt(sales_gross["taxable_amt"] - sales_cn["taxable_amt"], 2)
     cur_sales_gst     = flt(cur_sales_igst + cur_sales_cgst + cur_sales_sgst, 2)
 
-    cur_purch_igst    = flt(purch_gross["igst"]    - purch_dn["igst"],    2)
-    cur_purch_cgst    = flt(purch_gross["cgst"]    - purch_dn["cgst"],    2)
-    cur_purch_sgst    = flt(purch_gross["sgst"]    - purch_dn["sgst"],    2)
+    cur_purch_igst    = flt(purch_gross["igst"] - purch_dn["igst"] + je_itc_igst, 2)
+    cur_purch_cgst    = flt(purch_gross["cgst"] - purch_dn["cgst"] + je_itc_cgst, 2)
+    cur_purch_sgst    = flt(purch_gross["sgst"] - purch_dn["sgst"] + je_itc_sgst, 2)
     cur_purch_taxable = flt(purch_gross["taxable_amt"] - purch_dn["taxable_amt"], 2)
     cur_purch_gst     = flt(cur_purch_igst + cur_purch_cgst + cur_purch_sgst, 2)
 
@@ -153,6 +167,8 @@ def get_report_data(filters):
     rows.append(make_row("(-) Credit Notes",
                          sales_cn["taxable_amt"], sales_cn["igst"], sales_cn["cgst"],
                          sales_cn["sgst"], sales_cn["total_gst"]))
+    rows.append(make_row("Journal Entry Output GST",
+                         0, je_out_igst, je_out_cgst, je_out_sgst, je_out_gst))
     rows.append(make_total("TOTAL LIABILITY",
                            cur_sales_taxable, total_sales_igst, total_sales_cgst, total_sales_sgst, total_sales_gst))
     rows.append(make_blank())
@@ -167,6 +183,8 @@ def get_report_data(filters):
     rows.append(make_row("(-) Debit Notes",
                          purch_dn["taxable_amt"], purch_dn["igst"], purch_dn["cgst"],
                          purch_dn["sgst"], purch_dn["total_gst"]))
+    rows.append(make_row("Journal Entry ITC",
+                         0, je_itc_igst, je_itc_cgst, je_itc_sgst, je_itc_gst))
     rows.append(make_total("TOTAL AVAILABLE ITC",
                            cur_purch_taxable, total_itc_igst, total_itc_cgst, total_itc_sgst, total_itc_gst))
     rows.append(make_blank())
@@ -410,6 +428,42 @@ def get_tax_rate(company, from_date, to_date):
         ORDER BY stc.rate DESC LIMIT 1
     """, {"company": company, "from_date": from_date, "to_date": to_date}, as_dict=True)
     return flt(rate_result[0]["rate"] if rate_result else 18.0, 2)
+
+
+def get_journal_entry_gst(company, from_date, to_date, accounts):
+    """
+    Fetch GST posted directly via Journal Entry (voucher_type = 'Journal Entry').
+    These bypass Sales/Purchase Invoice tables so invoice-based queries miss them.
+    Example: legal expense paid via bank with GST claimed via JE.
+
+    Returns (itc_dict, output_dict) each {igst, cgst, sgst}.
+      itc    = debit - credit on Input GST accounts  (ITC received)
+      output = credit - debit on Output GST accounts (liability created)
+    """
+    rows = frappe.db.sql("""
+        SELECT
+            account,
+            SUM(debit)  AS debit,
+            SUM(credit) AS credit
+        FROM `tabGL Entry`
+        WHERE company      = %(company)s
+          AND posting_date BETWEEN %(from_date)s AND %(to_date)s
+          AND is_cancelled = 0
+          AND voucher_type = 'Journal Entry'
+          AND (
+               account LIKE '%%CGST%%'
+            OR account LIKE '%%SGST%%'
+            OR account LIKE '%%IGST%%'
+            OR account LIKE '%%UTGST%%'
+            OR account LIKE '%%GST%%'
+          )
+        GROUP BY account
+    """, {"company": company, "from_date": from_date, "to_date": to_date}, as_dict=True)
+
+    gl_map = {row.account: row for row in rows}
+    itc    = sum_accounts(gl_map, accounts["input"])
+    output = sum_accounts(gl_map, accounts["output"])
+    return itc, output
 
 
 def get_prev_month_range(from_date):
