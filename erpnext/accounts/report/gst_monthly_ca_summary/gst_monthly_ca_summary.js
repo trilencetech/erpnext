@@ -88,7 +88,7 @@ function parse_report_data(data) {
         // Sales section
         if (p === "PREVIOUS DUE") {
             result.sales_prev = row;
-        } else if (p.indexOf("SALES @") === 0) {
+        } else if (p.indexOf("OUTPUT GST @") === 0) {
             result.sales_cur = row;
             var m = p.match(/[\d.]+/);
             result.tax_rate = m ? m[0] : "18.00";
@@ -102,7 +102,7 @@ function parse_report_data(data) {
         // Purchase section
         else if (p === "PREVIOUS ITC") {
             result.purch_prev = row;
-        } else if (p.indexOf("PURCHASE @") === 0) {
+        } else if (p.indexOf("INPUT ITC @") === 0) {
             result.purch_cur = row;
         } else if (p === "(-) DEBIT NOTES") {
             result.purch_dn = row;
