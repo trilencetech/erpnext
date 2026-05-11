@@ -68,17 +68,16 @@ def get_report_data(filters):
     # ── Classify GST accounts ─────────────────────────────────────────
     accounts = get_gst_accounts_classified(company)
 
-    # ── Current period GL balances ────────────────────────────────────
-    cur_gl = get_gl_balance(company, from_date, to_date)
-
-    # Current period Output (credit - debit on Output accounts)
-    cur_out = sum_accounts(cur_gl, accounts["output"])   # {igst, cgst, sgst}
-
-    # Current period Input ITC (debit - credit on Input accounts)
-    cur_itc = sum_accounts(cur_gl, accounts["input"])    # {igst, cgst, sgst}
-
-    # ── Taxable amounts from invoice tables (for display only) ────────
-    taxable = get_taxable_amounts(company, from_date, to_date)
+    # ── Current period from invoice tables (gross + credit/debit notes) ──
+    sales_gross = get_invoice_gst_amounts(company, from_date, to_date,
+                      "Sales Invoice", "Sales Taxes and Charges", 0)
+    sales_cn    = get_invoice_gst_amounts(company, from_date, to_date,
+                      "Sales Invoice", "Sales Taxes and Charges", 1)
+    purch_gross = get_invoice_gst_amounts(company, from_date, to_date,
+                      "Purchase Invoice", "Purchase Taxes and Charges", 0)
+    purch_dn    = get_invoice_gst_amounts(company, from_date, to_date,
+                      "Purchase Invoice", "Purchase Taxes and Charges", 1)
+    tax_rate    = str(get_tax_rate(company, from_date, to_date))
 
     # ── Previous month closing balances ───────────────────────────────
     prev_from, prev_to = get_prev_month_range(from_date)
@@ -100,18 +99,18 @@ def get_report_data(filters):
     prev_itc_sgst = flt(max(0, prev_itc_closing["sgst"]), 2)
     prev_itc_total = flt(prev_itc_igst + prev_itc_cgst + prev_itc_sgst, 2)
 
-    # ── Current period net values ─────────────────────────────────────
-    cur_sales_igst = flt(cur_out["igst"], 2)
-    cur_sales_cgst = flt(cur_out["cgst"], 2)
-    cur_sales_sgst = flt(cur_out["sgst"], 2)
-    cur_sales_taxable = flt(taxable.get("sales_taxable", 0), 2)
-    cur_sales_gst = flt(cur_sales_igst + cur_sales_cgst + cur_sales_sgst, 2)
+    # ── Current period net values (gross minus returns) ───────────────
+    cur_sales_igst    = flt(sales_gross["igst"]    - sales_cn["igst"],    2)
+    cur_sales_cgst    = flt(sales_gross["cgst"]    - sales_cn["cgst"],    2)
+    cur_sales_sgst    = flt(sales_gross["sgst"]    - sales_cn["sgst"],    2)
+    cur_sales_taxable = flt(sales_gross["taxable_amt"] - sales_cn["taxable_amt"], 2)
+    cur_sales_gst     = flt(cur_sales_igst + cur_sales_cgst + cur_sales_sgst, 2)
 
-    cur_purch_igst = flt(cur_itc["igst"], 2)
-    cur_purch_cgst = flt(cur_itc["cgst"], 2)
-    cur_purch_sgst = flt(cur_itc["sgst"], 2)
-    cur_purch_taxable = flt(taxable.get("purch_taxable", 0), 2)
-    cur_purch_gst = flt(cur_purch_igst + cur_purch_cgst + cur_purch_sgst, 2)
+    cur_purch_igst    = flt(purch_gross["igst"]    - purch_dn["igst"],    2)
+    cur_purch_cgst    = flt(purch_gross["cgst"]    - purch_dn["cgst"],    2)
+    cur_purch_sgst    = flt(purch_gross["sgst"]    - purch_dn["sgst"],    2)
+    cur_purch_taxable = flt(purch_gross["taxable_amt"] - purch_dn["taxable_amt"], 2)
+    cur_purch_gst     = flt(cur_purch_igst + cur_purch_cgst + cur_purch_sgst, 2)
 
     # ── Totals ────────────────────────────────────────────────────────
     total_sales_igst = flt(cur_sales_igst + prev_sales_igst, 2)
@@ -142,8 +141,6 @@ def get_report_data(filters):
     carry_total = flt(carry_igst + carry_cgst + carry_sgst, 2)
     net_cash = flt(util["igst_net"] + util["cgst_net"] + util["sgst_net"], 2)
 
-    tax_rate = str(flt(taxable.get("tax_rate", 18.0), 2))
-
     rows = []
 
     # ─── SECTION A: SALES LIABILITY ──────────────────────────────────
@@ -151,7 +148,11 @@ def get_report_data(filters):
     rows.append(make_row("Previous Due",
                          0, prev_sales_igst, prev_sales_cgst, prev_sales_sgst, prev_sales_total))
     rows.append(make_row("Output GST @ " + tax_rate + "% (Current Month)",
-                         cur_sales_taxable, cur_sales_igst, cur_sales_cgst, cur_sales_sgst, cur_sales_gst))
+                         sales_gross["taxable_amt"], sales_gross["igst"], sales_gross["cgst"],
+                         sales_gross["sgst"], sales_gross["total_gst"]))
+    rows.append(make_row("(-) Credit Notes",
+                         sales_cn["taxable_amt"], sales_cn["igst"], sales_cn["cgst"],
+                         sales_cn["sgst"], sales_cn["total_gst"]))
     rows.append(make_total("TOTAL LIABILITY",
                            cur_sales_taxable, total_sales_igst, total_sales_cgst, total_sales_sgst, total_sales_gst))
     rows.append(make_blank())
@@ -161,7 +162,11 @@ def get_report_data(filters):
     rows.append(make_row("Previous ITC",
                          0, prev_itc_igst, prev_itc_cgst, prev_itc_sgst, prev_itc_total))
     rows.append(make_row("Input ITC @ " + tax_rate + "% (Current Month)",
-                         cur_purch_taxable, cur_purch_igst, cur_purch_cgst, cur_purch_sgst, cur_purch_gst))
+                         purch_gross["taxable_amt"], purch_gross["igst"], purch_gross["cgst"],
+                         purch_gross["sgst"], purch_gross["total_gst"]))
+    rows.append(make_row("(-) Debit Notes",
+                         purch_dn["taxable_amt"], purch_dn["igst"], purch_dn["cgst"],
+                         purch_dn["sgst"], purch_dn["total_gst"]))
     rows.append(make_total("TOTAL AVAILABLE ITC",
                            cur_purch_taxable, total_itc_igst, total_itc_cgst, total_itc_sgst, total_itc_gst))
     rows.append(make_blank())
@@ -347,27 +352,55 @@ def sum_accounts(gl_data, account_group):
     return {k: flt(v, 2) for k, v in result.items()}
 
 
-def get_taxable_amounts(company, from_date, to_date):
+def get_invoice_gst_amounts(company, from_date, to_date, inv_doctype, tax_doctype, is_return=0):
     """
-    Get taxable base amounts and tax rate from invoice tables (for display).
-    This is purely for the Taxable Amt. column — the GST figures come from GL Entry.
+    Returns absolute values of taxable amount + IGST/CGST/SGST from invoice
+    header + tax child table. Return invoices store negative values; abs() gives
+    display-friendly positives for credit/debit note rows.
     """
-    sales = frappe.db.sql("""
-        SELECT SUM(base_net_total) AS taxable_amt
-        FROM `tabSales Invoice`
+    inv_table = "`tab{}`".format(inv_doctype)
+    tax_table = "`tab{}`".format(tax_doctype)
+    params = {"company": company, "from_date": from_date,
+              "to_date": to_date, "is_return": is_return}
+
+    taxable_row = frappe.db.sql("""
+        SELECT COALESCE(SUM(base_net_total), 0) AS taxable_amt
+        FROM {inv}
         WHERE docstatus = 1 AND company = %(company)s
           AND posting_date BETWEEN %(from_date)s AND %(to_date)s
-          AND is_return = 0
-    """, {"company": company, "from_date": from_date, "to_date": to_date}, as_dict=True)
+          AND is_return = %(is_return)s
+    """.format(inv=inv_table), params, as_dict=True)
 
-    purch = frappe.db.sql("""
-        SELECT SUM(base_net_total) AS taxable_amt
-        FROM `tabPurchase Invoice`
-        WHERE docstatus = 1 AND company = %(company)s
-          AND posting_date BETWEEN %(from_date)s AND %(to_date)s
-          AND is_return = 0
-    """, {"company": company, "from_date": from_date, "to_date": to_date}, as_dict=True)
+    gst_row = frappe.db.sql("""
+        SELECT
+            COALESCE(SUM(CASE WHEN UPPER(tc.account_head) LIKE '%%IGST%%'
+                              THEN tc.base_tax_amount ELSE 0 END), 0) AS igst,
+            COALESCE(SUM(CASE WHEN UPPER(tc.account_head) LIKE '%%CGST%%'
+                              THEN tc.base_tax_amount ELSE 0 END), 0) AS cgst,
+            COALESCE(SUM(CASE WHEN UPPER(tc.account_head) LIKE '%%SGST%%'
+                           OR UPPER(tc.account_head) LIKE '%%UTGST%%'
+                              THEN tc.base_tax_amount ELSE 0 END), 0) AS sgst
+        FROM {tax} tc
+        INNER JOIN {inv} inv ON inv.name = tc.parent
+        WHERE inv.docstatus = 1 AND inv.company = %(company)s
+          AND inv.posting_date BETWEEN %(from_date)s AND %(to_date)s
+          AND inv.is_return = %(is_return)s
+          AND (UPPER(tc.account_head) LIKE '%%IGST%%'
+            OR UPPER(tc.account_head) LIKE '%%CGST%%'
+            OR UPPER(tc.account_head) LIKE '%%SGST%%'
+            OR UPPER(tc.account_head) LIKE '%%UTGST%%')
+    """.format(inv=inv_table, tax=tax_table), params, as_dict=True)
 
+    taxable = abs(flt(taxable_row[0].taxable_amt if taxable_row else 0, 2))
+    igst    = abs(flt(gst_row[0].igst if gst_row else 0, 2))
+    cgst    = abs(flt(gst_row[0].cgst if gst_row else 0, 2))
+    sgst    = abs(flt(gst_row[0].sgst if gst_row else 0, 2))
+
+    return {"taxable_amt": taxable, "igst": igst, "cgst": cgst,
+            "sgst": sgst, "total_gst": flt(igst + cgst + sgst, 2)}
+
+
+def get_tax_rate(company, from_date, to_date):
     rate_result = frappe.db.sql("""
         SELECT stc.rate FROM `tabSales Taxes and Charges` stc
         INNER JOIN `tabSales Invoice` si ON si.name = stc.parent
@@ -376,12 +409,7 @@ def get_taxable_amounts(company, from_date, to_date):
           AND si.docstatus = 1 AND si.is_return = 0 AND stc.rate > 0
         ORDER BY stc.rate DESC LIMIT 1
     """, {"company": company, "from_date": from_date, "to_date": to_date}, as_dict=True)
-
-    return {
-        "sales_taxable": flt((sales[0].taxable_amt if sales else 0), 2),
-        "purch_taxable": flt((purch[0].taxable_amt if purch else 0), 2),
-        "tax_rate": flt(rate_result[0]["rate"] if rate_result else 18.0, 2),
-    }
+    return flt(rate_result[0]["rate"] if rate_result else 18.0, 2)
 
 
 def get_prev_month_range(from_date):
