@@ -268,7 +268,7 @@ function get_ca_format_html(data, filters) {
                     <td>${fmt(data.sales_cn.sgst)}</td><td>${fmt(data.sales_cn.total_gst)}</td>
                 </tr>
                 <tr>
-                    <td>Bank Payment GST</td><td>${fmt(0)}</td>
+                    <td>Bank Payment GST</td><td>${fmt(data.sales_je.taxable_amt)}</td>
                     <td>${fmt(data.sales_je.igst)}</td><td>${fmt(data.sales_je.cgst)}</td>
                     <td>${fmt(data.sales_je.sgst)}</td><td>${fmt(data.sales_je.total_gst)}</td>
                 </tr>
@@ -307,7 +307,7 @@ function get_ca_format_html(data, filters) {
                     <td>${fmt(data.purch_dn.sgst)}</td><td>${fmt(data.purch_dn.total_gst)}</td>
                 </tr>
                 <tr>
-                    <td>Bank Payment GST</td><td>${fmt(0)}</td>
+                    <td>Bank Payment GST</td><td>${fmt(data.purch_je.taxable_amt)}</td>
                     <td>${fmt(data.purch_je.igst)}</td><td>${fmt(data.purch_je.cgst)}</td>
                     <td>${fmt(data.purch_je.sgst)}</td><td>${fmt(data.purch_je.total_gst)}</td>
                 </tr>
