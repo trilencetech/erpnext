@@ -293,8 +293,8 @@ frappe.ui.form.on("Payment Entry", {
 		frm.toggle_display(
 			"target_exchange_rate",
 			frm.doc.received_amount &&
-				frm.doc.paid_to_account_currency != company_currency &&
-				frm.doc.paid_from_account_currency != frm.doc.paid_to_account_currency
+			frm.doc.paid_to_account_currency != company_currency &&
+			frm.doc.paid_from_account_currency != frm.doc.paid_to_account_currency
 		);
 
 		frm.toggle_display("base_paid_amount", frm.doc.paid_from_account_currency != company_currency);
@@ -314,24 +314,24 @@ frappe.ui.form.on("Payment Entry", {
 		frm.toggle_display(
 			"base_received_amount",
 			frm.doc.paid_to_account_currency != company_currency &&
-				frm.doc.paid_from_account_currency != frm.doc.paid_to_account_currency &&
-				frm.doc.base_paid_amount != frm.doc.base_received_amount
+			frm.doc.paid_from_account_currency != frm.doc.paid_to_account_currency &&
+			frm.doc.base_paid_amount != frm.doc.base_received_amount
 		);
 
 		frm.toggle_display(
 			"received_amount",
 			frm.doc.payment_type == "Internal Transfer" ||
-				frm.doc.paid_from_account_currency != frm.doc.paid_to_account_currency
+			frm.doc.paid_from_account_currency != frm.doc.paid_to_account_currency
 		);
 
 		frm.toggle_display(
 			["base_total_allocated_amount"],
 			frm.doc.paid_amount &&
-				frm.doc.received_amount &&
-				frm.doc.base_total_allocated_amount &&
-				((frm.doc.payment_type == "Receive" &&
-					frm.doc.paid_from_account_currency != company_currency) ||
-					(frm.doc.payment_type == "Pay" && frm.doc.paid_to_account_currency != company_currency))
+			frm.doc.received_amount &&
+			frm.doc.base_total_allocated_amount &&
+			((frm.doc.payment_type == "Receive" &&
+				frm.doc.paid_from_account_currency != company_currency) ||
+				(frm.doc.payment_type == "Pay" && frm.doc.paid_to_account_currency != company_currency))
 		);
 
 		var party_amount = frm.doc.payment_type == "Receive" ? frm.doc.paid_amount : frm.doc.received_amount;
@@ -674,7 +674,7 @@ frappe.ui.form.on("Payment Entry", {
 
 									if (
 										frm.doc.paid_from_account_currency ==
-											frm.doc.paid_to_account_currency &&
+										frm.doc.paid_to_account_currency &&
 										frm.doc.paid_amount != frm.doc.received_amount
 									) {
 										if (
@@ -885,7 +885,7 @@ frappe.ui.form.on("Payment Entry", {
 				fieldtype: "Date",
 				label: __("From Date"),
 				fieldname: "from_posting_date",
-				default: frappe.datetime.add_days(today, -30),
+				default: frappe.datetime.add_days(today, -365),
 			},
 			{ fieldtype: "Column Break" },
 			{ fieldtype: "Date", label: __("To Date"), fieldname: "to_posting_date", default: today },
