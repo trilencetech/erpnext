@@ -77,20 +77,6 @@
   "base_total_taxes_and_charges",
   "column_break_47",
   "total_taxes_and_charges",
-  "totals",
-  "base_grand_total",
-  "base_rounding_adjustment",
-  "base_rounded_total",
-  "base_in_words",
-  "column_break5",
-  "grand_total",
-  "rounding_adjustment",
-  "use_company_roundoff_cost_center",
-  "rounded_total",
-  "in_words",
-  "total_advance",
-  "outstanding_amount",
-  "disable_rounded_total",
   "section_break_49",
   "apply_discount_on",
   "base_discount_amount",
@@ -99,6 +85,20 @@
   "column_break_51",
   "additional_discount_percentage",
   "discount_amount",
+  "totals",
+  "grand_total",
+  "base_grand_total",
+  "base_rounded_total",
+  "base_in_words",
+  "rounded_total",
+  "column_break5",
+  "base_rounding_adjustment",
+  "rounding_adjustment",
+  "use_company_roundoff_cost_center",
+  "in_words",
+  "total_advance",
+  "outstanding_amount",
+  "disable_rounded_total",
   "sec_tax_breakup",
   "other_charges_calculation",
   "pricing_rule_details",
@@ -693,6 +693,7 @@
   {
    "fieldname": "items_section",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "hide_border": 1,
    "hide_days": 1,
    "hide_seconds": 1,
@@ -735,6 +736,7 @@
   {
    "fieldname": "pricing_rule_details",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "hide_days": 1,
    "hide_seconds": 1,
    "label": "Pricing Rules"
@@ -782,6 +784,7 @@
    "depends_on": "eval:!doc.is_return",
    "fieldname": "time_sheet_list",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "hide_border": 1,
    "hide_days": 1,
    "hide_seconds": 1,
@@ -910,6 +913,7 @@
   {
    "fieldname": "shipping_rule",
    "fieldtype": "Link",
+   "hidden": 1,
    "hide_days": 1,
    "hide_seconds": 1,
    "label": "Shipping Rule",
@@ -971,6 +975,7 @@
   {
    "fieldname": "base_total_taxes_and_charges",
    "fieldtype": "Currency",
+   "hidden": 1,
    "hide_days": 1,
    "hide_seconds": 1,
    "label": "Total Taxes and Charges (Company Currency)",
@@ -1076,7 +1081,6 @@
    "options": "Cost Center"
   },
   {
-   "collapsible": 1,
    "fieldname": "section_break_49",
    "fieldtype": "Section Break",
    "hide_days": 1,
@@ -1097,6 +1101,7 @@
   {
    "fieldname": "base_discount_amount",
    "fieldtype": "Currency",
+   "hidden": 1,
    "hide_days": 1,
    "hide_seconds": 1,
    "label": "Additional Discount Amount (Company Currency)",
@@ -1168,6 +1173,7 @@
    "fieldtype": "Currency",
    "hide_days": 1,
    "hide_seconds": 1,
+   "in_list_view": 1,
    "label": "Rounded Total (Company Currency)",
    "oldfieldname": "rounded_total",
    "oldfieldtype": "Currency",
@@ -1203,7 +1209,6 @@
    "fieldtype": "Currency",
    "hide_days": 1,
    "hide_seconds": 1,
-   "in_list_view": 1,
    "label": "Grand Total",
    "oldfieldname": "grand_total_export",
    "oldfieldtype": "Currency",
@@ -1251,6 +1256,7 @@
   {
    "fieldname": "total_advance",
    "fieldtype": "Currency",
+   "hidden": 1,
    "hide_days": 1,
    "hide_seconds": 1,
    "label": "Total Advance",
@@ -1263,6 +1269,7 @@
   {
    "fieldname": "outstanding_amount",
    "fieldtype": "Currency",
+   "hidden": 1,
    "hide_days": 1,
    "hide_seconds": 1,
    "label": "Outstanding Amount",
@@ -1906,9 +1913,9 @@
    "report_hide": 1
   },
   {
-   "collapsible": 1,
    "fieldname": "accounting_dimensions_section",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "hide_days": 1,
    "hide_seconds": 1,
    "label": "Accounting Dimensions"
@@ -1992,6 +1999,7 @@
    "allow_on_submit": 1,
    "fieldname": "additional_discount_account",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "Discount Account",
    "options": "Account"
   },
@@ -2043,6 +2051,7 @@
    "depends_on": "eval: doc.apply_discount_on == \"Grand Total\"",
    "fieldname": "is_cash_or_non_trade_discount",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Is Cash or Non Trade Discount"
   },
   {
@@ -2135,6 +2144,7 @@
   {
    "fieldname": "incoterm",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "Incoterm",
    "options": "Incoterm"
   },
@@ -2142,6 +2152,7 @@
    "depends_on": "incoterm",
    "fieldname": "named_place",
    "fieldtype": "Data",
+   "hidden": 1,
    "label": "Named Place"
   },
   {
@@ -2156,6 +2167,7 @@
    "default": "0",
    "fieldname": "use_company_roundoff_cost_center",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Use Company default Cost Center for Round off"
   },
   {
@@ -2227,7 +2239,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2026-04-17 13:42:13.155868",
+ "modified": "2026-05-18 12:15:29.445270",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Sales Invoice",

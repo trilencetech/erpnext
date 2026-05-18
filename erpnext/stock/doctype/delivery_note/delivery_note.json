@@ -74,6 +74,12 @@
   "base_total_taxes_and_charges",
   "column_break_47",
   "total_taxes_and_charges",
+  "section_break_49",
+  "apply_discount_on",
+  "base_discount_amount",
+  "column_break_51",
+  "additional_discount_percentage",
+  "discount_amount",
   "totals",
   "base_grand_total",
   "base_rounding_adjustment",
@@ -85,12 +91,6 @@
   "rounded_total",
   "in_words",
   "disable_rounded_total",
-  "section_break_49",
-  "apply_discount_on",
-  "base_discount_amount",
-  "column_break_51",
-  "additional_discount_percentage",
-  "discount_amount",
   "sec_tax_breakup",
   "other_charges_calculation",
   "packing_list",
@@ -437,6 +437,7 @@
    "collapsible": 1,
    "fieldname": "currency_and_price_list",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Currency and Price List",
    "options": "fa fa-tag"
   },
@@ -515,6 +516,7 @@
   {
    "fieldname": "items_section",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "hide_border": 1,
    "label": "Items",
    "oldfieldtype": "Section Break",
@@ -654,6 +656,7 @@
   {
    "fieldname": "shipping_rule",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "Shipping Rule",
    "oldfieldtype": "Button",
    "options": "Shipping Rule",
@@ -725,7 +728,6 @@
    "read_only": 1
   },
   {
-   "collapsible": 1,
    "fieldname": "section_break_49",
    "fieldtype": "Section Break",
    "label": "Additional Discount"
@@ -741,6 +743,7 @@
   {
    "fieldname": "base_discount_amount",
    "fieldtype": "Currency",
+   "hidden": 1,
    "label": "Additional Discount Amount (Company Currency)",
    "options": "Company:company:default_currency",
    "print_hide": 1,
@@ -1304,6 +1307,7 @@
    "collapsible": 1,
    "fieldname": "accounting_dimensions_section",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Accounting Dimensions"
   },
   {
@@ -1379,6 +1383,7 @@
   {
    "fieldname": "incoterm",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "Incoterm",
    "options": "Incoterm"
   },
@@ -1386,6 +1391,7 @@
    "depends_on": "incoterm",
    "fieldname": "named_place",
    "fieldtype": "Data",
+   "hidden": 1,
    "label": "Named Place"
   },
   {
@@ -1417,12 +1423,14 @@
   },
   {
    "allow_on_submit": 1,
+   "default": "RAHUL",
    "fieldname": "deliver_by",
    "fieldtype": "Data",
    "label": "Deliver By"
   },
   {
    "allow_on_submit": 1,
+   "default": "GJ01TD1131",
    "fieldname": "del_vehical_no",
    "fieldtype": "Data",
    "label": "Delivery Vehicle No"
@@ -1450,7 +1458,7 @@
  "idx": 146,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-03 10:06:46.557439",
+ "modified": "2026-05-18 09:33:35.789057",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Delivery Note",
