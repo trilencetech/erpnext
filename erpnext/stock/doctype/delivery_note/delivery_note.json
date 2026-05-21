@@ -20,9 +20,6 @@
   "posting_date",
   "posting_time",
   "set_posting_time",
-  "deliver_to",
-  "del_vehical_no",
-  "deliver_by",
   "column_break_xpyr",
   "company",
   "amended_from",
@@ -48,7 +45,7 @@
   "col_break_warehouse",
   "set_warehouse",
   "set_target_warehouse",
-  "section_break_30",
+  "section_break_hyfw",
   "items",
   "section_break_31",
   "total_qty",
@@ -63,12 +60,10 @@
   "taxes_section",
   "tax_category",
   "taxes_and_charges",
-  "column_break_43",
-  "shipping_rule",
-  "column_break_39",
   "incoterm",
+  "shipping_rule",
   "named_place",
-  "section_break_41",
+  "column_break_43",
   "taxes",
   "section_break_44",
   "base_total_taxes_and_charges",
@@ -85,6 +80,9 @@
   "base_rounding_adjustment",
   "base_rounded_total",
   "base_in_words",
+  "deliver_to",
+  "del_vehical_no",
+  "deliver_by",
   "column_break3",
   "grand_total",
   "rounding_adjustment",
@@ -529,14 +527,10 @@
    "options": "Barcode"
   },
   {
-   "allow_bulk_edit": 1,
    "fieldname": "items",
    "fieldtype": "Table",
-   "label": "Delivery Note Item",
-   "oldfieldname": "delivery_note_details",
-   "oldfieldtype": "Table",
-   "options": "Delivery Note Item",
-   "reqd": 1
+   "label": "Delivery Note Items",
+   "options": "Delivery Note Item"
   },
   {
    "fieldname": "pricing_rule_details",
@@ -650,10 +644,6 @@
    "print_hide": 1
   },
   {
-   "fieldname": "column_break_39",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "shipping_rule",
    "fieldtype": "Link",
    "hidden": 1,
@@ -661,11 +651,6 @@
    "oldfieldtype": "Button",
    "options": "Shipping Rule",
    "print_hide": 1
-  },
-  {
-   "fieldname": "section_break_41",
-   "fieldtype": "Section Break",
-   "hide_border": 1
   },
   {
    "fieldname": "taxes_and_charges",
@@ -728,6 +713,7 @@
    "read_only": 1
   },
   {
+   "collapsible": 1,
    "fieldname": "section_break_49",
    "fieldtype": "Section Break",
    "label": "Additional Discount"
@@ -769,7 +755,7 @@
   {
    "fieldname": "totals",
    "fieldtype": "Section Break",
-   "label": "Totals",
+   "label": "Totals & Delivery Information",
    "oldfieldtype": "Section Break",
    "options": "fa fa-money"
   },
@@ -1342,11 +1328,6 @@
    "show_dashboard": 1
   },
   {
-   "fieldname": "section_break_30",
-   "fieldtype": "Section Break",
-   "hide_border": 1
-  },
-  {
    "fieldname": "column_break_35",
    "fieldtype": "Column Break"
   },
@@ -1405,7 +1386,6 @@
    "allow_on_submit": 1,
    "fieldname": "freight",
    "fieldtype": "Currency",
-   "hidden": 1,
    "label": "FREIGHT",
    "options": "currency"
   },
@@ -1419,17 +1399,16 @@
    "allow_on_submit": 1,
    "fieldname": "custom_name",
    "fieldtype": "Data",
+   "hidden": 1,
    "label": "Custom Name"
   },
   {
-   "allow_on_submit": 1,
    "default": "RAHUL",
    "fieldname": "deliver_by",
    "fieldtype": "Data",
-   "label": "Deliver By"
+   "label": "Delivery By"
   },
   {
-   "allow_on_submit": 1,
    "default": "GJ01TD1131",
    "fieldname": "del_vehical_no",
    "fieldtype": "Data",
@@ -1452,13 +1431,17 @@
    "no_copy": 1,
    "print_hide": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "section_break_hyfw",
+   "fieldtype": "Section Break"
   }
  ],
  "icon": "fa fa-truck",
  "idx": 146,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-05-18 09:33:35.789057",
+ "modified": "2026-05-22 00:01:59.254427",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Delivery Note",
