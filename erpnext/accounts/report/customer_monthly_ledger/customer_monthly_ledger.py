@@ -237,3 +237,34 @@ def get_month_invoices(customer, company, month_start, month_end):
         as_dict=True,
     )
     return invoices
+
+
+@frappe.whitelist()
+def get_all_invoices_for_period(customer, company, from_date, to_date):
+    """Return every invoice for the full date range (used by All Months PDF export)."""
+    invoices = frappe.db.sql(
+        """
+        SELECT
+            name               AS sales_invoice,
+            posting_date,
+            grand_total        AS invoice_amount,
+            outstanding_amount AS outstanding,
+            (grand_total - outstanding_amount) AS paid_amount,
+            status
+        FROM `tabSales Invoice`
+        WHERE docstatus = 1
+            AND is_return = 0
+            AND customer  = %(customer)s
+            AND company   = %(company)s
+            AND posting_date BETWEEN %(from_date)s AND %(to_date)s
+        ORDER BY posting_date, name
+        """,
+        {
+            "customer": customer,
+            "company": company,
+            "from_date": from_date,
+            "to_date": to_date,
+        },
+        as_dict=True,
+    )
+    return invoices

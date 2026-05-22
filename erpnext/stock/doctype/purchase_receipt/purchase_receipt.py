@@ -58,6 +58,7 @@ class PurchaseReceipt(BuyingController):
         billing_address_display: DF.SmallText | None
         buying_price_list: DF.Link | None
         company: DF.Link
+        company_short: DF.Data | None
         contact_display: DF.SmallText | None
         contact_email: DF.SmallText | None
         contact_mobile: DF.SmallText | None
@@ -113,8 +114,7 @@ class PurchaseReceipt(BuyingController):
         shipping_address: DF.Link | None
         shipping_address_display: DF.SmallText | None
         shipping_rule: DF.Link | None
-        status: DF.Literal["", "Draft", "Partly Billed", "To Bill",
-                           "Completed", "Return Issued", "Cancelled", "Closed"]
+        status: DF.Literal["", "Draft", "Partly Billed", "To Bill", "Completed", "Return Issued", "Cancelled", "Closed"]
         subcontracting_receipt: DF.Link | None
         supplied_items: DF.Table[PurchaseReceiptItemSupplied]
         supplier: DF.Link

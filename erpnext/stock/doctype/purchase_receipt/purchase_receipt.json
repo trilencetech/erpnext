@@ -21,6 +21,7 @@
   "posting_date",
   "posting_time",
   "set_posting_time",
+  "company_short",
   "column_break_12",
   "company",
   "apply_putaway_rule",
@@ -1293,6 +1294,13 @@
    "label": "Master Rate",
    "precision": "2",
    "print_hide": 1
+  },
+  {
+   "fetch_from": "company.abbr",
+   "fieldname": "company_short",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Company Abbr"
   }
  ],
  "grid_page_length": 50,
@@ -1300,7 +1308,7 @@
  "idx": 261,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-25 11:46:05.789909",
+ "modified": "2026-05-22 15:03:47.708936",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Purchase Receipt",

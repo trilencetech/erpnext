@@ -34,7 +34,6 @@ fixtures = [
     {"doctype": "Print Format"},
     {"doctype": "Web Page"},
     {"doctype": "Custom HTML Block"},
-    {"doctype": "Master Item Code From Thickness"},
     {"doctype": "Print Format"},
     {"doctype": "Workspace"}
 ]

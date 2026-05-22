@@ -216,6 +216,38 @@ function gj_show_mini_picker(frm, cdt, cdn, entries, abbr, income_account) {
     $w.on("change", ".gj-stock-cb", function () {
         $(this).closest("tr").toggleClass("gj-checked", this.checked);
     });
+
+    // ── Click anywhere on a data row to toggle its checkbox ──────────────────
+    $w.on("click", "#gj-stock-tbody .gj-stock-row", function (e) {
+        // Ignore if user actually clicked directly on the checkbox (it toggles itself)
+        if ($(e.target).is(".gj-stock-cb")) return;
+        var $cb = $(this).find(".gj-stock-cb");
+        $cb.prop("checked", !$cb.prop("checked"));
+        $(this).toggleClass("gj-checked", $cb.prop("checked"));
+    });
+
+    // ── Enter key behaviour ───────────────────────────────────────────────────
+    //   • Checkbox focused  → toggle that checkbox (row highlight fires via change)
+    //   • Anywhere else     → trigger "Add Selected"
+    $w.on("keydown.gj_mini", function (e) {
+        if (e.key !== "Enter") return;
+        e.preventDefault();
+        if ($(e.target).is("input[type='checkbox']")) {
+            var $cb = $(e.target);
+            $cb.prop("checked", !$cb.prop("checked")).trigger("change");
+            return;
+        }
+        e.stopPropagation();
+        d.get_primary_btn().trigger("click");
+    });
+
+    // ── If only one entry auto-check it; always focus the dialog ─────────────
+    if (entries.length === 1) {
+        $w.find(".gj-stock-cb").prop("checked", true);
+        $w.find(".gj-stock-row").addClass("gj-checked");
+    }
+    // Focus the dialog container so Enter/keyboard work without a mouse click
+    setTimeout(function () { $w.find(".modal-content").attr("tabindex", "-1").focus(); }, 150);
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -309,7 +341,7 @@ function gj_picker_html(entries) {
             display: none;
         }
     </style>
-    <div class="gj-pick-hint">☑️ Check one or more rows, then click <b>Add Selected</b></div>
+    <div class="gj-pick-hint">☑️ Click any row to select &nbsp;·&nbsp; Press <b>Enter</b> or click <b>Add Selected</b></div>
     <div class="gj-filter-bar">
         <label>⚖️ Filter by Weight (kg):</label>
         <input type="number" id="gj-weight-filter" placeholder="e.g. 25.5" min="0" step="0.001">
@@ -341,6 +373,385 @@ function gj_picker_html(entries) {
 `;
 }
 
+// ============================================================
+// Purchase Receipt — Client Script
+// Feature: "📦 Add Rolls" button → Roll Entry Dialog
+//   1. User selects Item + enters No. of Rolls
+//   2. That many weight input boxes appear
+//   3. Common Rate field at bottom
+//   4. Add button → creates one item row per roll
+// ============================================================
+// Settings → Client Script → New
+//   Script Type : Form
+//   Apply To    : Purchase Receipt
+//   Enabled     : Yes
+// ============================================================
+
+
+frappe.ui.form.on("Purchase Receipt", {
+
+    refresh: function (frm) {
+        if (frm.doc.docstatus === 0) {
+            frm.add_custom_button(__("📦 Add Rolls"), function () {
+                gj_show_roll_dialog(frm);
+            });
+        }
+        // ── New: Record Stock Discrepancy (Submitted only) ────
+        if (frm.doc.docstatus === 1) {
+            frm.add_custom_button(__("📋 Stock Discrepancy"), function () {
+                gj_show_discrepancy_dialog(frm);
+            }, __("Actions"));
+        }
+    }
+
+});
+
+
+// ─────────────────────────────────────────────────────────────
+// ROLL ENTRY DIALOG
+// ─────────────────────────────────────────────────────────────
+function gj_show_roll_dialog(frm) {
+
+
+    var d = new frappe.ui.Dialog({
+        title: "📦 Add Rolls to Purchase Receipt",
+        size: "large",
+        fields: [
+            // ── Step 1: Item + Roll Count ──
+            {
+                fieldtype: "Section Break",
+                label: "Step 1 — Select Item & Number of Rolls"
+            },
+            {
+                fieldtype: "Link",
+                fieldname: "item_code",
+                label: "Item",
+                options: "Item",
+                reqd: 1,
+                get_query: function () {
+                    return {
+                        filters: [["is_purchase_item", "=", 1]]
+                    };
+                }
+            },
+            { fieldtype: "Column Break" },
+            {
+                fieldtype: "Int",
+                fieldname: "no_of_rolls",
+                label: "Number of Rolls",
+                reqd: 1,
+                default: 1,
+                description: "Enter count → weight boxes will appear below"
+            },
+            // ── Step 2: Weight boxes (HTML) ──
+            {
+                fieldtype: "Section Break",
+                label: "Step 2 — Enter Weight per Roll (kg)"
+            },
+            {
+                fieldtype: "HTML",
+                fieldname: "roll_inputs",
+                options: gj_empty_rolls_html()
+            },
+            // ── Step 3: Common Rate ──
+            {
+                fieldtype: "Section Break",
+                label: "Step 3 — Rate & Warehouse"
+            },
+            {
+                fieldtype: "Currency",
+                fieldname: "rate",
+                label: "Rate per kg (₹)",
+                reqd: 1,
+                description: "Same rate applied to all rolls"
+            },
+            { fieldtype: "Column Break" },
+            {
+                fieldtype: "Link",
+                fieldname: "warehouse",
+                label: "Warehouse",
+                options: "Warehouse",
+                reqd: 1,
+                default: "Stores - " + frm.doc.company_short,
+                get_query: function () {
+                    return { filters: [["is_group", "=", 0]] };
+                }
+            },
+            {
+                fieldtype: "Section Break"
+            },
+            {
+                fieldtype: "HTML",
+                fieldname: "roll_summary",
+                options: '<div id="gj-roll-summary" style="color:#6b7280;font-size:13px">Fill weights above to see summary</div>'
+            }
+        ],
+        primary_action_label: "✅ Add All Rolls",
+        primary_action: function (values) {
+            gj_add_rolls(frm, d, values);
+        }
+    });
+
+    d.show();
+
+    // ── Bind events AFTER dialog renders ──────────────────────
+    var $w = d.$wrapper;
+
+    // When no_of_rolls changes → render weight boxes
+    d.fields_dict.no_of_rolls.$input.on("change", function () {
+        var n = parseInt($(this).val()) || 0;
+        gj_render_roll_inputs($w, n);
+    });
+
+    // When item selected → auto-fill rate from last purchase
+    d.fields_dict.item_code.$input.on("change", function () {
+        var item = d.get_value("item_code");
+        if (!item) return;
+        frappe.db.get_value("Item", item,
+            ["last_purchase_rate", "purchase_uom", "stock_uom"],
+            function (r) {
+                if (r && r.last_purchase_rate)
+                    d.set_value("rate", r.last_purchase_rate);
+            }
+        );
+    });
+
+    // Live summary update when any weight input changes
+    $w.on("input", ".gj-roll-input", function () {
+        gj_update_summary($w, d);
+    });
+
+    // Enter in a roll box → move to next box; Enter in the last box → submit
+    $w.on("keydown", ".gj-roll-input", function (e) {
+        if (e.key !== "Enter") return;
+        e.preventDefault();
+        var next = parseInt($(this).data("roll")) + 1;
+        var $next = $w.find(".gj-roll-input[data-roll='" + next + "']");
+        if ($next.length) {
+            $next.focus().select();
+        } else {
+            d.get_primary_btn().trigger("click");
+        }
+    });
+}
+
+// ─────────────────────────────────────────────────────────────
+// RENDER ROLL INPUT BOXES
+// ─────────────────────────────────────────────────────────────
+function gj_render_roll_inputs($w, n) {
+    if (n <= 0 || n > 200) {
+        $w.find("[data-fieldname='roll_inputs'] .input-area").html(
+            '<div style="color:#dc2626;font-size:13px;padding:8px">⚠️ Please enter a valid number (1–200)</div>'
+        );
+        return;
+    }
+
+    var cols = n <= 5 ? n : n <= 12 ? 4 : n <= 24 ? 6 : 8;
+    var boxes = '';
+    for (var i = 1; i <= n; i++) {
+        boxes += `
+        <div style="display:flex;flex-direction:column;gap:4px;">
+            <label style="font-size:10px;font-weight:600;color:#6b7280;
+                          text-transform:uppercase;letter-spacing:0.5px;
+                          font-family:'Courier New',monospace">
+                Roll ${i}
+            </label>
+            <input
+                type="number"
+                class="gj-roll-input"
+                data-roll="${i}"
+                placeholder="0.000"
+                min="0" step="0.001"
+                style="
+                    height:42px;padding:0 10px;
+                    border:1.5px solid #e5e7eb;border-radius:7px;
+                    font-size:14px;font-weight:600;
+                    font-family:'Courier New',monospace;
+                    color:#0f1923;text-align:right;
+                    width:100%;
+                    transition:border-color 0.15s;
+                "
+                onfocus="this.style.borderColor='#2563eb'"
+                onblur="this.style.borderColor='#e5e7eb'"
+            />
+        </div>`;
+    }
+
+    var html = `
+    <div style="
+        display:grid;
+        grid-template-columns:repeat(${Math.min(cols, n)},1fr);
+        gap:10px;padding:4px 0 12px;
+    ">
+        ${boxes}
+    </div>`;
+
+    $w.find("[data-fieldname='roll_inputs'] .input-area").html(html);
+
+    // Auto-focus Roll 1 so the user can start typing immediately
+    setTimeout(function () {
+        $w.find(".gj-roll-input[data-roll='1']").focus().select();
+    }, 50);
+}
+
+function gj_empty_rolls_html() {
+    return `<div class="input-area" style="color:#9ca3af;font-size:13px;padding:8px 0">
+        ← Enter number of rolls above to see weight input boxes
+    </div>`;
+}
+
+// ─────────────────────────────────────────────────────────────
+// LIVE SUMMARY
+// ─────────────────────────────────────────────────────────────
+function gj_update_summary($w, d) {
+    var weights = [];
+    var total = 0;
+    var filled = 0;
+
+    $w.find(".gj-roll-input").each(function () {
+        var v = parseFloat($(this).val()) || 0;
+        weights.push(v);
+        if (v > 0) { total += v; filled++; }
+    });
+
+    var rate = parseFloat(d.get_value("rate")) || 0;
+    var amount = parseFloat((total * rate).toFixed(2));
+    var n = weights.length;
+
+    var html = `
+    <div style="
+        display:flex;gap:16px;flex-wrap:wrap;
+        background:#f8faff;border:1px solid #e0e7ff;
+        border-radius:8px;padding:12px 16px;
+    ">
+        <div>
+            <div style="font-size:10px;color:#6b7280;text-transform:uppercase;
+                        letter-spacing:0.5px;font-family:'Courier New',monospace">
+                Rolls Filled
+            </div>
+            <div style="font-size:16px;font-weight:700;color:#1e40af">
+                ${filled} / ${n}
+            </div>
+        </div>
+        <div>
+            <div style="font-size:10px;color:#6b7280;text-transform:uppercase;
+                        letter-spacing:0.5px;font-family:'Courier New',monospace">
+                Total Weight
+            </div>
+            <div style="font-size:16px;font-weight:700;color:#065f46">
+                ${total.toFixed(3)} kg
+            </div>
+        </div>
+        <div>
+            <div style="font-size:10px;color:#6b7280;text-transform:uppercase;
+                        letter-spacing:0.5px;font-family:'Courier New',monospace">
+                Rate
+            </div>
+            <div style="font-size:16px;font-weight:700;color:#92400e">
+                ₹ ${rate.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+            </div>
+        </div>
+        <div>
+            <div style="font-size:10px;color:#6b7280;text-transform:uppercase;
+                        letter-spacing:0.5px;font-family:'Courier New',monospace">
+                Total Amount
+            </div>
+            <div style="font-size:16px;font-weight:700;color:#1e40af">
+                ₹ ${amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+            </div>
+        </div>
+        <div>
+            <div style="font-size:10px;color:#6b7280;text-transform:uppercase;
+                        letter-spacing:0.5px;font-family:'Courier New',monospace">
+                Avg per Roll
+            </div>
+            <div style="font-size:16px;font-weight:700;color:#6b7280">
+                ${filled > 0 ? (total / filled).toFixed(3) : '0.000'} kg
+            </div>
+        </div>
+    </div>`;
+
+    $w.find("#gj-roll-summary").html(html);
+
+
+}
+
+// ─────────────────────────────────────────────────────────────
+// ADD ROLLS TO PR ITEMS TABLE
+// ─────────────────────────────────────────────────────────────
+function gj_add_rolls(frm, d, values) {
+
+
+    var item_code = values.item_code;
+    var rate = parseFloat(values.rate) || 0;
+    var warehouse = values.warehouse;
+
+    // Collect weights from roll inputs
+    var weights = [];
+    d.$wrapper.find(".gj-roll-input").each(function () {
+        var v = parseFloat($(this).val()) || 0;
+        if (v > 0) weights.push(v);
+    });
+
+    // Validations
+    if (!item_code) {
+        frappe.msgprint({ title: "Missing Item", message: "Please select an Item.", indicator: "orange" });
+        return;
+    }
+    if (weights.length === 0) {
+        frappe.msgprint({ title: "No Weights", message: "Please enter at least one roll weight.", indicator: "orange" });
+        return;
+    }
+    if (rate <= 0) {
+        frappe.msgprint({ title: "Missing Rate", message: "Please enter a Rate per kg.", indicator: "orange" });
+        return;
+    }
+    if (!warehouse) {
+        frappe.msgprint({ title: "Missing Warehouse", message: "Please select a Warehouse.", indicator: "orange" });
+        return;
+    }
+
+    // Fetch item details for UOM
+    frappe.db.get_value("Item", item_code,
+        ["item_name", "stock_uom", "purchase_uom"],
+        function (item) {
+            var item_name = (item && item.item_name) || item_code;
+            var uom = (item && (item.purchase_uom || item.stock_uom)) || "Kg";
+
+            // Remove any completely empty rows first
+            frm.doc.items = (frm.doc.items || []).filter(function (r) {
+                return r.item_code;
+            });
+
+            // Add one row per roll
+            weights.forEach(function (weight, i) {
+                var new_row = frm.add_child("items");
+                new_row.item_code = item_code;
+                new_row.item_name = item_name;
+                new_row.qty = weight;
+                new_row.received_qty = weight;
+                new_row.accepted_qty = weight;
+                new_row.uom = uom;
+                new_row.stock_uom = uom;
+                new_row.rate = rate;
+                new_row.amount = parseFloat((weight * rate).toFixed(2));
+                new_row.warehouse = warehouse;
+                new_row.description = `Roll ${i + 1}`;
+            });
+
+            frm.refresh_field("items");
+
+            frappe.show_alert({
+                message: `✅ ${weights.length} roll(s) added — Total: ${weights.reduce((a, b) => a + b, 0).toFixed(3)} kg`,
+                indicator: "green"
+            }, 5);
+
+            frm.script_manager.trigger("calculate_taxes_and_totals");
+            d.hide();
+        }
+    );
+}
+
 // ─────────────────────────────────────────────────────────────
 // FILL THE CHILD TABLE ROW — synchronous, writes directly to
 // locals[] so NO form events are fired (prevents picker re-open)
@@ -366,6 +777,345 @@ function gj_fill_row_sync(frm, cdt, cdn, item, abbr, income_account) {
             + item.actual_qty + " kg/unit @ ₹" + parseFloat(item.item_price || 0).toFixed(2),
         indicator: "green"
     }, 4);
+}
+
+// ─────────────────────────────────────────────────────────────
+// DISCREPANCY DIALOG
+// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// STEP 1 DIALOG — Select Item from PR
+// ─────────────────────────────────────────────────────────────
+function gj_show_discrepancy_dialog(frm) {
+
+    // Build unique item list from PR
+    var pr_item_codes = [...new Set(
+        (frm.doc.items || []).map(function (r) { return r.item_code; })
+    )];
+
+    var d = new frappe.ui.Dialog({
+        title: "📋 Record Stock Discrepancy",
+        size: "large",
+        fields: [
+            // ── PR Item ───────────────────────────────────────
+            {
+                fieldtype: "Section Break",
+                label: "Step 1 — Select Invoice Item"
+            },
+            {
+                fieldtype: "Link",
+                fieldname: "pr_item_code",
+                label: "Invoice Item Code",
+                options: "Item",
+                reqd: 1,
+                description: "Type to search — restricted to items in this PR",
+                get_query: function () {
+                    return {
+                        filters: [["Item", "name", "in", pr_item_codes]]
+                    };
+                }
+            },
+            { fieldtype: "Column Break" },
+            {
+                fieldtype: "HTML",
+                fieldname: "row_picker_html",
+                options: '<div id="gj-row-picker"></div>'
+            },
+
+            // ── Actual Received ───────────────────────────────
+            {
+                fieldtype: "Section Break",
+                label: "Step 2 — Actually Received (Physical)"
+            },
+            {
+                fieldtype: "Link",
+                fieldname: "actual_item_code",
+                label: "Actual Item Received",
+                options: "Item",
+                reqd: 1,
+                description: "Item that physically arrived"
+            },
+            { fieldtype: "Column Break" },
+            {
+                fieldtype: "Float",
+                fieldname: "actual_qty",
+                label: "Actual Qty / Weight (kg)",
+                reqd: 1,
+            },
+
+            // ── Note ──────────────────────────────────────────
+            {
+                fieldtype: "Section Break",
+                label: "Step 3 — Note & Summary"
+            },
+            {
+                fieldtype: "Small Text",
+                fieldname: "discrepancy_note",
+                label: "Reason / Note",
+                placeholder: "e.g. Supplier sent MT 28 instead of MT 19.5"
+            },
+            { fieldtype: "Column Break" },
+            {
+                fieldtype: "HTML",
+                fieldname: "disc_summary",
+                options: '<div id="gj-disc-summary" style="color:#9ca3af;font-size:13px">Fill fields above to see summary</div>'
+            }
+        ],
+        primary_action_label: "✅ Apply Discrepancy",
+        primary_action: function (values) {
+            gj_apply_discrepancy(frm, d, values);
+        }
+    });
+
+    // Selected PR row tracker
+    d._selected_pr_row = null;
+
+    d.show();
+
+    var $w = d.$wrapper;
+
+    // ── When item code selected → show row picker if multiple rows ──
+    d.fields_dict.pr_item_code.df.onchange = function () {
+        var item_code = d.get_value("pr_item_code");
+        d._selected_pr_row = null;
+        $w.find("#gj-row-picker").html("");
+
+        if (!item_code) return;
+
+        // Find all PR rows matching this item
+        var matching_rows = (frm.doc.items || []).filter(function (r) {
+            return r.item_code === item_code;
+        });
+
+        if (matching_rows.length === 0) {
+            $w.find("#gj-row-picker").html(
+                '<div style="color:#dc2626;font-size:12px">⚠️ Item not found in this PR</div>'
+            );
+            return;
+        }
+
+        if (matching_rows.length === 1) {
+            // Only one row — auto-select it
+            d._selected_pr_row = matching_rows[0];
+            gj_show_selected_row($w, matching_rows[0]);
+            gj_update_disc_summary($w, d);
+        } else {
+            // Multiple rows — show picker buttons
+            gj_show_row_picker($w, d, matching_rows);
+        }
+    };
+
+    // Summary refresh on actual field change
+    d.fields_dict.actual_item_code.df.onchange = function () {
+        gj_update_disc_summary($w, d);
+    };
+    $w.on("input", "[data-fieldname='actual_qty'] input", function () {
+        gj_update_disc_summary($w, d);
+    });
+}
+
+// ─────────────────────────────────────────────────────────────
+// ROW PICKER — when same item appears multiple times in PR
+// ─────────────────────────────────────────────────────────────
+function gj_show_row_picker($w, d, rows) {
+    var html = '<div style="margin-top:4px">' +
+        '<div style="font-size:10px;color:#6b7280;font-weight:600;text-transform:uppercase;' +
+        'letter-spacing:0.5px;margin-bottom:6px">Multiple rows found — select which roll:</div>' +
+        '<div style="display:flex;flex-direction:column;gap:6px">';
+
+    rows.forEach(function (row, i) {
+        html += `
+        <div class="gj-pr-row-btn"
+             data-row-idx="${i}"
+             style="
+                display:flex;align-items:center;justify-content:space-between;
+                padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;
+                cursor:pointer;transition:all 0.15s;background:white;
+                font-size:12px;
+             "
+             onmouseover="this.style.borderColor='#2563eb';this.style.background='#eff6ff'"
+             onmouseout="this.style.borderColor='#e5e7eb';this.style.background='white'"
+        >
+            <div>
+                <span style="font-weight:700;color:#0f1923">${row.item_code}</span>
+                &nbsp;·&nbsp;
+                <span style="color:#374151">${row.item_name || ''}</span>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center">
+                <span style="font-family:'Courier New',monospace;font-weight:700;color:#059669">
+                    ${row.qty} ${row.uom}
+                </span>
+                <span style="background:#f3f4f6;padding:2px 8px;border-radius:4px;color:#6b7280;font-size:11px">
+                    ${row.warehouse}
+                </span>
+            </div>
+        </div>`;
+    });
+
+    html += '</div></div>';
+    $w.find("#gj-row-picker").html(html);
+
+    // Click handler for row selection
+    $w.on("click", ".gj-pr-row-btn", function () {
+        var idx = parseInt($(this).data("row-idx"));
+        d._selected_pr_row = rows[idx];
+
+        // Highlight selected
+        $w.find(".gj-pr-row-btn").css({
+            "border-color": "#e5e7eb",
+            "background": "white"
+        });
+        $(this).css({
+            "border-color": "#2563eb",
+            "background": "#eff6ff"
+        });
+
+        gj_update_disc_summary($w, d);
+    });
+}
+
+// ─────────────────────────────────────────────────────────────
+// SHOW SINGLE SELECTED ROW
+// ─────────────────────────────────────────────────────────────
+function gj_show_selected_row($w, row) {
+    $w.find("#gj-row-picker").html(`
+        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;
+                    padding:10px 14px;font-size:12px;">
+            <div><b>Item:</b> ${row.item_code} — ${row.item_name || ''}</div>
+            <div><b>Qty:</b> <span style="font-weight:700;color:#059669">${row.qty} ${row.uom}</span></div>
+            <div><b>Warehouse:</b> ${row.warehouse}</div>
+            <div><b>Rate:</b> ₹ ${row.rate}</div>
+        </div>
+    `);
+}
+
+// ─────────────────────────────────────────────────────────────
+// LIVE DISCREPANCY SUMMARY
+// ─────────────────────────────────────────────────────────────
+function gj_update_disc_summary($w, d) {
+    var pr_row = d._selected_pr_row;
+    var act_item = d.get_value("actual_item_code") || "—";
+    var act_qty = parseFloat($w.find("[data-fieldname='actual_qty'] input").val()) || 0;
+
+    if (!pr_row) {
+        $w.find("#gj-disc-summary").html(
+            '<div style="color:#9ca3af;font-size:13px">← Select an invoice item row first</div>'
+        );
+        return;
+    }
+
+    var pr_qty = parseFloat(pr_row.qty) || 0;
+    var qty_diff = parseFloat((act_qty - pr_qty).toFixed(3));
+    var item_same = pr_row.item_code === act_item;
+    var diff_col = qty_diff > 0 ? "#059669" : qty_diff < 0 ? "#dc2626" : "#6b7280";
+
+    $w.find("#gj-disc-summary").html(`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">
+        <div style="background:#fef9c3;border:1px solid #fde68a;border-radius:7px;padding:10px">
+            <div style="font-size:9px;color:#92400e;font-weight:700;text-transform:uppercase;
+                        letter-spacing:0.5px;margin-bottom:5px">📄 SLE will be REMOVED</div>
+            <div style="font-size:11.5px"><b>${pr_row.item_code}</b></div>
+            <div style="font-size:11.5px;color:#374151">${pr_qty} ${pr_row.uom}</div>
+            <div style="font-size:11px;color:#6b7280">${pr_row.warehouse}</div>
+        </div>
+        <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:7px;padding:10px">
+            <div style="font-size:9px;color:#065f46;font-weight:700;text-transform:uppercase;
+                        letter-spacing:0.5px;margin-bottom:5px">🏭 SLE will be ADDED</div>
+            <div style="font-size:11.5px"><b>${act_item}</b></div>
+            <div style="font-size:11.5px;color:#374151">${act_qty} kg</div>
+            <div style="font-size:11px;color:#6b7280">${pr_row.warehouse}</div>
+        </div>
+    </div>
+    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:7px;
+                padding:9px 13px;display:flex;gap:16px;flex-wrap:wrap">
+        <div>
+            <div style="font-size:9px;color:#1e40af;font-weight:600;text-transform:uppercase">Item Match</div>
+            <div style="font-size:13px;font-weight:700;color:${item_same ? '#059669' : '#dc2626'}">
+                ${item_same ? '✅ Same' : '⚠️ Different'}
+            </div>
+        </div>
+        <div>
+            <div style="font-size:9px;color:#1e40af;font-weight:600;text-transform:uppercase">Qty Diff</div>
+            <div style="font-size:13px;font-weight:700;color:${diff_col}">
+                ${qty_diff >= 0 ? '+' : ''}${qty_diff} kg
+            </div>
+        </div>
+        <div>
+            <div style="font-size:9px;color:#1e40af;font-weight:600;text-transform:uppercase">Action</div>
+            <div style="font-size:11px;color:#1e40af">
+                Direct SLE update — no accounting entry
+            </div>
+        </div>
+    </div>
+    `);
+}
+
+// ─────────────────────────────────────────────────────────────
+// APPLY DISCREPANCY
+// ─────────────────────────────────────────────────────────────
+function gj_apply_discrepancy(frm, d, values) {
+    var pr_row = d._selected_pr_row;
+
+    if (!pr_row) {
+        frappe.msgprint({ title: "Missing", message: "Please select an Invoice Item row.", indicator: "orange" });
+        return;
+    }
+    if (!values.actual_item_code) {
+        frappe.msgprint({ title: "Missing", message: "Please select the Actual Item Received.", indicator: "orange" });
+        return;
+    }
+    if (!values.actual_qty || values.actual_qty <= 0) {
+        frappe.msgprint({ title: "Missing", message: "Please enter Actual Qty.", indicator: "orange" });
+        return;
+    }
+
+    frappe.confirm(
+        `This will directly update Stock Ledger Entries:<br><br>
+        ➖ <b>Remove</b> SLE for <b>${pr_row.item_code}</b> — ${pr_row.qty} ${pr_row.uom}<br>
+        ➕ <b>Insert</b> SLE for <b>${values.actual_item_code}</b> — ${values.actual_qty} kg<br>
+        🔄 <b>Repost</b> qty_after_transaction for both items<br><br>
+        <b>No accounting entry will be created.</b><br>
+        Purchase Invoice stays unchanged.<br><br>
+        Proceed?`,
+        function () {
+            frappe.call({
+                method: "erpnext.buying.doctype.purchase_discrepancy.purchase_discrepancy.apply_discrepancy",
+                args: {
+                    purchase_receipt: frm.doc.name,
+                    pr_item_code: pr_row.item_code,
+                    pr_item_name: pr_row.item_name || pr_row.item_code,
+                    pr_qty: pr_row.qty,
+                    pr_uom: pr_row.uom,
+                    pr_warehouse: pr_row.warehouse,
+                    pr_rate: pr_row.rate,
+                    pr_sle_name: pr_row.name,   // child row name to find exact SLE
+                    actual_item_code: values.actual_item_code,
+                    actual_qty: values.actual_qty,
+                    discrepancy_note: values.discrepancy_note || ""
+                },
+                freeze: true,
+                freeze_message: "Updating stock ledger...",
+                callback: function (r) {
+                    if (r.exc) return;
+                    d.hide();
+                    frappe.show_alert({
+                        message: `✅ Stock updated. Discrepancy: <b>${r.message.discrepancy}</b>`,
+                        indicator: "green"
+                    }, 8);
+                    frappe.msgprint({
+                        title: "✅ Stock Discrepancy Applied",
+                        indicator: "green",
+                        message:
+                            `<b>Discrepancy Record:</b> ${r.message.discrepancy}<br>
+                             <b>SLE cancelled:</b> ${r.message.sle_cancelled}<br>
+                             <b>SLE inserted:</b> ${r.message.sle_inserted}<br><br>
+                             Available stock now shows correct physical stock.<br>
+                             Purchase Invoice is unchanged.`
+                    });
+                    frm.reload_doc();
+                }
+            });
+        }
+    );
 }
 
 // ─────────────────────────────────────────────────────────────
