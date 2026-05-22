@@ -169,10 +169,11 @@ function _show_invoice_dialog(data, month_label, customer, company) {
 	// ── Invoice rows ──────────────────────────────────────────────────────────
 	var inv_tbody = "";
 	invoices.forEach(function (inv) {
-		var inv_amt = flt(inv.invoice_amount, 2);
-		var out_amt = flt(inv.outstanding, 2);
-		var out_col = out_amt > 0 ? "#dc2626" : "#16a34a";
-		var out_ico = out_amt > 0 ? "⏳" : "✓";
+		var inv_amt  = flt(inv.invoice_amount, 2);
+		var paid_amt = flt(inv.paid_amount,    2);
+		var out_amt  = flt(inv.outstanding,    2);
+		var out_col  = out_amt > 0 ? "#dc2626" : "#16a34a";
+		var out_ico  = out_amt > 0 ? "⏳" : "✓";
 
 		inv_tbody += `
 		<tr style="border-bottom:1px solid #f3f4f6;"
@@ -187,6 +188,7 @@ function _show_invoice_dialog(data, month_label, customer, company) {
 				${frappe.datetime.str_to_user(inv.posting_date)}
 			</td>
 			<td style="padding:8px 12px;text-align:right;font-size:12.5px;">${_fmt(inv_amt)}</td>
+			<td style="padding:8px 12px;text-align:right;color:#16a34a;font-size:12.5px;">${_fmt(paid_amt)}</td>
 			<td style="padding:8px 12px;text-align:right;color:${out_col};font-weight:${out_amt > 0 ? '600' : 'normal'};font-size:12.5px;">
 				${out_ico} ${_fmt(out_amt)}
 			</td>
@@ -316,6 +318,7 @@ function _show_invoice_dialog(data, month_label, customer, company) {
 					<th style="padding:9px 12px;text-align:left;font-size:11px;font-weight:600;color:#374151;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;">Invoice No</th>
 					<th style="padding:9px 12px;text-align:left;font-size:11px;font-weight:600;color:#374151;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;">Date</th>
 					<th style="padding:9px 12px;text-align:right;font-size:11px;font-weight:600;color:#374151;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;">Invoice Amount</th>
+					<th style="padding:9px 12px;text-align:right;font-size:11px;font-weight:600;color:#16a34a;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;">Paid Amount</th>
 					<th style="padding:9px 12px;text-align:right;font-size:11px;font-weight:600;color:#374151;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;">Outstanding</th>
 				</tr>
 			</thead>
@@ -478,13 +481,15 @@ function _pdf_css() {
 
 function _pdf_inv_rows(invoices) {
 	return invoices.map(function (inv) {
-		var inv_amt = parseFloat(inv.invoice_amount) || 0;
-		var out_amt = parseFloat(inv.outstanding) || 0;
-		var out_col = out_amt > 0 ? "#dc2626" : "#16a34a";
+		var inv_amt  = parseFloat(inv.invoice_amount) || 0;
+		var paid_amt = parseFloat(inv.paid_amount)    || 0;
+		var out_amt  = parseFloat(inv.outstanding)    || 0;
+		var out_col  = out_amt > 0 ? "#dc2626" : "#16a34a";
 		return `<tr>
 			<td>${inv.sales_invoice}</td>
 			<td>${_pdf_date(inv.posting_date)}</td>
 			<td>${_pdf_inr(inv_amt)}</td>
+			<td style="color:#16a34a;">${_pdf_inr(paid_amt)}</td>
 			<td style="color:${out_col};font-weight:${out_amt > 0 ? '600' : 'normal'};">
 				${out_amt > 0 ? "⏳ " : "✓ "}${_pdf_inr(out_amt)}
 			</td>
@@ -572,7 +577,7 @@ function _build_single_month_pdf_html(data, month_label, customer_name, company)
 	<div class="month-sec">
 		<div class="month-hdr">Invoice Details — ${month_label}</div>
 		<table><thead><tr>
-			<th>Invoice No</th><th>Date</th><th>Invoice Amount</th><th>Outstanding</th>
+			<th>Invoice No</th><th>Date</th><th>Invoice Amount</th><th>Paid Amount</th><th>Outstanding</th>
 		</tr></thead><tbody>${_pdf_inv_rows(invoices)}</tbody></table>
 		${cn_section}
 	</div>
@@ -640,7 +645,7 @@ function _build_all_months_pdf_html(data, customer_name, company, from_date, to_
 		return `<div class="month-sec">
 			<div class="month-hdr">${g.label}</div>
 			<table><thead><tr>
-				<th>Invoice No</th><th>Date</th><th>Invoice Amount</th><th>Outstanding</th>
+				<th>Invoice No</th><th>Date</th><th>Invoice Amount</th><th>Paid Amount</th><th>Outstanding</th>
 			</tr></thead><tbody>${_pdf_inv_rows(g.invoices)}</tbody></table>
 			${cn_part}
 			<table class="summary-tbl" style="margin-top:6px;"><tbody>${m_sum_rows}</tbody></table>
@@ -699,22 +704,23 @@ function _build_all_months_pdf_html(data, customer_name, company, from_date, to_
 // ── CSV EXPORT ────────────────────────────────────────────────────────────────
 
 function _export_csv(invoices, credit_notes, month_label) {
-	var headers = ["Type", "Invoice/CN No", "Date", "Invoice Amount", "Credit Amount", "Outstanding"];
+	var headers = ["Type", "Invoice/CN No", "Date", "Invoice Amount", "Paid Amount", "Credit Amount", "Outstanding"];
 
 	var rows = invoices.map(function (inv) {
 		return ["Invoice", inv.sales_invoice, inv.posting_date,
-			flt(inv.invoice_amount, 2), 0, flt(inv.outstanding, 2)];
+			flt(inv.invoice_amount, 2), flt(inv.paid_amount, 2), 0, flt(inv.outstanding, 2)];
 	});
 
 	credit_notes.forEach(function (cn) {
 		rows.push(["Credit Note", cn.sales_invoice, cn.posting_date,
-			0, flt(cn.credit_amount, 2), 0]);
+			0, 0, flt(cn.credit_amount, 2), 0]);
 	});
 
 	var t_inv = rows.reduce(function (s, r) { return s + r[3]; }, 0);
-	var t_cn = rows.reduce(function (s, r) { return s + r[4]; }, 0);
-	var t_out = rows.reduce(function (s, r) { return s + r[5]; }, 0);
-	rows.push(["TOTAL", "", "", flt(t_inv, 2), flt(t_cn, 2), flt(t_out, 2)]);
+	var t_paid = rows.reduce(function (s, r) { return s + r[4]; }, 0);
+	var t_cn   = rows.reduce(function (s, r) { return s + r[5]; }, 0);
+	var t_out  = rows.reduce(function (s, r) { return s + r[6]; }, 0);
+	rows.push(["TOTAL", "", "", flt(t_inv, 2), flt(t_paid, 2), flt(t_cn, 2), flt(t_out, 2)]);
 
 	var csv = [headers].concat(rows).map(function (row) {
 		return row.map(function (c) {

@@ -290,10 +290,11 @@ def get_month_invoices(customer, company, month_start, month_end):
     invoices = frappe.db.sql(
         """
         SELECT
-            name               AS sales_invoice,
+            name                                        AS sales_invoice,
             posting_date,
-            grand_total        AS invoice_amount,
-            outstanding_amount AS outstanding,
+            grand_total                                 AS invoice_amount,
+            (grand_total - outstanding_amount)          AS paid_amount,
+            outstanding_amount                          AS outstanding,
             status
         FROM `tabSales Invoice`
         WHERE docstatus = 1
@@ -382,10 +383,11 @@ def get_all_invoices_for_period(customer, company, from_date, to_date):
     invoices = frappe.db.sql(
         """
         SELECT
-            name               AS sales_invoice,
+            name                                    AS sales_invoice,
             posting_date,
-            grand_total        AS invoice_amount,
-            outstanding_amount AS outstanding,
+            grand_total                             AS invoice_amount,
+            (grand_total - outstanding_amount)      AS paid_amount,
+            outstanding_amount                      AS outstanding,
             status
         FROM `tabSales Invoice`
         WHERE docstatus = 1
