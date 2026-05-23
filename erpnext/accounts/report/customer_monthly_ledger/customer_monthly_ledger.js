@@ -139,7 +139,6 @@ function _show_invoice_dialog(data, month_label, customer, company) {
 	var s = data.summary || {};
 
 	var invoice_total = flt(s.invoice_total || 0, 2);
-	var credit_total = flt(s.credit_total || 0, 2);
 	var paid_cash = flt(s.paid_cash || 0, 2);
 	var month_outstanding = flt(s.month_outstanding || 0, 2);
 	var opening_outstanding = flt(s.opening_outstanding || 0, 2);
@@ -253,18 +252,10 @@ function _show_invoice_dialog(data, month_label, customer, company) {
 			<td style="padding:6px 12px;text-align:right;font-size:12.5px;color:#374151;">${_fmt(invoice_total)}</td>
 		</tr>`;
 
-	if (credit_total > 0) {
-		sum_rows += `
-		<tr>
-			<td style="padding:6px 12px;font-size:12.5px;color:#d97706;">(-) Credit Notes</td>
-			<td style="padding:6px 12px;text-align:right;font-size:12.5px;color:#d97706;">(${_fmt(credit_total)})</td>
-		</tr>`;
-	}
-
 	if (paid_cash > 0) {
 		sum_rows += `
 		<tr>
-			<td style="padding:6px 12px;font-size:12.5px;color:#16a34a;">(-) Paid</td>
+			<td style="padding:6px 12px;font-size:12.5px;color:#16a34a;">(-) Paid / Adjusted <span style="font-size:10.5px;color:#6b7280;">(cash + credit notes applied)</span></td>
 			<td style="padding:6px 12px;text-align:right;font-size:12.5px;color:#16a34a;">(${_fmt(paid_cash)})</td>
 		</tr>`;
 	}
@@ -513,10 +504,8 @@ function _pdf_cn_rows(credit_notes) {
 
 function _pdf_summary_section(s, month_label) {
 	var rows = `<tr><td>Invoice Total</td><td>${_pdf_inr(s.invoice_total)}</td></tr>`;
-	if (s.credit_total > 0)
-		rows += `<tr><td style="color:#d97706;">(-) Credit Notes</td><td style="color:#d97706;">(${_pdf_inr(s.credit_total)})</td></tr>`;
 	if (s.paid_cash > 0)
-		rows += `<tr><td style="color:#16a34a;">(-) Paid (Cash)</td><td style="color:#16a34a;">(${_pdf_inr(s.paid_cash)})</td></tr>`;
+		rows += `<tr><td style="color:#16a34a;">(-) Paid / Adjusted <span style="font-size:10px;color:#6b7280;">(cash + credit applied)</span></td><td style="color:#16a34a;">(${_pdf_inr(s.paid_cash)})</td></tr>`;
 	rows += `<tr style="border-top:1px solid #e5e7eb;">
 		<td style="font-weight:700;color:#374151;">Month Outstanding (${month_label})</td>
 		<td style="font-weight:700;color:#e65100;">${_pdf_inr(s.month_outstanding)}</td>
@@ -631,10 +620,9 @@ function _build_all_months_pdf_html(data, customer_name, company, from_date, to_
 		var g  = groups[key];
 		var ms = month_summaries[key] || {};
 
-		// Use GL-based figures from backend — accurate to the report date range
-		var m_inv  = flt(ms.invoice_total    || 0, 2);
-		var m_cn   = flt(ms.credit_total     || 0, 2);
-		var m_paid = flt(ms.paid_cash        || 0, 2);
+		// Use figures from backend — accurate to the report date range
+		var m_inv  = flt(ms.invoice_total     || 0, 2);
+		var m_paid = flt(ms.paid_cash         || 0, 2);
 		var m_out  = flt(ms.month_outstanding || 0, 2);
 
 		var inv_part = "";
@@ -653,8 +641,7 @@ function _build_all_months_pdf_html(data, customer_name, company, from_date, to_
 		}
 
 		var m_sum_rows = `<tr><td>Invoice Total</td><td>${_pdf_inr(m_inv)}</td></tr>`;
-		if (m_cn > 0)   m_sum_rows += `<tr><td style="color:#d97706;">(-) Credit Notes</td><td style="color:#d97706;">(${_pdf_inr(m_cn)})</td></tr>`;
-		if (m_paid > 0) m_sum_rows += `<tr><td style="color:#16a34a;">(-) Paid (Cash)</td><td style="color:#16a34a;">(${_pdf_inr(m_paid)})</td></tr>`;
+		if (m_paid > 0) m_sum_rows += `<tr><td style="color:#16a34a;">(-) Paid / Adjusted <span style="font-size:10px;color:#6b7280;">(cash + credit applied)</span></td><td style="color:#16a34a;">(${_pdf_inr(m_paid)})</td></tr>`;
 		var cls = m_out === 0 ? "zero" : "neg";
 		m_sum_rows += `<tr class="tot-row"><td>Month Outstanding</td><td class="${cls}">${_pdf_inr(m_out)}</td></tr>`;
 

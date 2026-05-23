@@ -60,7 +60,7 @@ def _get_columns():
             "width": 140,
         },
         {
-            "label": _("Paid"),
+            "label": _("Paid / Adjusted"),
             "fieldname": "paid_amount",
             "fieldtype": "Currency",
             "options": "currency",
@@ -108,10 +108,10 @@ def _get_columns():
 # customer paid in May.
 
 def _get_data(filters):
-    customer  = filters.customer
-    company   = filters.company
+    customer = filters.customer
+    company = filters.company
     from_date = getdate(filters.from_date)
-    to_date   = getdate(filters.to_date)
+    to_date = getdate(filters.to_date)
 
     company_currency = frappe.get_cached_value(
         "Company", company, "default_currency") or "INR"
@@ -184,22 +184,26 @@ def _get_data(filters):
     if not month_data:
         return []
 
-    # Derive paid and outstanding from per-invoice outstanding_amount.
-    # paid_cash = invoice_amount − credit_note − outstanding
-    # (outstanding_amount already deducts allocated credit notes, so credit_note
-    #  here represents face value of credit issued, not an additional deduction)
+    # Paid / Adjusted = invoice_amount - outstanding_amount.
+    # outstanding_amount already reflects all allocated payments AND credit notes
+    # regardless of when they were applied, so this figure is inclusive of both
+    # cash received and credit adjustments.  The Credit Note column is an
+    # informational breakdown shown separately.
     for m in month_data.values():
-        net_out   = flt(max(0.0, m["_fwd_out"]), 2)
-        paid_cash = flt(max(0.0, m["invoice_amount"] - m["credit_note"] - net_out), 2)
+        net_out  = flt(max(0.0, m["_fwd_out"]), 2)
+        paid_adj = flt(max(0.0, m["invoice_amount"] - net_out), 2)
         m["outstanding"] = net_out
-        m["paid_amount"]  = paid_cash
+        m["paid_amount"] = paid_adj
         del m["_fwd_out"]
 
     # Period totals
-    total_invoice     = flt(sum(m["invoice_amount"] for m in month_data.values()), 2)
-    total_credit_note = flt(sum(m["credit_note"]    for m in month_data.values()), 2)
-    total_paid        = flt(sum(m["paid_amount"]    for m in month_data.values()), 2)
-    total_outstanding = flt(sum(m["outstanding"]    for m in month_data.values()), 2)
+    total_invoice = flt(sum(m["invoice_amount"]
+                        for m in month_data.values()), 2)
+    total_credit_note = flt(sum(m["credit_note"]
+                            for m in month_data.values()), 2)
+    total_paid = flt(sum(m["paid_amount"] for m in month_data.values()), 2)
+    total_outstanding = flt(sum(m["outstanding"]
+                            for m in month_data.values()), 2)
 
     rows = []
 
@@ -305,12 +309,12 @@ def get_month_invoices(customer, company, month_start, month_end):
         params, as_dict=True,
     )
 
-    # Summary consistent with main report formula
+    # Paid / Adjusted = invoice_total - month_out (inclusive of credit notes applied)
     inv_total = flt(sum(flt(i.invoice_amount) for i in invoices), 2)
     cn_total  = flt(sum(flt(c.credit_amount)  for c in credit_notes), 2)
     fwd_out   = flt(sum(flt(i.outstanding)    for i in invoices), 2)
     month_out = flt(max(0.0, fwd_out), 2)
-    paid_cash = flt(max(0.0, inv_total - cn_total - month_out), 2)
+    paid_adj  = flt(max(0.0, inv_total - month_out), 2)
     total_out = flt(month_out + opening_outstanding, 2)
 
     return {
@@ -320,7 +324,7 @@ def get_month_invoices(customer, company, month_start, month_end):
         "summary": {
             "invoice_total":       inv_total,
             "credit_total":        cn_total,
-            "paid_cash":           paid_cash,
+            "paid_cash":           paid_adj,
             "month_outstanding":   month_out,
             "opening_outstanding": opening_outstanding,
             "total_outstanding":   total_out,
@@ -400,7 +404,8 @@ def get_all_invoices_for_period(customer, company, from_date, to_date):
     for inv in invoices:
         key = getdate(inv.posting_date).strftime("%Y-%m")
         if key not in buckets:
-            buckets[key] = {"invoice_total": 0.0, "credit_total": 0.0, "_fwd_out": 0.0}
+            buckets[key] = {"invoice_total": 0.0,
+                            "credit_total": 0.0, "_fwd_out": 0.0}
         buckets[key]["invoice_total"] = flt(
             buckets[key]["invoice_total"] + flt(inv.invoice_amount), 2)
         buckets[key]["_fwd_out"] = flt(
@@ -409,14 +414,15 @@ def get_all_invoices_for_period(customer, company, from_date, to_date):
     for cn in credit_notes:
         key = getdate(cn.posting_date).strftime("%Y-%m")
         if key not in buckets:
-            buckets[key] = {"invoice_total": 0.0, "credit_total": 0.0, "_fwd_out": 0.0}
+            buckets[key] = {"invoice_total": 0.0,
+                            "credit_total": 0.0, "_fwd_out": 0.0}
         buckets[key]["credit_total"] = flt(
             buckets[key]["credit_total"] + flt(cn.credit_amount), 2)
 
     month_summaries = {}
     for key, b in buckets.items():
         m_out  = flt(max(0.0, b["_fwd_out"]), 2)
-        m_paid = flt(max(0.0, b["invoice_total"] - b["credit_total"] - m_out), 2)
+        m_paid = flt(max(0.0, b["invoice_total"] - m_out), 2)  # incl. credit notes
         month_summaries[key] = {
             "invoice_total":     b["invoice_total"],
             "credit_total":      b["credit_total"],
