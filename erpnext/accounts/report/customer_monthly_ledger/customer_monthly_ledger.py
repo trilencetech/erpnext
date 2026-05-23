@@ -160,8 +160,6 @@ def _get_data(filters):
                 "paid_amount":   0.0,
                 "outstanding":   0.0,
                 "_fwd_out":      0.0,  # forward outstanding (intermediate)
-                # return outstanding  (intermediate, ≤ 0)
-                "_ret_out":      0.0,
                 "month_start":   get_first_day(dt).strftime("%Y-%m-%d"),
                 "month_end":     get_last_day(dt).strftime("%Y-%m-%d"),
                 "_row_type":     "month",
@@ -178,22 +176,19 @@ def _get_data(filters):
         key = _ensure_month(ret.posting_date)
         # grand_total is negative for returns; ABS gives the credit note face value
         month_data[key]["credit_note"] += flt(abs(ret.grand_total), 2)
-        # outstanding_amount is 0 (fully allocated) or negative (unallocated credit)
-        month_data[key]["_ret_out"] += flt(ret.outstanding_amount, 2)
 
     if not month_data:
         return []
 
     # ── Derive paid_amount and net outstanding per month ──────────────────────
     #
-    #   net_outstanding = forward_outstanding + return_outstanding
-    #     (return_outstanding is 0 or negative, so it reduces the net)
-    #   paid_cash       = invoice_amount − credit_note − net_outstanding
+    #   ERPNext maintains forward invoice outstanding_amount to always reflect
+    #   allocations (payments + credit notes). So SUM(forward.outstanding_amount)
+    #   IS the correct net outstanding — no adjustment for return invoices needed.
     #
-    #   This correctly separates actual cash receipts from credit-note offsets
-    #   regardless of whether the credit note is allocated or still pending.
+    #   paid_cash = invoice_amount − credit_note − outstanding
     for m in month_data.values():
-        net_out = flt(m["_fwd_out"] + m["_ret_out"], 2)
+        net_out = flt(m["_fwd_out"], 2)
         net_out = max(0.0, net_out)
         paid_cash = flt(m["invoice_amount"] - m["credit_note"] - net_out, 2)
         paid_cash = max(0.0, paid_cash)
@@ -201,7 +196,6 @@ def _get_data(filters):
         m["outstanding"] = net_out
         m["paid_amount"] = paid_cash
         del m["_fwd_out"]
-        del m["_ret_out"]
 
     # ── Period totals ─────────────────────────────────────────────────────────
     total_invoice = flt(sum(m["invoice_amount"]
