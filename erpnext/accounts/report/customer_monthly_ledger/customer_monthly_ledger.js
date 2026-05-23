@@ -379,7 +379,8 @@ function _generate_all_months_pdf() {
 			var data = r.message || {};
 			var invoices = data.invoices || [];
 			var credit_notes = data.credit_notes || [];
-			if (!invoices.length && !credit_notes.length) {
+			var month_summaries = data.month_summaries || {};
+			if (!invoices.length && !credit_notes.length && !Object.keys(month_summaries).length) {
 				frappe.msgprint(__("No invoices found for the selected period."));
 				return;
 			}
@@ -596,37 +597,52 @@ function _build_single_month_pdf_html(data, month_label, customer_name, company)
 // ── ALL MONTHS PDF BUILDER ────────────────────────────────────────────────────
 
 function _build_all_months_pdf_html(data, customer_name, company, from_date, to_date) {
-	var all_invoices = data.invoices || [];
-	var all_credit_notes = data.credit_notes || [];
-	var opening_out = flt(data.opening_outstanding || 0, 2);
+	var all_invoices    = data.invoices       || [];
+	var all_credit_notes = data.credit_notes  || [];
+	var opening_out     = flt(data.opening_outstanding || 0, 2);
+	var month_summaries = data.month_summaries || {};   // GL-based per-month summaries
+	var total_summary   = data.total_summary   || {};   // GL-based grand totals
 
-	// Group invoices and credit notes by year-month key
-	var order = [];
+	// Build per-invoice/CN row groups keyed by YYYY-MM
 	var groups = {};
 
-	function _ensure_group(dt_str) {
-		var d = new Date(dt_str);
-		var key = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
-		var lbl = _MONTHS[d.getMonth()] + " " + d.getFullYear();
-		if (!groups[key]) { groups[key] = { label: lbl, invoices: [], credit_notes: [] }; order.push(key); }
+	function _ensure_group(key_or_dt) {
+		var d, key;
+		if (/^\d{4}-\d{2}$/.test(key_or_dt)) {
+			key = key_or_dt;
+			d   = new Date(key + "-01");
+		} else {
+			d   = new Date(key_or_dt);
+			key = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
+		}
+		if (!groups[key]) {
+			groups[key] = { label: _MONTHS[d.getMonth()] + " " + d.getFullYear(), invoices: [], credit_notes: [] };
+		}
 		return key;
 	}
 
 	all_invoices.forEach(function (inv) { groups[_ensure_group(inv.posting_date)].invoices.push(inv); });
 	all_credit_notes.forEach(function (cn) { groups[_ensure_group(cn.posting_date)].credit_notes.push(cn); });
 
-	var grand_inv = 0, grand_cn = 0, grand_out = 0;
+	// Ensure months with only GL movements (e.g. payment-only) are included
+	Object.keys(month_summaries).forEach(function (key) { _ensure_group(key); });
 
-	var sections = order.sort().map(function (key) {
-		var g = groups[key];
-		var m_inv = g.invoices.reduce(function (s, i) { return s + (parseFloat(i.invoice_amount) || 0); }, 0);
-		var m_cn = g.credit_notes.reduce(function (s, c) { return s + (parseFloat(c.credit_amount) || 0); }, 0);
-		var m_fwd_out = g.invoices.reduce(function (s, i) { return s + (parseFloat(i.outstanding) || 0); }, 0);
-		var m_ret_out = g.credit_notes.reduce(function (s, c) { return s + (parseFloat(c.outstanding_amount) || 0); }, 0);
-		var m_out = Math.max(0, m_fwd_out + m_ret_out);
-		var m_paid = Math.max(0, m_inv - m_cn - m_out);
+	var sections = Object.keys(groups).sort().map(function (key) {
+		var g  = groups[key];
+		var ms = month_summaries[key] || {};
 
-		grand_inv += m_inv; grand_cn += m_cn; grand_out += m_out;
+		// Use GL-based figures from backend — accurate to the report date range
+		var m_inv  = flt(ms.invoice_total    || 0, 2);
+		var m_cn   = flt(ms.credit_total     || 0, 2);
+		var m_paid = flt(ms.paid_cash        || 0, 2);
+		var m_out  = flt(ms.month_outstanding || 0, 2);
+
+		var inv_part = "";
+		if (g.invoices.length) {
+			inv_part = `<table><thead><tr>
+				<th>Invoice No</th><th>Date</th><th>Invoice Amount</th><th>Paid Amount</th><th>Outstanding</th>
+			</tr></thead><tbody>${_pdf_inv_rows(g.invoices)}</tbody></table>`;
+		}
 
 		var cn_part = "";
 		if (g.credit_notes.length) {
@@ -637,25 +653,24 @@ function _build_all_months_pdf_html(data, customer_name, company, from_date, to_
 		}
 
 		var m_sum_rows = `<tr><td>Invoice Total</td><td>${_pdf_inr(m_inv)}</td></tr>`;
-		if (m_cn > 0) m_sum_rows += `<tr><td style="color:#d97706;">(-) Credit Notes</td><td style="color:#d97706;">(${_pdf_inr(m_cn)})</td></tr>`;
+		if (m_cn > 0)   m_sum_rows += `<tr><td style="color:#d97706;">(-) Credit Notes</td><td style="color:#d97706;">(${_pdf_inr(m_cn)})</td></tr>`;
 		if (m_paid > 0) m_sum_rows += `<tr><td style="color:#16a34a;">(-) Paid (Cash)</td><td style="color:#16a34a;">(${_pdf_inr(m_paid)})</td></tr>`;
 		var cls = m_out === 0 ? "zero" : "neg";
-		m_sum_rows += `<tr class="tot-row"><td colspan="1">Month Outstanding</td><td class="${cls}">${_pdf_inr(m_out)}</td></tr>`;
+		m_sum_rows += `<tr class="tot-row"><td>Month Outstanding</td><td class="${cls}">${_pdf_inr(m_out)}</td></tr>`;
 
 		return `<div class="month-sec">
 			<div class="month-hdr">${g.label}</div>
-			<table><thead><tr>
-				<th>Invoice No</th><th>Date</th><th>Invoice Amount</th><th>Paid Amount</th><th>Outstanding</th>
-			</tr></thead><tbody>${_pdf_inv_rows(g.invoices)}</tbody></table>
+			${inv_part}
 			${cn_part}
 			<table class="summary-tbl" style="margin-top:6px;"><tbody>${m_sum_rows}</tbody></table>
 		</div>`;
 	}).join("");
 
+	// Grand total comes from the GL closing balance (accurate, not a sum of per-month outstandings)
+	var total_out = flt(total_summary.outstanding || 0, 2);
 	var from_disp = _pdf_date(from_date) || from_date;
-	var to_disp = _pdf_date(to_date) || to_date;
+	var to_disp   = _pdf_date(to_date)   || to_date;
 	var today_str = _pdf_date(frappe.datetime.get_today());
-	var total_out = grand_out + opening_out;
 
 	var opening_html = "";
 	if (opening_out > 0) {
