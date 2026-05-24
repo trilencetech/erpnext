@@ -30,15 +30,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-02-18 15:34:46.713975",
-  "name": "Printing",
-  "style": "",
-  "workflow_state_name": "Printing"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
   "modified": "2026-02-18 15:34:55.018467",
   "name": "Delivery",
   "style": "",
@@ -79,6 +70,15 @@
   "name": "Paper Received",
   "style": "",
   "workflow_state_name": "Paper Received"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-02-18 15:34:46.713975",
+  "name": "Printing",
+  "style": "",
+  "workflow_state_name": "Printing"
  },
  {
   "docstatus": 0,
