@@ -141,7 +141,34 @@ def _get_data(filters):
     return _get_customer_list(filters)
 
 
+# ── RETURN INVOICE HELPER ─────────────────────────────────────────────────────
+
+def _get_return_invoice_set(company, customers, from_date, to_date):
+    """Names of return Sales Invoices posted in [from_date, to_date] for given customers."""
+    if not customers:
+        return set()
+    rows = frappe.db.get_all(
+        "Sales Invoice",
+        filters={
+            "docstatus": 1,
+            "is_return":  1,
+            "company":    company,
+            "customer":   ["in", list(customers)],
+            "posting_date": ["between", [from_date, to_date]],
+        },
+        pluck="name",
+    )
+    return set(rows)
+
+
 # ── CUSTOMER LIST (no customer filter) ────────────────────────────────────────
+#
+# Uses GL Entry debit/credit movements — same source-of-truth as
+# customer_ledger_summary report.  Segregates:
+#   debit > credit  → invoiced
+#   credit > debit, voucher is return invoice → credit note
+#   credit > debit, other               → paid / adjusted
+# Opening = GL balance before from_date (or is_opening = Yes).
 
 def _get_customer_list(filters):
     company   = filters.company
@@ -151,92 +178,92 @@ def _get_customer_list(filters):
     company_currency = frappe.get_cached_value(
         "Company", company, "default_currency") or "INR"
 
-    params = {"company": company, "from_date": from_date, "to_date": to_date}
-
-    invoices = frappe.db.sql(
+    # All customer GL party entries up to to_date
+    gl_entries = frappe.db.sql(
         """
-        SELECT customer,
-               MAX(customer_name)        AS customer_name,
-               SUM(grand_total)          AS invoice_total,
-               SUM(outstanding_amount)   AS fwd_out
-        FROM   `tabSales Invoice`
-        WHERE  docstatus = 1 AND is_return = 0
-          AND  company        = %(company)s
-          AND  posting_date BETWEEN %(from_date)s AND %(to_date)s
-        GROUP  BY customer
-        ORDER  BY customer_name
+        SELECT party, posting_date, debit, credit, voucher_no, is_opening
+        FROM   `tabGL Entry`
+        WHERE  docstatus < 2 AND is_cancelled = 0
+          AND  company    = %(company)s
+          AND  party_type = 'Customer'
+          AND  IFNULL(party, '') != ''
+          AND  posting_date <= %(to_date)s
+        ORDER  BY posting_date, name
         """,
-        params, as_dict=True,
+        {"company": company, "to_date": to_date},
+        as_dict=True,
     )
 
-    returns = frappe.db.sql(
-        """
-        SELECT customer, SUM(ABS(grand_total)) AS cn_total
-        FROM   `tabSales Invoice`
-        WHERE  docstatus = 1 AND is_return = 1
-          AND  company        = %(company)s
-          AND  posting_date BETWEEN %(from_date)s AND %(to_date)s
-        GROUP  BY customer
-        """,
-        params, as_dict=True,
-    )
+    if not gl_entries:
+        return []
 
-    # Opening outstanding per customer — invoices posted BEFORE from_date still unpaid
-    opening_rows = frappe.db.sql(
-        """
-        SELECT customer, SUM(outstanding_amount) AS opening_out
-        FROM   `tabSales Invoice`
-        WHERE  docstatus = 1 AND is_return = 0
-          AND  company       = %(company)s
-          AND  posting_date  < %(from_date)s
-          AND  outstanding_amount > 0
-        GROUP  BY customer
-        """,
-        params, as_dict=True,
-    )
-    opening_by_cust = {r.customer: flt(r.opening_out, 2) for r in opening_rows}
+    parties = list({g.party for g in gl_entries})
+    return_invoices = _get_return_invoice_set(company, parties, from_date, to_date)
 
-    cn_by_cust = {r.customer: flt(r.cn_total, 2) for r in returns}
+    cust_name_map = {
+        r.name: r.customer_name
+        for r in frappe.db.get_all(
+            "Customer", filters={"name": ["in", parties]},
+            fields=["name", "customer_name"],
+        )
+    }
 
-    grand_inv = grand_cn = grand_paid = grand_out = grand_opening = 0.0
+    per_cust = {}
+    for gle in gl_entries:
+        p = gle.party
+        if p not in per_cust:
+            per_cust[p] = {"opening": 0.0, "invoiced": 0.0, "credit_note": 0.0, "paid": 0.0}
+        amount = flt(gle.debit) - flt(gle.credit)
+        if gle.posting_date < from_date or gle.is_opening == "Yes":
+            per_cust[p]["opening"] += amount
+        else:
+            if amount > 0:
+                per_cust[p]["invoiced"] += amount
+            elif gle.voucher_no in return_invoices:
+                per_cust[p]["credit_note"] -= amount   # make positive
+            else:
+                per_cust[p]["paid"] -= amount          # make positive
+
     rows = []
+    grand_opening = grand_inv = grand_cn = grand_paid = grand_out = 0.0
 
-    for inv in invoices:
-        cn      = cn_by_cust.get(inv.customer, 0.0)
-        opening = opening_by_cust.get(inv.customer, 0.0)
-        net_out = flt(max(0.0, flt(inv.fwd_out, 2)), 2)
-        paid    = flt(max(0.0, flt(inv.invoice_total, 2) - net_out), 2)
+    for cust in sorted(per_cust.keys(), key=lambda c: cust_name_map.get(c, c)):
+        d        = per_cust[cust]
+        opening  = flt(d["opening"],     2)
+        invoiced = flt(d["invoiced"],    2)
+        cn       = flt(d["credit_note"], 2)
+        paid     = flt(d["paid"],        2)
+        closing  = flt(opening + invoiced - cn - paid, 2)
 
-        grand_inv     += flt(inv.invoice_total, 2)
+        grand_opening += opening
+        grand_inv     += invoiced
         grand_cn      += cn
         grand_paid    += paid
-        grand_out     += net_out
-        grand_opening += opening
+        grand_out     += closing
 
         rows.append({
-            "period":              inv.customer_name or inv.customer,
+            "period":              cust_name_map.get(cust, cust),
             "opening_outstanding": opening,
-            "invoice_amount":      flt(inv.invoice_total, 2),
+            "invoice_amount":      invoiced,
             "credit_note":         cn,
             "paid_amount":         paid,
-            "outstanding":         flt(net_out + opening, 2),
+            "outstanding":         closing,
             "_row_type":           "customer",
-            "_customer":           inv.customer,
+            "_customer":           cust,
             "currency":            company_currency,
         })
 
     if not rows:
         return []
 
-    # Grand total row at top
     total_row = [{
         "period":              frappe.bold(
             "Total Outstanding as on {}".format(formatdate(to_date))),
-        "opening_outstanding": flt(grand_opening,           2),
-        "invoice_amount":      flt(grand_inv,               2),
-        "credit_note":         flt(grand_cn,                2),
-        "paid_amount":         flt(grand_paid,              2),
-        "outstanding":         flt(grand_out + grand_opening, 2),
+        "opening_outstanding": flt(grand_opening, 2),
+        "invoice_amount":      flt(grand_inv,     2),
+        "credit_note":         flt(grand_cn,      2),
+        "paid_amount":         flt(grand_paid,    2),
+        "outstanding":         flt(grand_out,     2),
         "_row_type":           "total",
         "_customer":           "",
         "currency":            company_currency,
@@ -251,9 +278,9 @@ def _get_customer_list(filters):
 
 # ── MONTHLY DATA (customer filter set) ────────────────────────────────────────
 #
-# Month buckets are keyed by the INVOICE posting date, not the payment date.
-# outstanding_amount per invoice already reflects all allocated payments and
-# credit notes, giving correct attribution regardless of payment timing.
+# GL Entry based — same source-of-truth as customer_ledger_summary.
+# Each month bucket groups GL party movements by posting_date month.
+# outstanding per month = running closing balance at end of that month.
 
 def _get_monthly_data(filters):
     customer  = filters.customer
@@ -264,37 +291,27 @@ def _get_monthly_data(filters):
     company_currency = frappe.get_cached_value(
         "Company", company, "default_currency") or "INR"
 
-    params = {
-        "customer":  customer,
-        "company":   company,
-        "from_date": from_date,
-        "to_date":   to_date,
-    }
-
-    invoices = frappe.db.sql(
+    gl_entries = frappe.db.sql(
         """
-        SELECT posting_date, grand_total, outstanding_amount
-        FROM   `tabSales Invoice`
-        WHERE  docstatus = 1 AND is_return = 0
-          AND  customer  = %(customer)s AND company = %(company)s
-          AND  posting_date BETWEEN %(from_date)s AND %(to_date)s
-        ORDER  BY posting_date
+        SELECT posting_date, debit, credit, voucher_no, is_opening
+        FROM   `tabGL Entry`
+        WHERE  docstatus < 2 AND is_cancelled = 0
+          AND  company    = %(company)s
+          AND  party_type = 'Customer'
+          AND  party      = %(customer)s
+          AND  posting_date <= %(to_date)s
+        ORDER  BY posting_date, name
         """,
-        params, as_dict=True,
+        {"company": company, "customer": customer, "to_date": to_date},
+        as_dict=True,
     )
 
-    returns = frappe.db.sql(
-        """
-        SELECT posting_date, grand_total
-        FROM   `tabSales Invoice`
-        WHERE  docstatus = 1 AND is_return = 1
-          AND  customer  = %(customer)s AND company = %(company)s
-          AND  posting_date BETWEEN %(from_date)s AND %(to_date)s
-        ORDER  BY posting_date
-        """,
-        params, as_dict=True,
-    )
+    if not gl_entries:
+        return []
 
+    return_invoices = _get_return_invoice_set(company, [customer], from_date, to_date)
+
+    opening_balance = 0.0
     month_data = {}
 
     def _ensure_month(dt):
@@ -306,7 +323,6 @@ def _get_monthly_data(filters):
                 "credit_note":    0.0,
                 "paid_amount":    0.0,
                 "outstanding":    0.0,
-                "_fwd_out":       0.0,
                 "month_start":    get_first_day(dt).strftime("%Y-%m-%d"),
                 "month_end":      get_last_day(dt).strftime("%Y-%m-%d"),
                 "_row_type":      "month",
@@ -315,54 +331,58 @@ def _get_monthly_data(filters):
             }
         return key
 
-    for inv in invoices:
-        key = _ensure_month(inv.posting_date)
-        month_data[key]["invoice_amount"] = flt(
-            month_data[key]["invoice_amount"] + flt(inv.grand_total), 2)
-        month_data[key]["_fwd_out"] = flt(
-            month_data[key]["_fwd_out"] + flt(inv.outstanding_amount), 2)
-
-    for ret in returns:
-        key = _ensure_month(ret.posting_date)
-        month_data[key]["credit_note"] = flt(
-            month_data[key]["credit_note"] + flt(abs(ret.grand_total)), 2)
+    for gle in gl_entries:
+        amount = flt(gle.debit) - flt(gle.credit)
+        if gle.posting_date < from_date or gle.is_opening == "Yes":
+            opening_balance += amount
+        else:
+            key = _ensure_month(gle.posting_date)
+            if amount > 0:
+                month_data[key]["invoice_amount"] += amount
+            elif gle.voucher_no in return_invoices:
+                month_data[key]["credit_note"] -= amount   # make positive
+            else:
+                month_data[key]["paid_amount"] -= amount   # make positive
 
     if not month_data:
         return []
 
-    for m in month_data.values():
-        net_out  = flt(max(0.0, m["_fwd_out"]), 2)
-        paid_adj = flt(max(0.0, m["invoice_amount"] - net_out), 2)
-        m["outstanding"] = net_out
-        m["paid_amount"]  = paid_adj
-        del m["_fwd_out"]
+    # Round monthly figures and compute closing balance as running total from opening
+    running = opening_balance
+    for key in sorted(month_data.keys()):
+        m = month_data[key]
+        m["invoice_amount"] = flt(m["invoice_amount"], 2)
+        m["credit_note"]    = flt(m["credit_note"],    2)
+        m["paid_amount"]    = flt(m["paid_amount"],    2)
+        running += m["invoice_amount"] - m["credit_note"] - m["paid_amount"]
+        m["outstanding"]    = flt(running, 2)
 
-    total_invoice     = flt(sum(m["invoice_amount"] for m in month_data.values()), 2)
-    total_credit_note = flt(sum(m["credit_note"]    for m in month_data.values()), 2)
-    total_paid        = flt(sum(m["paid_amount"]    for m in month_data.values()), 2)
-    total_outstanding = flt(sum(m["outstanding"]    for m in month_data.values()), 2)
+    total_invoice = flt(sum(m["invoice_amount"] for m in month_data.values()), 2)
+    total_cn      = flt(sum(m["credit_note"]    for m in month_data.values()), 2)
+    total_paid    = flt(sum(m["paid_amount"]    for m in month_data.values()), 2)
+    # Closing balance = opening + all period movements
+    total_out     = flt(opening_balance + total_invoice - total_cn - total_paid, 2)
 
-    rows = []
-    rows.append({
+    rows = [{
         "period":         frappe.bold(
             "Outstanding Balance as on {}".format(formatdate(to_date))),
         "invoice_amount": total_invoice,
-        "credit_note":    total_credit_note,
+        "credit_note":    total_cn,
         "paid_amount":    total_paid,
-        "outstanding":    total_outstanding,
+        "outstanding":    total_out,
         "month_start":    "",
         "month_end":      "",
         "_row_type":      "total",
         "_customer":      customer,
         "currency":       company_currency,
-    })
-    rows.append({
+    }, {
         "period": "", "invoice_amount": None, "credit_note": None,
         "paid_amount": None, "outstanding": None,
         "month_start": "", "month_end": "",
         "_row_type": "blank", "_customer": customer,
         "currency": company_currency,
-    })
+    }]
+
     for key in sorted(month_data.keys()):
         rows.append(month_data[key])
 
@@ -382,16 +402,18 @@ def get_customer_monthly_ledger(customer, company, from_date, to_date):
     })
     rows = _get_monthly_data(filters)
 
+    # Opening = GL balance before from_date (same query used in _get_monthly_data)
     opening_row = frappe.db.sql(
         """
-        SELECT COALESCE(SUM(outstanding_amount), 0) AS val
-        FROM `tabSales Invoice`
-        WHERE docstatus = 1 AND is_return = 0
-          AND customer  = %(customer)s AND company = %(company)s
-          AND posting_date  < %(from_date)s
-          AND outstanding_amount > 0
+        SELECT COALESCE(SUM(debit - credit), 0) AS val
+        FROM `tabGL Entry`
+        WHERE docstatus < 2 AND is_cancelled = 0
+          AND company    = %(company)s
+          AND party_type = 'Customer'
+          AND party      = %(customer)s
+          AND (posting_date < %(from_date)s OR is_opening = 'Yes')
         """,
-        {"customer": customer, "company": company, "from_date": getdate(from_date)},
+        {"company": company, "customer": customer, "from_date": getdate(from_date)},
         as_dict=True,
     )
     opening_outstanding = flt((opening_row[0].val if opening_row else 0), 2)

@@ -208,11 +208,12 @@ function _show_customer_monthly_dialog(rows, customer_label, customer, company, 
 	var total_row  = rows.find(function (r) { return r._row_type === "total"; }) || {};
 	var month_rows = rows.filter(function (r) { return r._row_type === "month"; });
 
-	var period_out   = flt(total_row.outstanding || 0, 2);
-	var combined_out = flt(period_out + opening_outstanding, 2);
-	var all_clear    = combined_out === 0;
+	// GL-based: total_row.outstanding = opening + period net = true closing balance
+	var closing_out  = flt(total_row.outstanding || 0, 2);
+	var period_net   = flt(closing_out - opening_outstanding, 2);
+	var all_clear    = closing_out === 0;
 
-	// ── Opening Outstanding box (amber) — only shown when there's a prior balance ──
+	// ── Opening Outstanding box (amber) — shown when there's a prior balance ──
 	var opening_box = "";
 	if (opening_outstanding > 0) {
 		opening_box = `
@@ -221,26 +222,24 @@ function _show_customer_monthly_dialog(rows, customer_label, customer, company, 
 			padding:12px 18px;margin-bottom:10px;">
 			<div>
 				<div style="font-size:12px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.5px;">
-					⏳ Opening Outstanding
+					⏳ Opening Balance (before ${frappe.datetime.str_to_user(from_date)})
 				</div>
 				<div style="font-size:11.5px;color:#78350f;margin-top:2px;">
-					Unpaid invoices before <strong>${frappe.datetime.str_to_user(from_date)}</strong>
+					Balance carried forward into this period
 				</div>
 			</div>
 			<div style="font-size:22px;font-weight:700;color:#d97706;">${_fmt(opening_outstanding)}</div>
 		</div>`;
 	}
 
-	// ── Period Outstanding / Total Outstanding box ───────────────────────────
+	// ── Closing balance box ───────────────────────────────────────────────────
 	var out_bg     = all_clear ? "#f0fdf4" : "#fef2f2";
 	var out_border = all_clear ? "#22c55e" : "#dc2626";
 	var out_color  = all_clear ? "#15803d" : "#dc2626";
 
-	var summary_label = all_clear
-		? "✅ Fully Cleared"
-		: (opening_outstanding > 0 ? "⏳ Total Outstanding (Period + Opening)" : "⏳ Outstanding Balance");
-	var summary_sub = opening_outstanding > 0
-		? `Period: ${_fmt(period_out)} &nbsp;+&nbsp; Opening: ${_fmt(opening_outstanding)}`
+	var summary_label = all_clear ? "✅ Fully Cleared" : "⏳ Closing Balance";
+	var summary_sub   = opening_outstanding > 0
+		? `Opening ${_fmt(opening_outstanding)} + Period net ${_fmt(period_net)}`
 		: `${frappe.datetime.str_to_user(from_date)} – ${frappe.datetime.str_to_user(to_date)}`;
 
 	var summary_box = `
@@ -253,7 +252,7 @@ function _show_customer_monthly_dialog(rows, customer_label, customer, company, 
 			</div>
 			<div style="font-size:11.5px;color:#6b7280;margin-top:2px;">${summary_sub}</div>
 		</div>
-		<div style="font-size:24px;font-weight:700;color:${out_color};">${_fmt(combined_out)}</div>
+		<div style="font-size:24px;font-weight:700;color:${out_color};">${_fmt(closing_out)}</div>
 	</div>`;
 
 	// ── Monthly table ─────────────────────────────────────────────────────────
