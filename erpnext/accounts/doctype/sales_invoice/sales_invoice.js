@@ -1085,169 +1085,414 @@ frappe.ui.form.on("Sales Invoice Timesheet", {
 	},
 });
 
+
+// ============================================================
+// Sales Invoice — Quick Edit Fields
+// Settings → Client Script → Apply To: Sales Invoice
+// ============================================================
 // ============================================================
 // Sales Invoice — Quick Edit Fields
 // Settings → Client Script → Apply To: Sales Invoice
 // ============================================================
 
-//frappe.ui.form.on("Sales Invoice", {
+frappe.ui.form.on("Sales Invoice", {
 
-//refresh: function (frm) {
-//	if (frm.doc.docstatus === 1 && !frm.doc.is_return) {
-//		frm.add_custom_button(__("✏️ Update Sales Invoice"), function () {
-//			gj_show_quick_edit_dialog(frm);
-//		}, __("Actions"));
-//	}
-//}
+	refresh: function (frm) {
+		if (frm.doc.docstatus === 1 && !frm.doc.is_return) {
+			frm.add_custom_button(__("✏️ Update Sales Invoice"), function () {
+				gj_show_quick_edit_dialog(frm);
+			}, __("Actions"));
+		}
+	}
 
-//});
+});
 
 function gj_show_quick_edit_dialog(frm) {
 
-	// Build one rate field per item row
-	var item_fields = [{
-		fieldtype: "Section Break",
-		label: "Item Rates (edit only what changed)"
-	}];
+	var paid = flt(frm.doc.paid_amount);
+	var outstanding = flt(frm.doc.outstanding_amount);
+	var grand = flt(frm.doc.grand_total);
+	var old_freight = flt(frm.doc.freight || 0);
+	var old_taxes = flt(frm.doc.total_taxes_and_charges || 0);
+
+	// ── Build Item rows section ────────────────────────────
+	var item_fields = [
+		{
+			fieldtype: "Section Break",
+			label: "Items — Name | Qty | Current Rate | New Rate"
+		}
+	];
 
 	(frm.doc.items || []).forEach(function (item, idx) {
+		// Item name + qty as HTML badge (read-only info)
+		item_fields.push({
+			fieldtype: "HTML",
+			fieldname: "item_info_" + idx,
+			options: `
+            <div style="padding:4px 0 2px 0;font-size:11px;color:#374151">
+                <span style="font-weight:700;color:#111">${item.item_name || item.item_code}</span>
+                <span style="margin-left:8px;background:#f3f4f6;border-radius:4px;
+                             padding:1px 7px;font-size:10px;color:#6b7280">
+                    Qty: ${item.qty} ${item.uom || ''}
+                </span>
+                <span style="margin-left:6px;color:#6b7280;font-size:10px">
+                    Current Rate: <b>₹ ${flt(item.rate).toFixed(2)}</b>
+                </span>
+            </div>`
+		});
+
 		item_fields.push({
 			fieldtype: "Currency",
 			fieldname: "item_rate_" + idx,
-			label: "Row " + (idx + 1) + " — " + (item.item_name || item.item_code),
-			description: "Current: ₹ " + flt(item.rate).toFixed(2),
-			default: item.rate
+			label: "New Rate for Row " + (idx + 1),
+			default: item.rate,
+			description: "Change to update rate for this item"
 		});
-		if (idx % 2 === 0) item_fields.push({ fieldtype: "Column Break" });
+
+		// Column break every 2 items for compact layout
+		if (idx % 2 === 0 && idx < (frm.doc.items.length - 1)) {
+			item_fields.push({ fieldtype: "Column Break" });
+		}
 	});
 
-	var paid = flt(frm.doc.paid_amount);
-	var outstnd = flt(frm.doc.outstanding_amount);
-	var grand = flt(frm.doc.grand_total);
+	// ── Freight field — only show when freight=0 (add as FREIGHT item row) ──
+	var freight_fields = [
+		{
+			fieldtype: "Section Break",
+			label: "Date"
+		},
+		{
+			fieldtype: "Date",
+			fieldname: "posting_date",
+			label: "Posting Date",
+			default: frm.doc.posting_date,
+			description: "Change only if needed"
+		}
+	];
+
+	if (old_freight === 0) {
+		// No freight on invoice — allow adding it as FREIGHT item row
+		freight_fields.push({ fieldtype: "Column Break" });
+		freight_fields.push({
+			fieldtype: "HTML",
+			fieldname: "freight_item_label",
+			options: `<div style="font-size:11px;padding:4px 0 2px 0;color:#374151">
+                <span style="font-weight:700;color:#111">FREIGHT</span>
+                <span style="margin-left:8px;background:#fef9c3;border:1px solid #fde68a;
+                             border-radius:4px;padding:1px 7px;font-size:10px;color:#92400e">
+                    New Item Row
+                </span>
+                <span style="margin-left:6px;color:#6b7280;font-size:10px">
+                    Current: <b>₹ 0.00</b>
+                </span>
+            </div>`
+		});
+		freight_fields.push({
+			fieldtype: "Currency",
+			fieldname: "freight",
+			label: "Freight Amount (₹)",
+			default: 0,
+			description: "Will be added as FREIGHT item row on the invoice"
+		});
+	}
+	// If freight > 0 — no freight field shown at all
+
+	// ── Summary HTML (old vs new) ──────────────────────────
+	// Will be updated live as user types
+	var summary_html = _build_summary_html(
+		grand, old_taxes, grand,      // old values (new = old initially)
+		old_taxes, paid, outstanding
+	);
+
+	var fields = [
+		// ── Current Invoice Position ──
+		{
+			fieldtype: "Section Break",
+			label: "Current Invoice Position"
+		},
+		{
+			fieldtype: "HTML",
+			fieldname: "position_html",
+			options: `
+            <div style="display:flex;gap:12px;flex-wrap:wrap;
+                        background:#eff6ff;border:1px solid #bfdbfe;
+                        border-radius:8px;padding:10px 14px;font-size:12px;
+                        margin-bottom:4px">
+                <div>
+                    <div style="font-size:9px;color:#1e40af;font-weight:700;text-transform:uppercase">
+                        Net Total
+                    </div>
+                    <div style="font-weight:700;font-size:13px">
+                        ₹ ${flt(frm.doc.net_total).toFixed(2)}
+                    </div>
+                </div>
+                <div>
+                    <div style="font-size:9px;color:#1e40af;font-weight:700;text-transform:uppercase">
+                        Total Taxes
+                    </div>
+                    <div style="font-weight:700;font-size:13px">
+                        ₹ ${old_taxes.toFixed(2)}
+                    </div>
+                </div>
+                <div>
+                    <div style="font-size:9px;color:#1e40af;font-weight:700;text-transform:uppercase">
+                        Grand Total
+                    </div>
+                    <div style="font-weight:700;font-size:14px;color:#1d4ed8">
+                        ₹ ${grand.toFixed(2)}
+                    </div>
+                </div>
+                <div>
+                    <div style="font-size:9px;color:#1e40af;font-weight:700;text-transform:uppercase">
+                        Paid
+                    </div>
+                    <div style="font-weight:700;font-size:13px;color:#059669">
+                        ₹ ${paid.toFixed(2)}
+                    </div>
+                </div>
+                <div>
+                    <div style="font-size:9px;color:#1e40af;font-weight:700;text-transform:uppercase">
+                        Outstanding
+                    </div>
+                    <div style="font-weight:700;font-size:13px;color:#dc2626">
+                        ₹ ${outstanding.toFixed(2)}
+                    </div>
+                </div>
+            </div>`
+		},
+
+		// ── Items ──
+		...item_fields,
+
+		// ── Freight + Date ──
+		...freight_fields,
+
+		// ── Live Old vs New comparison ──
+		{
+			fieldtype: "Section Break",
+			label: "Old vs New Comparison (updates as you type)"
+		},
+		{
+			fieldtype: "HTML",
+			fieldname: "comparison_html",
+			options: `<div id="gj-comparison">${summary_html}</div>`
+		},
+
+		// ── Reason ──
+		{
+			fieldtype: "Section Break",
+			label: "Reason"
+		},
+		{
+			fieldtype: "Small Text",
+			fieldname: "edit_reason",
+			label: "Reason for Edit",
+			reqd: 1,
+			placeholder: "e.g. Rate corrected as per agreement"
+		}
+	];
 
 	var d = new frappe.ui.Dialog({
 		title: "✏️ Quick Edit — " + frm.doc.name,
 		size: "large",
-		fields: [
-			// Current amounts banner
-			{
-				fieldtype: "Section Break",
-				label: "Current Invoice Position"
-			},
-			{
-				fieldtype: "HTML",
-				fieldname: "summary_html",
-				options: `
-                <div style="display:flex;gap:16px;flex-wrap:wrap;background:#eff6ff;
-                            border:1px solid #bfdbfe;border-radius:8px;padding:10px 14px;
-                            margin-bottom:4px;font-size:12px">
-                    <div>
-                        <div style="font-size:9px;color:#1e40af;font-weight:700;text-transform:uppercase">Grand Total</div>
-                        <div style="font-weight:700;font-size:14px">₹ ${grand.toFixed(2)}</div>
-                    </div>
-                    <div>
-                        <div style="font-size:9px;color:#1e40af;font-weight:700;text-transform:uppercase">Paid Amount</div>
-                        <div style="font-weight:700;font-size:14px;color:#059669">₹ ${paid.toFixed(2)}</div>
-                    </div>
-                    <div>
-                        <div style="font-size:9px;color:#1e40af;font-weight:700;text-transform:uppercase">Outstanding</div>
-                        <div style="font-weight:700;font-size:14px;color:#dc2626">₹ ${outstnd.toFixed(2)}</div>
-                    </div>
-                </div>`
-			},
-
-			// General fields
-			{
-				fieldtype: "Section Break",
-				label: "General"
-			},
-			{
-				fieldtype: "Date",
-				fieldname: "posting_date",
-				label: "Posting Date",
-				default: frm.doc.posting_date,
-				description: "Current: " + frm.doc.posting_date
-			},
-			{ fieldtype: "Column Break" },
-			{
-				fieldtype: "Currency",
-				fieldname: "freight",
-				label: "Freight (₹)",
-				default: frm.doc.freight || 0,
-				description: "Current: ₹ " + flt(frm.doc.freight || 0).toFixed(2)
-			},
-
-			// Item rates
-			...item_fields,
-
-			// Reason
-			{
-				fieldtype: "Section Break",
-				label: "Reason"
-			},
-			{
-				fieldtype: "Small Text",
-				fieldname: "edit_reason",
-				label: "Reason for Edit",
-				reqd: 1,
-				placeholder: "e.g. Rate corrected as per agreement dated xx-xx-xxxx"
-			}
-		],
+		fields: fields,
 		primary_action_label: "💾 Update Invoice",
 		primary_action: function (values) {
-
-			if (!values.edit_reason || !values.edit_reason.trim()) {
-				frappe.msgprint({ message: "Reason is required.", indicator: "orange" });
-				return;
-			}
-
-			// Collect changed item rates only
-			var item_rates = [];
-			(frm.doc.items || []).forEach(function (item, idx) {
-				var new_rate = flt(values["item_rate_" + idx]);
-				if (Math.abs(new_rate - flt(item.rate)) > 0.001) {
-					item_rates.push({ row_name: item.name, new_rate: new_rate });
-				}
-			});
-
-			d.disable_primary_action();
-
-
-			frappe.call({
-				// ← Updated path as per your file location
-				method: "erpnext.accounts.doctype.sales_invoice.sales_invoice.update_sales_invoice",
-				args: {
-					si_name: frm.doc.name,
-					posting_date: values.posting_date || frm.doc.posting_date,
-					freight: values.freight !== undefined ? values.freight : (frm.doc.freight || 0),
-					item_rates: JSON.stringify(item_rates),
-					reason: values.edit_reason
-				},
-				callback: function (r) {
-
-					if (r.exc || !r.message) {
-						d.enable_primary_action();
-						return;
-					}
-					var res = r.message;
-					d.hide();
-					frappe.show_alert({
-						message: `✅ Updated. Difference: ₹${res.difference.toFixed(2)} | 
-                                  Paid: ₹${res.paid_amount.toFixed(2)} | 
-                                  New Outstanding: ₹${res.new_outstanding.toFixed(2)}`,
-						indicator: "green"
-					}, 10);
-					frm.reload_doc();
-				},
-				error: function () {
-					frappe.show_progress("", 100, 100);
-					d.enable_primary_action();
-				}
-			});
+			gj_submit_edit(frm, d, values);
 		}
 	});
 
 	d.show();
+
+	// ── Live comparison update ────────────────────────────
+	d.$wrapper.on("input change", "input[type='number'], input[type='text']",
+		function () {
+			_refresh_comparison(frm, d, grand, old_taxes, paid, outstanding);
+		}
+	);
+}
+
+// ─────────────────────────────────────────────────────────────
+// Live comparison recalculator
+// ─────────────────────────────────────────────────────────────
+function _refresh_comparison(frm, d, old_grand, old_taxes, paid, old_outstanding) {
+
+	var items = frm.doc.items || [];
+	var new_net = 0;
+	var gst_rate_total = 0;
+
+	// Sum new net total from updated rates
+	items.forEach(function (item, idx) {
+		var rate = flt(d.get_value("item_rate_" + idx)) || flt(item.rate);
+		new_net += flt(rate * item.qty);
+	});
+
+	// Add freight to net
+	// Only read freight from dialog if old_freight was 0 (field only shown then)
+	var new_freight = flt(d.get_value("freight") || 0);
+	new_net = flt(new_net, 2);
+
+	// Estimate taxes from existing tax rates on doc
+	var new_taxes = 0;
+	(frm.doc.taxes || []).forEach(function (t) {
+		// On Net Total type
+		new_taxes += flt((new_net * flt(t.rate)) / 100);
+	});
+	new_taxes = flt(new_taxes, 2);
+
+	var new_grand = flt(new_net + new_freight + new_taxes, 2);
+
+	d.$wrapper.find("#gj-comparison").html(
+		_build_summary_html(old_grand, old_taxes, new_grand, new_taxes, paid, old_outstanding)
+	);
+}
+
+function _build_summary_html(old_grand, old_taxes, new_grand, new_taxes, paid, old_outstanding) {
+
+	var diff = flt(new_grand - old_grand, 2);
+	var tax_diff = flt(new_taxes - old_taxes, 2);
+	var new_os = Math.max(0, flt(new_grand - paid, 2));
+	var diff_color = diff > 0 ? "#dc2626" : diff < 0 ? "#059669" : "#6b7280";
+	var diff_prefix = diff > 0 ? "▲ +" : diff < 0 ? "▼ " : "";
+
+	return `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px">
+
+        <div style="background:#fef9c3;border:1px solid #fde68a;border-radius:8px;padding:10px 14px">
+            <div style="font-size:9px;font-weight:700;color:#92400e;text-transform:uppercase;
+                        letter-spacing:0.5px;margin-bottom:6px">📄 Old Invoice</div>
+            <table style="width:100%;font-size:11px;border-collapse:collapse">
+                <tr>
+                    <td style="padding:2px 0;color:#555">Total Taxes</td>
+                    <td style="text-align:right;font-weight:700">₹ ${old_taxes.toFixed(2)}</td>
+                </tr>
+                <tr>
+                    <td style="padding:2px 0;color:#555">Grand Total</td>
+                    <td style="text-align:right;font-weight:700;font-size:13px">
+                        ₹ ${old_grand.toFixed(2)}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:2px 0;color:#555">Paid Amount</td>
+                    <td style="text-align:right;color:#059669;font-weight:700">
+                        ₹ ${paid.toFixed(2)}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:2px 0;color:#555">Outstanding</td>
+                    <td style="text-align:right;color:#dc2626;font-weight:700">
+                        ₹ ${old_outstanding.toFixed(2)}
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 14px">
+            <div style="font-size:9px;font-weight:700;color:#065f46;text-transform:uppercase;
+                        letter-spacing:0.5px;margin-bottom:6px">✅ New Invoice</div>
+            <table style="width:100%;font-size:11px;border-collapse:collapse">
+                <tr>
+                    <td style="padding:2px 0;color:#555">Total Taxes</td>
+                    <td style="text-align:right;font-weight:700">
+                        ₹ ${new_taxes.toFixed(2)}
+                        ${tax_diff !== 0 ?
+			`<span style="font-size:9px;color:${diff_color};margin-left:4px">
+                                (${tax_diff > 0 ? '+' : ''}${tax_diff.toFixed(2)})
+                            </span>` : ''}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:2px 0;color:#555">Grand Total</td>
+                    <td style="text-align:right;font-weight:700;font-size:13px">
+                        ₹ ${new_grand.toFixed(2)}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:2px 0;color:#555">Paid Amount</td>
+                    <td style="text-align:right;color:#059669;font-weight:700">
+                        ₹ ${paid.toFixed(2)}
+                        <span style="font-size:9px;color:#059669"> (unchanged)</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:2px 0;color:#555">New Outstanding</td>
+                    <td style="text-align:right;color:#dc2626;font-weight:700">
+                        ₹ ${new_os.toFixed(2)}
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+    </div>
+
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;
+                padding:8px 14px;display:flex;align-items:center;gap:10px">
+        <div style="font-size:10px;color:#64748b;font-weight:600;text-transform:uppercase">
+            Invoice Difference
+        </div>
+        <div style="font-size:16px;font-weight:900;color:${diff_color}">
+            ${diff_prefix}₹ ${Math.abs(diff).toFixed(2)}
+        </div>
+        ${diff === 0
+			? '<div style="font-size:10px;color:#94a3b8">No change</div>'
+			: `<div style="font-size:10px;color:${diff_color}">
+                ${diff > 0 ? 'Invoice amount increased' : 'Invoice amount decreased'}
+               </div>`
+		}
+    </div>`;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Submit
+// ─────────────────────────────────────────────────────────────
+function gj_submit_edit(frm, d, values) {
+
+	if (!values.edit_reason || !values.edit_reason.trim()) {
+		frappe.msgprint({ message: "Reason is required.", indicator: "orange" });
+		return;
+	}
+
+	var item_rates = [];
+	(frm.doc.items || []).forEach(function (item, idx) {
+		var new_rate = flt(values["item_rate_" + idx]);
+		if (Math.abs(new_rate - flt(item.rate)) > 0.001) {
+			item_rates.push({ row_name: item.name, new_rate: new_rate });
+		}
+	});
+
+	d.disable_primary_action();
+
+
+	frappe.call({
+		method: "erpnext.accounts.doctype.sales_invoice.sales_invoice.update_sales_invoice",
+		args: {
+			si_name: frm.doc.name,
+			posting_date: values.posting_date || frm.doc.posting_date,
+			freight: (flt(frm.doc.freight || 0) === 0 && values.freight) ? values.freight : (frm.doc.freight || 0),
+			item_rates: JSON.stringify(item_rates),
+			reason: values.edit_reason
+		},
+		callback: function (r) {
+
+			if (r.exc || !r.message) {
+				d.enable_primary_action();
+				return;
+			}
+			var res = r.message;
+			d.hide();
+			frappe.show_alert({
+				message: `✅ Updated | Diff: ₹${res.difference.toFixed(2)} | ` +
+					`Paid: ₹${res.paid_amount.toFixed(2)} | ` +
+					`Outstanding: ₹${res.new_outstanding.toFixed(2)}`,
+				indicator: "green"
+			}, 10);
+			frm.reload_doc();
+		},
+		error: function () {
+			frappe.show_progress("", 100, 100);
+			d.enable_primary_action();
+		}
+	});
 }
 
 frappe.ui.form.on("Sales Invoice Payment", {

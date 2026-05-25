@@ -3406,32 +3406,27 @@ def unlock_sales_invoice(invoice_name):
             "success": False,
             "error": str(e)
         }
-
 # ============================================================
-# Place at:
-#   apps/erpnext/erpnext/accounts/doctype/sales_invoice/sales_invoice.py
-#   (add this function at the bottom of the file)
-#   OR in a separate file and import there
+# erpnext/accounts/doctype/sales_invoice/sales_invoice.py
+# Add at bottom of file
+# ============================================================
 #
-# API path used in JS:
-#   erpnext.accounts.doctype.sales_invoice.sales_invoice.update_sales_invoice
+# Strategy: Direct field + GL + PLE update — no cancel/resubmit
+#
+# For a Sales Invoice the GL structure is always:
+#   DEBIT  : Debtor (receivable) account  = grand_total
+#   CREDIT : Income / Sales account(s)    = net_total per item
+#   CREDIT : CGST Output account          = cgst_amount
+#   CREDIT : SGST Output account          = sgst_amount
+#   CREDIT : Freight income account       = freight (if any)
+#
+# We directly update each GL entry's debit/credit by the delta.
+# No new entries → no imbalance risk.
 # ============================================================
 
 
 @frappe.whitelist()
-def update_sales_invoice(si_name, posting_date, freight, item_rates, reason):
-    """
-    Edit a submitted Sales Invoice's rates/freight/date WITHOUT
-    cancel + re-submit.
-
-    Rules:
-      - paid_amount stays EXACTLY as before — never touched
-      - new_outstanding = old_outstanding + (new_grand - old_grand)
-      - Update existing GL Entries (cancel old, create fresh)
-      - Update existing Payment Ledger Entry amount — no new PLE
-      - GST taxes recalculated from new net_total
-      - Audit comment added to SI
-    """
+def update_sales_invoice(si_name, posting_date, freight, item_rates, reason, add_freight_item=0):
 
     frappe.has_permission("Sales Invoice", "write", throw=True)
 
@@ -3440,22 +3435,32 @@ def update_sales_invoice(si_name, posting_date, freight, item_rates, reason):
     freight = flt(freight)
     posting_date = getdate(posting_date)
 
-    # ── Load submitted SI ─────────────────────────────────────
+    # ── Load SI ───────────────────────────────────────────────
     si = frappe.get_doc("Sales Invoice", si_name)
 
     if si.docstatus != 1:
-        frappe.throw("Sales Invoice must be in Submitted state.")
+        frappe.throw("Sales Invoice must be Submitted.")
     if si.is_return:
-        frappe.throw("Cannot edit a return/credit note invoice.")
+        frappe.throw("Cannot edit a Credit Note.")
 
-    # ── Snapshot old values ───────────────────────────────────
     old_grand = flt(si.grand_total, 2)
+    old_net_total = flt(si.net_total, 2)
     old_outstanding = flt(si.outstanding_amount, 2)
     old_paid = flt(si.paid_amount, 2)
     old_date = si.posting_date
     old_freight = flt(si.freight or 0, 2)
 
-    # ── Apply item rate changes to the in-memory doc ──────────
+    # ── Block if fully paid ───────────────────────────────────
+    if old_outstanding <= 0 and old_paid > 0:
+        frappe.throw(
+            f"Invoice <b>{si_name}</b> is fully paid "
+            f"(Paid: ₹{old_paid:.2f}). Editing is not allowed.",
+            title="Editing Blocked — Invoice Fully Paid"
+        )
+
+    add_freight_item = flt(add_freight_item)
+
+    # ── Apply item rate changes in-memory ─────────────────────
     for rc in item_rates:
         for item in si.items:
             if item.name == rc["row_name"]:
@@ -3463,11 +3468,35 @@ def update_sales_invoice(si_name, posting_date, freight, item_rates, reason):
                 item.amount = flt(item.rate * item.qty, 2)
                 break
 
-    # Apply freight
+    # ── Add FREIGHT as new item row if fresh freight entered ──
+    if add_freight_item > 0:
+        # Ensure FREIGHT item exists
+        if not frappe.db.exists("Item", "FREIGHT"):
+            _create_freight_item()
+
+        # Get income account and cost center from first item
+        first = si.items[0] if si.items else frappe._dict()
+        income_account = frappe.db.get_value(
+            "Item Default",
+            {"parent": "FREIGHT", "company": si.company},
+            "income_account"
+        ) or first.get("income_account", "")
+
+        si.append("items", {
+            "item_code":      "FREIGHT",
+            "item_name":      "FREIGHT",
+            "description":    "Freight Charges",
+            "qty":            1,
+            "rate":           add_freight_item,
+            "amount":         add_freight_item,
+            "uom":            "Nos",
+            "income_account": income_account,
+            "cost_center":    first.get("cost_center", si.cost_center or ""),
+        })
+
     if hasattr(si, "freight"):
         si.freight = freight
 
-    # Apply posting date
     if str(posting_date) != str(old_date):
         si.posting_date = posting_date
         si.set_posting_time = 1
@@ -3478,118 +3507,202 @@ def update_sales_invoice(si_name, posting_date, freight, item_rates, reason):
 
     new_grand = flt(si.grand_total, 2)
     new_net_total = flt(si.net_total, 2)
-    difference = flt(new_grand - old_grand, 2)
+    new_freight = flt(si.freight or 0, 2) if hasattr(si, "freight") else 0
 
-    # ── New outstanding: old + difference ─────────────────────
-    # e.g. old_outstanding=5000, diff=+1000 → new=6000
-    # e.g. old_outstanding=0,    diff=+1000 → new=1000
-    # e.g. old_outstanding=5000, diff=-1000 → new=4000
-    new_outstanding = flt(old_outstanding + difference, 2)
-    new_outstanding = max(0, new_outstanding)   # floor at 0
+    # Individual deltas
+    grand_diff = flt(new_grand - old_grand, 2)
+    net_diff = flt(new_net_total - old_net_total, 2)
+    freight_diff = flt(new_freight - old_freight, 2)
 
-    # ── Step 1: Update SI child item amounts in DB ────────────
-    for item in si.items:
-        frappe.db.set_value(
-            "Sales Invoice Item", item.name,
-            {"rate": item.rate, "amount": item.amount},
-            update_modified=False
-        )
-
-    # ── Step 2: Update tax rows in DB ────────────────────────
+    # Tax deltas per account
+    tax_deltas = {}   # {account_head: delta}
     for tax in si.taxes:
-        frappe.db.set_value(
-            "Sales Taxes and Charges", tax.name,
-            {
-                "tax_amount":       flt(tax.tax_amount, 2),
-                "total":            flt(tax.total, 2),
-                "base_tax_amount":  flt(tax.base_tax_amount, 2),
-                "base_total":       flt(tax.base_total, 2),
-                "tax_amount_after_discount_amount":
-                    flt(getattr(tax, "tax_amount_after_discount_amount",
-                        tax.tax_amount), 2),
-            },
-            update_modified=False
-        )
+        acc = tax.account_head
+        # old amount from DB before recalc (si was reloaded, taxes recalculated)
+        # We need old tax amounts — fetch from DB
+        old_tax = frappe.db.get_value(
+            "Sales Taxes and Charges", tax.name, "tax_amount"
+        ) or 0
+        delta = flt(tax.tax_amount, 2) - flt(old_tax, 2)
+        if acc not in tax_deltas:
+            tax_deltas[acc] = 0
+        tax_deltas[acc] = flt(tax_deltas[acc] + delta, 2)
 
-    # ── Step 3: Update SI header amounts in DB ────────────────
-    header_update = {
-        "net_total":           new_net_total,
-        "grand_total":         new_grand,
-        "base_grand_total":    flt(si.base_grand_total, 2),
-        "base_net_total":      flt(si.base_net_total, 2),
+    # ── Step 1: Save updated item amounts ────────────────────
+    # For new FREIGHT row (no name yet) — insert it first
+    for item in si.items:
+        if not item.name:
+            # New row appended in memory — insert into DB
+            item.parent = si_name
+            item.parenttype = "Sales Invoice"
+            item.parentfield = "items"
+            item.idx = len(si.items)
+            item_doc = frappe.get_doc({
+                "doctype":       "Sales Invoice Item",
+                "parent":        si_name,
+                "parenttype":    "Sales Invoice",
+                "parentfield":   "items",
+                "item_code":     item.item_code,
+                "item_name":     item.item_name,
+                "description":   item.get("description", item.item_name),
+                "qty":           item.qty,
+                "rate":          item.rate,
+                "amount":        item.amount,
+                "uom":           item.uom,
+                "income_account": item.get("income_account", ""),
+                "cost_center":   item.get("cost_center", ""),
+                "idx":           item.idx,
+            })
+            item_doc.flags.ignore_permissions = True
+            item_doc.insert()
+            item.name = item_doc.name
+        else:
+            frappe.db.set_value("Sales Invoice Item", item.name,
+                                {"rate": item.rate, "amount": item.amount},
+                                update_modified=False)
+
+    # ── Step 2: Save updated tax amounts ─────────────────────
+    for tax in si.taxes:
+        frappe.db.set_value("Sales Taxes and Charges", tax.name, {
+            "tax_amount":      flt(tax.tax_amount, 2),
+            "total":           flt(tax.total, 2),
+            "base_tax_amount": flt(tax.base_tax_amount, 2),
+            "base_total":      flt(tax.base_total, 2),
+        }, update_modified=False)
+
+    # ── Step 3: Save SI header ────────────────────────────────
+    new_outstanding = max(0, flt(new_grand - old_paid, 2))
+
+    header = {
+        "net_total":               new_net_total,
+        "grand_total":             new_grand,
+        "base_grand_total":        flt(si.base_grand_total, 2),
+        "base_net_total":          flt(si.base_net_total, 2),
         "total_taxes_and_charges": flt(si.total_taxes_and_charges, 2),
-        "rounded_total":       flt(si.rounded_total, 2),
-        "rounding_adjustment": flt(si.rounding_adjustment, 2),
-        "in_words":            si.in_words or "",
-        # ← outstanding changes, paid_amount NEVER touched
-        "outstanding_amount":  new_outstanding,
-        "paid_amount":         old_paid,           # preserved exactly
-        "modified":            now(),
-        "modified_by":         frappe.session.user,
+        "rounded_total":           flt(si.rounded_total, 2),
+        "rounding_adjustment":     flt(si.rounding_adjustment, 2),
+        "in_words":                si.in_words or "",
+        "outstanding_amount":      new_outstanding,
+        "paid_amount":             old_paid,      # ← never changed
+        "modified":                now(),
+        "modified_by":             frappe.session.user,
     }
     if hasattr(si, "freight"):
-        header_update["freight"] = freight
+        header["freight"] = new_freight
     if str(posting_date) != str(old_date):
-        header_update["posting_date"] = posting_date
+        header["posting_date"] = posting_date
 
-    frappe.db.set_value("Sales Invoice", si_name, header_update,
+    frappe.db.set_value("Sales Invoice", si_name, header,
                         update_modified=False)
     frappe.db.commit()
 
-    # ── Step 4: Cancel existing GL Entries ────────────────────
-    frappe.db.sql("""
-        UPDATE `tabGL Entry`
-        SET    is_cancelled = 1,
-               modified     = %(now)s,
-               modified_by  = %(user)s
-        WHERE  voucher_type  = 'Sales Invoice'
-          AND  voucher_no    = %(si)s
-          AND  is_cancelled  = 0
-    """, {"now": now(), "user": frappe.session.user, "si": si_name})
+    # ── Step 4: Update existing GL Entries directly ───────────
+    # Fetch all active GL entries for this SI
+    gl_rows = frappe.db.sql("""
+        SELECT name, account, debit, credit,
+               debit_in_account_currency,
+               credit_in_account_currency,
+                party_type, party
+        FROM `tabGL Entry`
+        WHERE voucher_type = 'Sales Invoice'
+          AND voucher_no   = %(si)s
+          AND is_cancelled = 0
+    """, {"si": si_name}, as_dict=True)
 
-    frappe.db.commit()
+    # Identify the debtor (receivable) row — it has party=customer
+    # and debit > 0 (money owed by customer)
+    debtor_account = si.debit_to
 
-    # ── Step 5: Create fresh GL Entries ───────────────────────
-    si.reload()
-    si.flags.ignore_permissions = True
-    si.flags.ignore_validate = True
-    si.flags.ignore_links = True
+    for gl in gl_rows:
+        new_debit = flt(gl.debit, 2)
+        new_credit = flt(gl.credit, 2)
+        new_debit_acc = flt(gl.debit_in_account_currency, 2)
+        new_credit_acc = flt(gl.credit_in_account_currency, 2)
 
-    frappe.db.commit()
+        if gl.account == debtor_account and gl.debit > 0:
+            # Receivable row — increases by grand_diff
+            new_debit = flt(gl.debit + grand_diff, 2)
+            new_debit_acc = flt(gl.debit_in_account_currency + grand_diff, 2)
 
-    # ── Step 6: Update Payment Ledger Entry — NO new entry ────
-    # Just update the amount on the existing active PLE
-    if difference != 0:
-        # Update amount on existing PLE for this SI
+        elif gl.account in tax_deltas and gl.credit > 0:
+            # Tax account row (CGST/SGST/IGST) — update by tax delta
+            delta = tax_deltas[gl.account]
+            new_credit = flt(gl.credit + delta, 2)
+            new_credit_acc = flt(gl.credit_in_account_currency + delta, 2)
+
+        elif gl.credit > 0 and gl.account != debtor_account:
+            # Income / freight row — check if it's freight
+            if freight_diff != 0 and _is_freight_account(gl.account, si):
+                new_credit = flt(gl.credit + freight_diff, 2)
+                new_credit_acc = flt(
+                    gl.credit_in_account_currency + freight_diff, 2)
+            elif gl.account not in tax_deltas:
+                # Regular income account — update by net_diff minus freight_diff
+                income_diff = flt(net_diff - freight_diff, 2)
+                new_credit = flt(gl.credit + income_diff, 2)
+                new_credit_acc = flt(
+                    gl.credit_in_account_currency + income_diff, 2)
+
         frappe.db.sql("""
-            UPDATE `tabPayment Ledger Entry`
-            SET    amount                       = amount + %(diff)s,
-                   amount_in_account_currency   = amount_in_account_currency + %(diff)s,
-                   modified                     = %(now)s,
-                   modified_by                  = %(user)s
-            WHERE  voucher_type  = 'Sales Invoice'
-              AND  voucher_no    = %(si)s
-              AND  delinked      = 0
+            UPDATE `tabGL Entry`
+            SET    debit                       = %(d)s,
+                   credit                      = %(c)s,
+                   debit_in_account_currency   = %(da)s,
+                   credit_in_account_currency  = %(ca)s,
+                   modified                    = %(now)s,
+                   modified_by                 = %(user)s
+            WHERE  name = %(name)s
         """, {
-            "diff": difference,
-            "si":   si_name,
+            "d":    new_debit,     "c":    new_credit,
+            "da":   new_debit_acc, "ca":   new_credit_acc,
             "now":  now(),
             "user": frappe.session.user,
+            "name": gl.name,
         })
 
-        frappe.db.commit()
+    frappe.db.commit()
 
-    # ── Step 8: Audit comment ─────────────────────────────────
+    # ── Step 5: Update Payment Ledger Entry — set absolute amount ──
+    # Use new_grand as absolute value (not delta) to avoid drift.
+    # Filter on against_voucher_no which is how ERPNext stores SI ref in PLE.
+    frappe.db.sql("""
+        UPDATE `tabPayment Ledger Entry`
+        SET    amount                     = %(grand)s,
+               amount_in_account_currency = %(grand)s,
+               modified                   = %(now)s,
+               modified_by                = %(user)s
+        WHERE  against_voucher_no = %(si)s
+          AND  voucher_type       = 'Sales Invoice'
+          AND  delinked           = 0
+    """, {
+        "grand": new_grand, "si": si_name,
+        "now": now(), "user": frappe.session.user
+    })
+    frappe.db.commit()
+
+    # ── Step 6: Update Payment Entry Reference ────────────────
+    frappe.db.sql("""
+        UPDATE `tabPayment Entry Reference`
+        SET    outstanding_amount = %(os)s,
+               modified          = %(now)s
+        WHERE  reference_doctype = 'Sales Invoice'
+          AND  reference_name    = %(si)s
+          AND  docstatus         = 1
+    """, {"os": new_outstanding, "si": si_name, "now": now()})
+
+    frappe.db.commit()
+
+    # ── Step 7: Audit comment ─────────────────────────────────
     lines = [f"<b>Quick Edit</b> by {frappe.session.user}"]
     if str(posting_date) != str(old_date):
         lines.append(f"Posting Date: {old_date} → {posting_date}")
-    if abs(freight - old_freight) > 0.001:
-        lines.append(f"Freight: ₹{old_freight:.2f} → ₹{freight:.2f}")
+    if abs(new_freight - old_freight) > 0.001:
+        lines.append(f"Freight: ₹{old_freight:.2f} → ₹{new_freight:.2f}")
     if item_rates:
         lines.append(f"Item rates updated: {len(item_rates)} row(s)")
     lines.append(f"Old Grand Total: ₹{old_grand:.2f}")
     lines.append(f"New Grand Total: ₹{new_grand:.2f}")
-    lines.append(f"Difference: ₹{difference:.2f}")
+    lines.append(f"Difference: ₹{grand_diff:.2f}")
     lines.append(f"Paid Amount (unchanged): ₹{old_paid:.2f}")
     lines.append(f"New Outstanding: ₹{new_outstanding:.2f}")
     lines.append(f"Reason: {reason}")
@@ -3601,14 +3714,43 @@ def update_sales_invoice(si_name, posting_date, freight, item_rates, reason):
         "reference_name":    si_name,
         "content":           "<br>".join(lines),
     }).insert(ignore_permissions=True)
-
     frappe.db.commit()
 
     return {
         "old_grand":       old_grand,
         "new_grand":       new_grand,
-        "difference":      difference,
+        "difference":      grand_diff,
         "old_outstanding": old_outstanding,
         "new_outstanding": new_outstanding,
-        "paid_amount":     old_paid,          # so JS can confirm it was preserved
+        "paid_amount":     old_paid,
     }
+
+
+def _create_freight_item():
+    """Auto-create FREIGHT item if it doesn't exist."""
+    item = frappe.new_doc("Item")
+    item.update({
+        "item_code":        "FREIGHT",
+        "item_name":        "FREIGHT",
+        "item_group":       "All Item Groups",
+        "stock_uom":        "Nos",
+        "is_stock_item":    0,
+        "is_sales_item":    1,
+        "is_purchase_item": 0,
+        "description":      "Freight Charges",
+    })
+    item.flags.ignore_permissions = True
+    item.insert()
+    frappe.db.commit()
+
+
+def _is_freight_account(account, si):
+    """Check if a GL account is the freight account for this SI."""
+    # Check if the account is linked to freight charges in the SI taxes
+    for tax in si.taxes:
+        if tax.account_head == account and (
+            "freight" in (tax.description or "").lower() or
+            "freight" in account.lower()
+        ):
+            return True
+    return False
