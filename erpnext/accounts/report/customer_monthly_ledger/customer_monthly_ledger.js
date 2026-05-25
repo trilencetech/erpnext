@@ -50,6 +50,8 @@ frappe.query_reports["Customer Monthly Ledger"] = {
 				return `<span style="color:#1a56db;font-weight:700;font-size:13.5px;">${value}</span>`;
 			if (column.fieldname === "outstanding")
 				return `<span style="color:#dc2626;font-weight:700;font-size:14px;">${value}</span>`;
+			if (column.fieldname === "opening_outstanding" && flt(data.opening_outstanding) > 0)
+				return `<span style="color:#d97706;font-weight:700;">${value}</span>`;
 			if (column.fieldname === "credit_note" && flt(data.credit_note) > 0)
 				return `<span style="color:#d97706;font-weight:700;">${value}</span>`;
 			return `<span style="font-weight:700;color:#1a56db;">${value}</span>`;
@@ -63,6 +65,9 @@ frappe.query_reports["Customer Monthly Ledger"] = {
 					       text-decoration:underline;text-underline-offset:3px;"
 					data-customer="${data._customer}"
 				>${data.period}&nbsp;<i class="fa fa-bar-chart" style="font-size:11px;opacity:.65;"></i></a>`;
+
+			if (column.fieldname === "opening_outstanding" && flt(data.opening_outstanding) > 0)
+				return `<span style="color:#d97706;font-weight:600;">${value}</span>`;
 
 			if (column.fieldname === "outstanding") {
 				var clr = flt(data.outstanding) > 0 ? "#e65100" : "#16a34a";
@@ -180,7 +185,10 @@ function _load_customer_monthly_drilldown(customer, company, from_date, to_date,
 		freeze: true,
 		freeze_message: __("Loading monthly ledger for {0}…", [customer_label]),
 		callback: function (r) {
-			var rows = r.message || [];
+			var msg  = r.message || {};
+			// API now returns {rows, opening_outstanding}; guard against old plain-array response
+			var rows = Array.isArray(msg) ? msg : (msg.rows || []);
+			var opening_outstanding = Array.isArray(msg) ? 0 : flt(msg.opening_outstanding || 0, 2);
 			if (!rows.length) {
 				frappe.msgprint({
 					title: __("No Data"),
@@ -189,35 +197,63 @@ function _load_customer_monthly_drilldown(customer, company, from_date, to_date,
 				});
 				return;
 			}
-			_show_customer_monthly_dialog(rows, customer_label, customer, company, from_date, to_date);
+			_show_customer_monthly_dialog(rows, customer_label, customer, company, from_date, to_date, opening_outstanding);
 		},
 	});
 }
 
-function _show_customer_monthly_dialog(rows, customer_label, customer, company, from_date, to_date) {
+function _show_customer_monthly_dialog(rows, customer_label, customer, company, from_date, to_date, opening_outstanding) {
+	opening_outstanding = flt(opening_outstanding || 0, 2);
+
 	var total_row  = rows.find(function (r) { return r._row_type === "total"; }) || {};
 	var month_rows = rows.filter(function (r) { return r._row_type === "month"; });
 
-	var total_out = flt(total_row.outstanding || 0, 2);
-	var all_clear = total_out === 0;
+	var period_out   = flt(total_row.outstanding || 0, 2);
+	var combined_out = flt(period_out + opening_outstanding, 2);
+	var all_clear    = combined_out === 0;
 
-	// ── Outstanding summary box ───────────────────────────────────────────────
+	// ── Opening Outstanding box (amber) — only shown when there's a prior balance ──
+	var opening_box = "";
+	if (opening_outstanding > 0) {
+		opening_box = `
+		<div style="display:flex;justify-content:space-between;align-items:center;
+			background:#fff7ed;border:2px solid #f59e0b;border-radius:6px;
+			padding:12px 18px;margin-bottom:10px;">
+			<div>
+				<div style="font-size:12px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.5px;">
+					⏳ Opening Outstanding
+				</div>
+				<div style="font-size:11.5px;color:#78350f;margin-top:2px;">
+					Unpaid invoices before <strong>${frappe.datetime.str_to_user(from_date)}</strong>
+				</div>
+			</div>
+			<div style="font-size:22px;font-weight:700;color:#d97706;">${_fmt(opening_outstanding)}</div>
+		</div>`;
+	}
+
+	// ── Period Outstanding / Total Outstanding box ───────────────────────────
 	var out_bg     = all_clear ? "#f0fdf4" : "#fef2f2";
 	var out_border = all_clear ? "#22c55e" : "#dc2626";
 	var out_color  = all_clear ? "#15803d" : "#dc2626";
+
+	var summary_label = all_clear
+		? "✅ Fully Cleared"
+		: (opening_outstanding > 0 ? "⏳ Total Outstanding (Period + Opening)" : "⏳ Outstanding Balance");
+	var summary_sub = opening_outstanding > 0
+		? `Period: ${_fmt(period_out)} &nbsp;+&nbsp; Opening: ${_fmt(opening_outstanding)}`
+		: `${frappe.datetime.str_to_user(from_date)} – ${frappe.datetime.str_to_user(to_date)}`;
+
 	var summary_box = `
 	<div style="display:flex;justify-content:space-between;align-items:center;
 		background:${out_bg};border:2px solid ${out_border};border-radius:6px;
 		padding:12px 18px;margin-bottom:16px;">
 		<div>
 			<div style="font-size:12px;font-weight:700;color:${out_color};text-transform:uppercase;letter-spacing:.5px;">
-				${all_clear ? "✅ Fully Cleared" : "⏳ Outstanding Balance"}
+				${summary_label}
 			</div>
-			<div style="font-size:11.5px;color:#6b7280;margin-top:2px;">
-				${frappe.datetime.str_to_user(from_date)} – ${frappe.datetime.str_to_user(to_date)}
-			</div>
+			<div style="font-size:11.5px;color:#6b7280;margin-top:2px;">${summary_sub}</div>
 		</div>
-		<div style="font-size:24px;font-weight:700;color:${out_color};">${_fmt(total_out)}</div>
+		<div style="font-size:24px;font-weight:700;color:${out_color};">${_fmt(combined_out)}</div>
 	</div>`;
 
 	// ── Monthly table ─────────────────────────────────────────────────────────
@@ -282,7 +318,7 @@ function _show_customer_monthly_dialog(rows, customer_label, customer, company, 
 	</div>`;
 
 	var full_html = `<div style="max-height:70vh;overflow-y:auto;padding-right:2px;">` +
-		header_bar + summary_box + inv_table + `</div>`;
+		header_bar + opening_box + summary_box + inv_table + `</div>`;
 
 	var d = new frappe.ui.Dialog({
 		title: "📊 " + customer_label + " — Monthly Ledger",

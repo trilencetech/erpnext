@@ -51,6 +51,13 @@ def _customer_list_columns():
             "width": 300,
         },
         {
+            "label": _("Opening Outstanding"),
+            "fieldname": "opening_outstanding",
+            "fieldtype": "Currency",
+            "options": "currency",
+            "width": 160,
+        },
+        {
             "label": _("Invoice Amount"),
             "fieldname": "invoice_amount",
             "fieldtype": "Currency",
@@ -174,30 +181,48 @@ def _get_customer_list(filters):
         params, as_dict=True,
     )
 
+    # Opening outstanding per customer — invoices posted BEFORE from_date still unpaid
+    opening_rows = frappe.db.sql(
+        """
+        SELECT customer, SUM(outstanding_amount) AS opening_out
+        FROM   `tabSales Invoice`
+        WHERE  docstatus = 1 AND is_return = 0
+          AND  company       = %(company)s
+          AND  posting_date  < %(from_date)s
+          AND  outstanding_amount > 0
+        GROUP  BY customer
+        """,
+        params, as_dict=True,
+    )
+    opening_by_cust = {r.customer: flt(r.opening_out, 2) for r in opening_rows}
+
     cn_by_cust = {r.customer: flt(r.cn_total, 2) for r in returns}
 
-    grand_inv = grand_cn = grand_paid = grand_out = 0.0
+    grand_inv = grand_cn = grand_paid = grand_out = grand_opening = 0.0
     rows = []
 
     for inv in invoices:
         cn      = cn_by_cust.get(inv.customer, 0.0)
+        opening = opening_by_cust.get(inv.customer, 0.0)
         net_out = flt(max(0.0, flt(inv.fwd_out, 2)), 2)
         paid    = flt(max(0.0, flt(inv.invoice_total, 2) - net_out), 2)
 
-        grand_inv  += flt(inv.invoice_total, 2)
-        grand_cn   += cn
-        grand_paid += paid
-        grand_out  += net_out
+        grand_inv     += flt(inv.invoice_total, 2)
+        grand_cn      += cn
+        grand_paid    += paid
+        grand_out     += net_out
+        grand_opening += opening
 
         rows.append({
-            "period":         inv.customer_name or inv.customer,
-            "invoice_amount": flt(inv.invoice_total, 2),
-            "credit_note":    cn,
-            "paid_amount":    paid,
-            "outstanding":    net_out,
-            "_row_type":      "customer",
-            "_customer":      inv.customer,
-            "currency":       company_currency,
+            "period":              inv.customer_name or inv.customer,
+            "opening_outstanding": opening,
+            "invoice_amount":      flt(inv.invoice_total, 2),
+            "credit_note":         cn,
+            "paid_amount":         paid,
+            "outstanding":         flt(net_out + opening, 2),
+            "_row_type":           "customer",
+            "_customer":           inv.customer,
+            "currency":            company_currency,
         })
 
     if not rows:
@@ -205,18 +230,19 @@ def _get_customer_list(filters):
 
     # Grand total row at top
     total_row = [{
-        "period":         frappe.bold(
+        "period":              frappe.bold(
             "Total Outstanding as on {}".format(formatdate(to_date))),
-        "invoice_amount": flt(grand_inv,  2),
-        "credit_note":    flt(grand_cn,   2),
-        "paid_amount":    flt(grand_paid, 2),
-        "outstanding":    flt(grand_out,  2),
-        "_row_type":      "total",
-        "_customer":      "",
-        "currency":       company_currency,
+        "opening_outstanding": flt(grand_opening,           2),
+        "invoice_amount":      flt(grand_inv,               2),
+        "credit_note":         flt(grand_cn,                2),
+        "paid_amount":         flt(grand_paid,              2),
+        "outstanding":         flt(grand_out + grand_opening, 2),
+        "_row_type":           "total",
+        "_customer":           "",
+        "currency":            company_currency,
     }, {
-        "period": "", "invoice_amount": None, "credit_note": None,
-        "paid_amount": None, "outstanding": None,
+        "period": "", "opening_outstanding": None, "invoice_amount": None,
+        "credit_note": None, "paid_amount": None, "outstanding": None,
         "_row_type": "blank", "_customer": "", "currency": company_currency,
     }]
 
@@ -347,14 +373,30 @@ def _get_monthly_data(filters):
 
 @frappe.whitelist()
 def get_customer_monthly_ledger(customer, company, from_date, to_date):
-    """Return monthly rows for one customer (called by the JS customer drilldown dialog)."""
+    """Return monthly rows + opening outstanding for the customer drilldown dialog."""
     filters = frappe._dict({
         "customer":  customer,
         "company":   company,
         "from_date": from_date,
         "to_date":   to_date,
     })
-    return _get_monthly_data(filters)
+    rows = _get_monthly_data(filters)
+
+    opening_row = frappe.db.sql(
+        """
+        SELECT COALESCE(SUM(outstanding_amount), 0) AS val
+        FROM `tabSales Invoice`
+        WHERE docstatus = 1 AND is_return = 0
+          AND customer  = %(customer)s AND company = %(company)s
+          AND posting_date  < %(from_date)s
+          AND outstanding_amount > 0
+        """,
+        {"customer": customer, "company": company, "from_date": getdate(from_date)},
+        as_dict=True,
+    )
+    opening_outstanding = flt((opening_row[0].val if opening_row else 0), 2)
+
+    return {"rows": rows, "opening_outstanding": opening_outstanding}
 
 
 # ── DRILLDOWN API — single month ──────────────────────────────────────────────
