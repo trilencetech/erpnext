@@ -1085,6 +1085,171 @@ frappe.ui.form.on("Sales Invoice Timesheet", {
 	},
 });
 
+// ============================================================
+// Sales Invoice — Quick Edit Fields
+// Settings → Client Script → Apply To: Sales Invoice
+// ============================================================
+
+frappe.ui.form.on("Sales Invoice", {
+
+	refresh: function (frm) {
+		if (frm.doc.docstatus === 1 && !frm.doc.is_return) {
+			frm.add_custom_button(__("✏️ Update Sales Invoice"), function () {
+				gj_show_quick_edit_dialog(frm);
+			}, __("Actions"));
+		}
+	}
+
+});
+
+function gj_show_quick_edit_dialog(frm) {
+
+	// Build one rate field per item row
+	var item_fields = [{
+		fieldtype: "Section Break",
+		label: "Item Rates (edit only what changed)"
+	}];
+
+	(frm.doc.items || []).forEach(function (item, idx) {
+		item_fields.push({
+			fieldtype: "Currency",
+			fieldname: "item_rate_" + idx,
+			label: "Row " + (idx + 1) + " — " + (item.item_name || item.item_code),
+			description: "Current: ₹ " + flt(item.rate).toFixed(2),
+			default: item.rate
+		});
+		if (idx % 2 === 0) item_fields.push({ fieldtype: "Column Break" });
+	});
+
+	var paid = flt(frm.doc.paid_amount);
+	var outstnd = flt(frm.doc.outstanding_amount);
+	var grand = flt(frm.doc.grand_total);
+
+	var d = new frappe.ui.Dialog({
+		title: "✏️ Quick Edit — " + frm.doc.name,
+		size: "large",
+		fields: [
+			// Current amounts banner
+			{
+				fieldtype: "Section Break",
+				label: "Current Invoice Position"
+			},
+			{
+				fieldtype: "HTML",
+				fieldname: "summary_html",
+				options: `
+                <div style="display:flex;gap:16px;flex-wrap:wrap;background:#eff6ff;
+                            border:1px solid #bfdbfe;border-radius:8px;padding:10px 14px;
+                            margin-bottom:4px;font-size:12px">
+                    <div>
+                        <div style="font-size:9px;color:#1e40af;font-weight:700;text-transform:uppercase">Grand Total</div>
+                        <div style="font-weight:700;font-size:14px">₹ ${grand.toFixed(2)}</div>
+                    </div>
+                    <div>
+                        <div style="font-size:9px;color:#1e40af;font-weight:700;text-transform:uppercase">Paid Amount</div>
+                        <div style="font-weight:700;font-size:14px;color:#059669">₹ ${paid.toFixed(2)}</div>
+                    </div>
+                    <div>
+                        <div style="font-size:9px;color:#1e40af;font-weight:700;text-transform:uppercase">Outstanding</div>
+                        <div style="font-weight:700;font-size:14px;color:#dc2626">₹ ${outstnd.toFixed(2)}</div>
+                    </div>
+                </div>`
+			},
+
+			// General fields
+			{
+				fieldtype: "Section Break",
+				label: "General"
+			},
+			{
+				fieldtype: "Date",
+				fieldname: "posting_date",
+				label: "Posting Date",
+				default: frm.doc.posting_date,
+				description: "Current: " + frm.doc.posting_date
+			},
+			{ fieldtype: "Column Break" },
+			{
+				fieldtype: "Currency",
+				fieldname: "freight",
+				label: "Freight (₹)",
+				default: frm.doc.freight || 0,
+				description: "Current: ₹ " + flt(frm.doc.freight || 0).toFixed(2)
+			},
+
+			// Item rates
+			...item_fields,
+
+			// Reason
+			{
+				fieldtype: "Section Break",
+				label: "Reason"
+			},
+			{
+				fieldtype: "Small Text",
+				fieldname: "edit_reason",
+				label: "Reason for Edit",
+				reqd: 1,
+				placeholder: "e.g. Rate corrected as per agreement dated xx-xx-xxxx"
+			}
+		],
+		primary_action_label: "💾 Update Invoice",
+		primary_action: function (values) {
+
+			if (!values.edit_reason || !values.edit_reason.trim()) {
+				frappe.msgprint({ message: "Reason is required.", indicator: "orange" });
+				return;
+			}
+
+			// Collect changed item rates only
+			var item_rates = [];
+			(frm.doc.items || []).forEach(function (item, idx) {
+				var new_rate = flt(values["item_rate_" + idx]);
+				if (Math.abs(new_rate - flt(item.rate)) > 0.001) {
+					item_rates.push({ row_name: item.name, new_rate: new_rate });
+				}
+			});
+
+			d.disable_primary_action();
+
+
+			frappe.call({
+				// ← Updated path as per your file location
+				method: "erpnext.accounts.doctype.sales_invoice.sales_invoice.update_sales_invoice",
+				args: {
+					si_name: frm.doc.name,
+					posting_date: values.posting_date || frm.doc.posting_date,
+					freight: values.freight !== undefined ? values.freight : (frm.doc.freight || 0),
+					item_rates: JSON.stringify(item_rates),
+					reason: values.edit_reason
+				},
+				callback: function (r) {
+
+					if (r.exc || !r.message) {
+						d.enable_primary_action();
+						return;
+					}
+					var res = r.message;
+					d.hide();
+					frappe.show_alert({
+						message: `✅ Updated. Difference: ₹${res.difference.toFixed(2)} | 
+                                  Paid: ₹${res.paid_amount.toFixed(2)} | 
+                                  New Outstanding: ₹${res.new_outstanding.toFixed(2)}`,
+						indicator: "green"
+					}, 10);
+					frm.reload_doc();
+				},
+				error: function () {
+					frappe.show_progress("", 100, 100);
+					d.enable_primary_action();
+				}
+			});
+		}
+	});
+
+	d.show();
+}
+
 frappe.ui.form.on("Sales Invoice Payment", {
 	mode_of_payment: function (frm) {
 		frappe.call({

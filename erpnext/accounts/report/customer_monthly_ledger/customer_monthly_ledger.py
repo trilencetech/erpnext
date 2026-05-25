@@ -9,7 +9,7 @@ from frappe.utils import flt, formatdate, get_first_day, get_last_day, getdate
 def execute(filters=None):
     filters = frappe._dict(filters or {})
     _validate_filters(filters)
-    columns = _get_columns()
+    columns = _get_columns(filters)
     data = _get_data(filters)
     return columns, data
 
@@ -17,9 +17,7 @@ def execute(filters=None):
 # ── VALIDATION ────────────────────────────────────────────────────────────────
 
 def _validate_filters(filters):
-    if not filters.get("customer"):
-        frappe.throw(_("Please select a Customer"))
-
+    # customer is optional — omitting it shows the all-customer summary list
     if not filters.get("company"):
         filters["company"] = frappe.defaults.get_user_default("Company")
         if not filters["company"]:
@@ -37,7 +35,55 @@ def _validate_filters(filters):
 
 # ── COLUMNS ───────────────────────────────────────────────────────────────────
 
-def _get_columns():
+def _get_columns(filters=None):
+    """Return customer-list columns when no customer filter, else monthly columns."""
+    if filters and filters.get("customer"):
+        return _monthly_columns()
+    return _customer_list_columns()
+
+
+def _customer_list_columns():
+    return [
+        {
+            "label": _("Customer"),
+            "fieldname": "period",
+            "fieldtype": "Data",
+            "width": 300,
+        },
+        {
+            "label": _("Invoice Amount"),
+            "fieldname": "invoice_amount",
+            "fieldtype": "Currency",
+            "options": "currency",
+            "width": 160,
+        },
+        {
+            "label": _("Credit Note"),
+            "fieldname": "credit_note",
+            "fieldtype": "Currency",
+            "options": "currency",
+            "width": 140,
+        },
+        {
+            "label": _("Paid / Adjusted"),
+            "fieldname": "paid_amount",
+            "fieldtype": "Currency",
+            "options": "currency",
+            "width": 160,
+        },
+        {
+            "label": _("Outstanding"),
+            "fieldname": "outstanding",
+            "fieldtype": "Currency",
+            "options": "currency",
+            "width": 160,
+        },
+        {"label": _("Row Type"),   "fieldname": "_row_type", "fieldtype": "Data", "hidden": 1, "width": 0},
+        {"label": _("Customer ID"), "fieldname": "_customer", "fieldtype": "Data", "hidden": 1, "width": 0},
+    ]
+
+
+def _monthly_columns():
     return [
         {
             "label": _("Period"),
@@ -64,7 +110,7 @@ def _get_columns():
             "fieldname": "paid_amount",
             "fieldtype": "Currency",
             "options": "currency",
-            "width": 140,
+            "width": 160,
         },
         {
             "label": _("Outstanding"),
@@ -73,45 +119,121 @@ def _get_columns():
             "options": "currency",
             "width": 160,
         },
-        # Hidden helper fields for JS drilldown
-        {
-            "label": _("Month Start"),
-            "fieldname": "month_start",
-            "fieldtype": "Date",
-            "hidden": 1,
-            "width": 0,
-        },
-        {
-            "label": _("Month End"),
-            "fieldname": "month_end",
-            "fieldtype": "Date",
-            "hidden": 1,
-            "width": 0,
-        },
-        {
-            "label": _("Row Type"),
-            "fieldname": "_row_type",
-            "fieldtype": "Data",
-            "hidden": 1,
-            "width": 0,
-        },
+        {"label": _("Month Start"), "fieldname": "month_start", "fieldtype": "Date",  "hidden": 1, "width": 0},
+        {"label": _("Month End"),   "fieldname": "month_end",   "fieldtype": "Date",  "hidden": 1, "width": 0},
+        {"label": _("Row Type"),    "fieldname": "_row_type",   "fieldtype": "Data",  "hidden": 1, "width": 0},
+        {"label": _("Customer ID"), "fieldname": "_customer",   "fieldtype": "Data",  "hidden": 1, "width": 0},
     ]
 
 
-# ── DATA ──────────────────────────────────────────────────────────────────────
-#
-# Month buckets are keyed by the INVOICE posting date, not the payment date.
-# ERPNext maintains outstanding_amount on each Sales Invoice to always reflect
-# all allocated payments and credit notes (regardless of when they were applied).
-# So grouping by invoice date + reading outstanding_amount per invoice gives
-# correct attribution: April invoices show their paid/outstanding even if the
-# customer paid in May.
+# ── DATA ROUTER ───────────────────────────────────────────────────────────────
 
 def _get_data(filters):
-    customer = filters.customer
-    company = filters.company
+    if filters.get("customer"):
+        return _get_monthly_data(filters)
+    return _get_customer_list(filters)
+
+
+# ── CUSTOMER LIST (no customer filter) ────────────────────────────────────────
+
+def _get_customer_list(filters):
+    company   = filters.company
     from_date = getdate(filters.from_date)
-    to_date = getdate(filters.to_date)
+    to_date   = getdate(filters.to_date)
+
+    company_currency = frappe.get_cached_value(
+        "Company", company, "default_currency") or "INR"
+
+    params = {"company": company, "from_date": from_date, "to_date": to_date}
+
+    invoices = frappe.db.sql(
+        """
+        SELECT customer,
+               MAX(customer_name)        AS customer_name,
+               SUM(grand_total)          AS invoice_total,
+               SUM(outstanding_amount)   AS fwd_out
+        FROM   `tabSales Invoice`
+        WHERE  docstatus = 1 AND is_return = 0
+          AND  company        = %(company)s
+          AND  posting_date BETWEEN %(from_date)s AND %(to_date)s
+        GROUP  BY customer
+        ORDER  BY customer_name
+        """,
+        params, as_dict=True,
+    )
+
+    returns = frappe.db.sql(
+        """
+        SELECT customer, SUM(ABS(grand_total)) AS cn_total
+        FROM   `tabSales Invoice`
+        WHERE  docstatus = 1 AND is_return = 1
+          AND  company        = %(company)s
+          AND  posting_date BETWEEN %(from_date)s AND %(to_date)s
+        GROUP  BY customer
+        """,
+        params, as_dict=True,
+    )
+
+    cn_by_cust = {r.customer: flt(r.cn_total, 2) for r in returns}
+
+    grand_inv = grand_cn = grand_paid = grand_out = 0.0
+    rows = []
+
+    for inv in invoices:
+        cn      = cn_by_cust.get(inv.customer, 0.0)
+        net_out = flt(max(0.0, flt(inv.fwd_out, 2)), 2)
+        paid    = flt(max(0.0, flt(inv.invoice_total, 2) - net_out), 2)
+
+        grand_inv  += flt(inv.invoice_total, 2)
+        grand_cn   += cn
+        grand_paid += paid
+        grand_out  += net_out
+
+        rows.append({
+            "period":         inv.customer_name or inv.customer,
+            "invoice_amount": flt(inv.invoice_total, 2),
+            "credit_note":    cn,
+            "paid_amount":    paid,
+            "outstanding":    net_out,
+            "_row_type":      "customer",
+            "_customer":      inv.customer,
+            "currency":       company_currency,
+        })
+
+    if not rows:
+        return []
+
+    # Grand total row at top
+    total_row = [{
+        "period":         frappe.bold(
+            "Total Outstanding as on {}".format(formatdate(to_date))),
+        "invoice_amount": flt(grand_inv,  2),
+        "credit_note":    flt(grand_cn,   2),
+        "paid_amount":    flt(grand_paid, 2),
+        "outstanding":    flt(grand_out,  2),
+        "_row_type":      "total",
+        "_customer":      "",
+        "currency":       company_currency,
+    }, {
+        "period": "", "invoice_amount": None, "credit_note": None,
+        "paid_amount": None, "outstanding": None,
+        "_row_type": "blank", "_customer": "", "currency": company_currency,
+    }]
+
+    return total_row + rows
+
+
+# ── MONTHLY DATA (customer filter set) ────────────────────────────────────────
+#
+# Month buckets are keyed by the INVOICE posting date, not the payment date.
+# outstanding_amount per invoice already reflects all allocated payments and
+# credit notes, giving correct attribution regardless of payment timing.
+
+def _get_monthly_data(filters):
+    customer  = filters.customer
+    company   = filters.company
+    from_date = getdate(filters.from_date)
+    to_date   = getdate(filters.to_date)
 
     company_currency = frappe.get_cached_value(
         "Company", company, "default_currency") or "INR"
@@ -123,7 +245,6 @@ def _get_data(filters):
         "to_date":   to_date,
     }
 
-    # Forward invoices — grouped by invoice posting date
     invoices = frappe.db.sql(
         """
         SELECT posting_date, grand_total, outstanding_amount
@@ -136,7 +257,6 @@ def _get_data(filters):
         params, as_dict=True,
     )
 
-    # Return invoices / credit notes — grouped by their own posting date
     returns = frappe.db.sql(
         """
         SELECT posting_date, grand_total
@@ -164,6 +284,7 @@ def _get_data(filters):
                 "month_start":    get_first_day(dt).strftime("%Y-%m-%d"),
                 "month_end":      get_last_day(dt).strftime("%Y-%m-%d"),
                 "_row_type":      "month",
+                "_customer":      customer,
                 "currency":       company_currency,
             }
         return key
@@ -172,7 +293,6 @@ def _get_data(filters):
         key = _ensure_month(inv.posting_date)
         month_data[key]["invoice_amount"] = flt(
             month_data[key]["invoice_amount"] + flt(inv.grand_total), 2)
-        # outstanding_amount already reflects all allocated payments + credit notes
         month_data[key]["_fwd_out"] = flt(
             month_data[key]["_fwd_out"] + flt(inv.outstanding_amount), 2)
 
@@ -184,30 +304,19 @@ def _get_data(filters):
     if not month_data:
         return []
 
-    # Paid / Adjusted = invoice_amount - outstanding_amount.
-    # outstanding_amount already reflects all allocated payments AND credit notes
-    # regardless of when they were applied, so this figure is inclusive of both
-    # cash received and credit adjustments.  The Credit Note column is an
-    # informational breakdown shown separately.
     for m in month_data.values():
         net_out  = flt(max(0.0, m["_fwd_out"]), 2)
         paid_adj = flt(max(0.0, m["invoice_amount"] - net_out), 2)
         m["outstanding"] = net_out
-        m["paid_amount"] = paid_adj
+        m["paid_amount"]  = paid_adj
         del m["_fwd_out"]
 
-    # Period totals
-    total_invoice = flt(sum(m["invoice_amount"]
-                        for m in month_data.values()), 2)
-    total_credit_note = flt(sum(m["credit_note"]
-                            for m in month_data.values()), 2)
-    total_paid = flt(sum(m["paid_amount"] for m in month_data.values()), 2)
-    total_outstanding = flt(sum(m["outstanding"]
-                            for m in month_data.values()), 2)
+    total_invoice     = flt(sum(m["invoice_amount"] for m in month_data.values()), 2)
+    total_credit_note = flt(sum(m["credit_note"]    for m in month_data.values()), 2)
+    total_paid        = flt(sum(m["paid_amount"]    for m in month_data.values()), 2)
+    total_outstanding = flt(sum(m["outstanding"]    for m in month_data.values()), 2)
 
     rows = []
-
-    # Top summary row
     rows.append({
         "period":         frappe.bold(
             "Outstanding Balance as on {}".format(formatdate(to_date))),
@@ -218,27 +327,34 @@ def _get_data(filters):
         "month_start":    "",
         "month_end":      "",
         "_row_type":      "total",
+        "_customer":      customer,
         "currency":       company_currency,
     })
-
-    # Blank separator
     rows.append({
-        "period":         "",
-        "invoice_amount": None,
-        "credit_note":    None,
-        "paid_amount":    None,
-        "outstanding":    None,
-        "month_start":    "",
-        "month_end":      "",
-        "_row_type":      "blank",
-        "currency":       company_currency,
+        "period": "", "invoice_amount": None, "credit_note": None,
+        "paid_amount": None, "outstanding": None,
+        "month_start": "", "month_end": "",
+        "_row_type": "blank", "_customer": customer,
+        "currency": company_currency,
     })
-
-    # Month rows (chronological)
     for key in sorted(month_data.keys()):
         rows.append(month_data[key])
 
     return rows
+
+
+# ── DRILLDOWN API — customer monthly (for all-customer list drilldown) ────────
+
+@frappe.whitelist()
+def get_customer_monthly_ledger(customer, company, from_date, to_date):
+    """Return monthly rows for one customer (called by the JS customer drilldown dialog)."""
+    filters = frappe._dict({
+        "customer":  customer,
+        "company":   company,
+        "from_date": from_date,
+        "to_date":   to_date,
+    })
+    return _get_monthly_data(filters)
 
 
 # ── DRILLDOWN API — single month ──────────────────────────────────────────────
@@ -246,9 +362,8 @@ def _get_data(filters):
 @frappe.whitelist()
 def get_month_invoices(customer, company, month_start, month_end):
     """
-    Drilldown for one month.  Summary is derived from Sales Invoice
-    outstanding_amount (consistent with the main report: paid amount is
-    attributed to the invoice month, not the payment receipt month).
+    Drilldown for one month.  Summary derived from Sales Invoice
+    outstanding_amount — paid amount attributed to invoice month.
     """
     params = {
         "customer":    customer,
@@ -257,7 +372,6 @@ def get_month_invoices(customer, company, month_start, month_end):
         "month_end":   month_end,
     }
 
-    # Opening outstanding: forward invoices before this month still unpaid today
     opening_row = frappe.db.sql(
         """
         SELECT COALESCE(SUM(outstanding_amount), 0) AS val
@@ -271,7 +385,6 @@ def get_month_invoices(customer, company, month_start, month_end):
     )
     opening_outstanding = flt((opening_row[0].val if opening_row else 0), 2)
 
-    # Forward invoices for the month
     invoices = frappe.db.sql(
         """
         SELECT
@@ -290,7 +403,6 @@ def get_month_invoices(customer, company, month_start, month_end):
         params, as_dict=True,
     )
 
-    # Credit notes for the month
     credit_notes = frappe.db.sql(
         """
         SELECT
@@ -309,7 +421,6 @@ def get_month_invoices(customer, company, month_start, month_end):
         params, as_dict=True,
     )
 
-    # Paid / Adjusted = invoice_total - month_out (inclusive of credit notes applied)
     inv_total = flt(sum(flt(i.invoice_amount) for i in invoices), 2)
     cn_total  = flt(sum(flt(c.credit_amount)  for c in credit_notes), 2)
     fwd_out   = flt(sum(flt(i.outstanding)    for i in invoices), 2)
@@ -336,11 +447,7 @@ def get_month_invoices(customer, company, month_start, month_end):
 
 @frappe.whitelist()
 def get_all_invoices_for_period(customer, company, from_date, to_date):
-    """
-    All invoices + credit notes for the period.
-    Returns month_summaries (keyed YYYY-MM) for the PDF builder to use
-    instead of re-computing from per-invoice outstanding_amount in JS.
-    """
+    """All invoices + credit notes with GL-based month summaries for the PDF builder."""
     params = {
         "customer":  customer,
         "company":   company,
@@ -348,7 +455,6 @@ def get_all_invoices_for_period(customer, company, from_date, to_date):
         "to_date":   to_date,
     }
 
-    # Opening outstanding: forward invoices before from_date still unpaid today
     opening_row = frappe.db.sql(
         """
         SELECT COALESCE(SUM(outstanding_amount), 0) AS val
@@ -398,14 +504,12 @@ def get_all_invoices_for_period(customer, company, from_date, to_date):
         params, as_dict=True,
     )
 
-    # Build month_summaries from invoice data (same formula as _get_data)
     buckets = {}
 
     for inv in invoices:
         key = getdate(inv.posting_date).strftime("%Y-%m")
         if key not in buckets:
-            buckets[key] = {"invoice_total": 0.0,
-                            "credit_total": 0.0, "_fwd_out": 0.0}
+            buckets[key] = {"invoice_total": 0.0, "credit_total": 0.0, "_fwd_out": 0.0}
         buckets[key]["invoice_total"] = flt(
             buckets[key]["invoice_total"] + flt(inv.invoice_amount), 2)
         buckets[key]["_fwd_out"] = flt(
@@ -414,15 +518,14 @@ def get_all_invoices_for_period(customer, company, from_date, to_date):
     for cn in credit_notes:
         key = getdate(cn.posting_date).strftime("%Y-%m")
         if key not in buckets:
-            buckets[key] = {"invoice_total": 0.0,
-                            "credit_total": 0.0, "_fwd_out": 0.0}
+            buckets[key] = {"invoice_total": 0.0, "credit_total": 0.0, "_fwd_out": 0.0}
         buckets[key]["credit_total"] = flt(
             buckets[key]["credit_total"] + flt(cn.credit_amount), 2)
 
     month_summaries = {}
     for key, b in buckets.items():
         m_out  = flt(max(0.0, b["_fwd_out"]), 2)
-        m_paid = flt(max(0.0, b["invoice_total"] - m_out), 2)  # incl. credit notes
+        m_paid = flt(max(0.0, b["invoice_total"] - m_out), 2)
         month_summaries[key] = {
             "invoice_total":     b["invoice_total"],
             "credit_total":      b["credit_total"],
@@ -435,18 +538,16 @@ def get_all_invoices_for_period(customer, company, from_date, to_date):
     total_paid = flt(sum(ms["paid_cash"]         for ms in month_summaries.values()), 2)
     total_out  = flt(sum(ms["month_outstanding"] for ms in month_summaries.values()), 2)
 
-    total_summary = {
-        "invoice_total":       total_inv,
-        "credit_total":        total_cn,
-        "paid_cash":           total_paid,
-        "outstanding":         total_out,
-        "opening_outstanding": opening_outstanding,
-    }
-
     return {
         "opening_outstanding": opening_outstanding,
         "invoices":            invoices,
         "credit_notes":        credit_notes,
         "month_summaries":     month_summaries,
-        "total_summary":       total_summary,
+        "total_summary": {
+            "invoice_total":       total_inv,
+            "credit_total":        total_cn,
+            "paid_cash":           total_paid,
+            "outstanding":         total_out,
+            "opening_outstanding": opening_outstanding,
+        },
     }

@@ -11,7 +11,7 @@ frappe.query_reports["Customer Monthly Ledger"] = {
 			label: __("Customer"),
 			fieldtype: "Link",
 			options: "Customer",
-			reqd: 1,
+			// Not required — leaving blank shows all-customer summary list
 			on_change: function () { frappe.query_report.refresh(); },
 		},
 		{
@@ -55,6 +55,23 @@ frappe.query_reports["Customer Monthly Ledger"] = {
 			return `<span style="font-weight:700;color:#1a56db;">${value}</span>`;
 		}
 
+		// ── Customer rows (all-customer list) ─────────────────────────────
+		if (data._row_type === "customer") {
+			if (column.fieldname === "period")
+				return `<a class="cml-customer-link" href="javascript:void(0)"
+					style="cursor:pointer;color:#1a56db;font-weight:600;
+					       text-decoration:underline;text-underline-offset:3px;"
+					data-customer="${data._customer}"
+				>${data.period}&nbsp;<i class="fa fa-bar-chart" style="font-size:11px;opacity:.65;"></i></a>`;
+
+			if (column.fieldname === "outstanding") {
+				var clr = flt(data.outstanding) > 0 ? "#e65100" : "#16a34a";
+				return `<span style="color:${clr};font-weight:600;">${value}</span>`;
+			}
+			if (column.fieldname === "credit_note" && flt(data.credit_note) > 0)
+				return `<span style="color:#d97706;font-weight:600;">${value}</span>`;
+		}
+
 		// ── Month rows ────────────────────────────────────────────────────
 		if (data._row_type === "month" && data.month_start) {
 			if (column.fieldname === "period")
@@ -64,14 +81,15 @@ frappe.query_reports["Customer Monthly Ledger"] = {
 					data-month-start="${data.month_start}"
 					data-month-end="${data.month_end}"
 					data-month-label="${data.period}"
+					data-customer="${data._customer || ""}"
 				>${data.period}&nbsp;<i class="fa fa-search-plus" style="font-size:11px;opacity:.65;"></i></a>`;
 
 			if (column.fieldname === "credit_note" && flt(data.credit_note) > 0)
 				return `<span style="color:#d97706;font-weight:600;">${value}</span>`;
 
 			if (column.fieldname === "outstanding") {
-				var clr = flt(data.outstanding) > 0 ? "#e65100" : "#16a34a";
-				return `<span style="color:${clr};font-weight:600;">${value}</span>`;
+				var clr2 = flt(data.outstanding) > 0 ? "#e65100" : "#16a34a";
+				return `<span style="color:${clr2};font-weight:600;">${value}</span>`;
 			}
 		}
 
@@ -81,21 +99,43 @@ frappe.query_reports["Customer Monthly Ledger"] = {
 	// ── ON LOAD ───────────────────────────────────────────────────────────────
 
 	onload: function (_report) {
+		// ── Full-width layout ─────────────────────────────────────────────
+		setTimeout(function () {
+			$(".layout-main-section-wrapper").css("max-width", "none");
+			$(".layout-main-section").css("max-width", "none");
+			$(".page-content .container").first().css({ "max-width": "none", "width": "100%" });
+		}, 200);
+
 		frappe.query_report.page.add_inner_button(__("🖨️ All Months PDF"), function () {
 			_generate_all_months_pdf();
 		});
 
+		// ── Customer row click → monthly drilldown dialog ─────────────────
+		$(document)
+			.off("click.cml_customer")
+			.on("click.cml_customer", ".cml-customer-link", function (e) {
+				e.preventDefault();
+				e.stopPropagation();
+				var customer  = $(this).data("customer");
+				var label     = $(this).text().trim();
+				var company   = frappe.query_report.get_filter_value("company");
+				var from_date = frappe.query_report.get_filter_value("from_date");
+				var to_date   = frappe.query_report.get_filter_value("to_date");
+				_load_customer_monthly_drilldown(customer, company, from_date, to_date, label);
+			});
+
+		// ── Month row click → invoice drilldown dialog ────────────────────
+		// Reads customer from data-customer attribute (set by formatter / dialog HTML)
+		// or falls back to the customer filter (single-customer report view).
 		$(document)
 			.off("click.cml_drilldown")
 			.on("click.cml_drilldown", ".cml-month-link", function (e) {
 				e.preventDefault();
 				e.stopPropagation();
-
-				var $el = $(this);
-				var customer = frappe.query_report.get_filter_value("customer");
-				var company = frappe.query_report.get_filter_value("company");
+				var $el      = $(this);
+				var customer = $el.data("customer") || frappe.query_report.get_filter_value("customer");
+				var company  = $el.data("company")  || frappe.query_report.get_filter_value("company");
 				if (!customer) { frappe.msgprint(__("Please select a Customer first.")); return; }
-
 				_load_month_drilldown(
 					customer, company,
 					$el.data("month-start"), $el.data("month-end"), $el.data("month-label")
@@ -126,6 +166,151 @@ function _load_month_drilldown(customer, company, month_start, month_end, month_
 				return;
 			}
 			_show_invoice_dialog(data, month_label, customer, company);
+		},
+	});
+}
+
+
+// ── CUSTOMER MONTHLY DRILLDOWN ────────────────────────────────────────────────
+
+function _load_customer_monthly_drilldown(customer, company, from_date, to_date, customer_label) {
+	frappe.call({
+		method: "erpnext.accounts.report.customer_monthly_ledger.customer_monthly_ledger.get_customer_monthly_ledger",
+		args: { customer, company, from_date, to_date },
+		freeze: true,
+		freeze_message: __("Loading monthly ledger for {0}…", [customer_label]),
+		callback: function (r) {
+			var rows = r.message || [];
+			if (!rows.length) {
+				frappe.msgprint({
+					title: __("No Data"),
+					message: __("No invoices found for <b>{0}</b> in the selected period.", [customer_label]),
+					indicator: "orange",
+				});
+				return;
+			}
+			_show_customer_monthly_dialog(rows, customer_label, customer, company, from_date, to_date);
+		},
+	});
+}
+
+function _show_customer_monthly_dialog(rows, customer_label, customer, company, from_date, to_date) {
+	var total_row  = rows.find(function (r) { return r._row_type === "total"; }) || {};
+	var month_rows = rows.filter(function (r) { return r._row_type === "month"; });
+
+	var total_out = flt(total_row.outstanding || 0, 2);
+	var all_clear = total_out === 0;
+
+	// ── Outstanding summary box ───────────────────────────────────────────────
+	var out_bg     = all_clear ? "#f0fdf4" : "#fef2f2";
+	var out_border = all_clear ? "#22c55e" : "#dc2626";
+	var out_color  = all_clear ? "#15803d" : "#dc2626";
+	var summary_box = `
+	<div style="display:flex;justify-content:space-between;align-items:center;
+		background:${out_bg};border:2px solid ${out_border};border-radius:6px;
+		padding:12px 18px;margin-bottom:16px;">
+		<div>
+			<div style="font-size:12px;font-weight:700;color:${out_color};text-transform:uppercase;letter-spacing:.5px;">
+				${all_clear ? "✅ Fully Cleared" : "⏳ Outstanding Balance"}
+			</div>
+			<div style="font-size:11.5px;color:#6b7280;margin-top:2px;">
+				${frappe.datetime.str_to_user(from_date)} – ${frappe.datetime.str_to_user(to_date)}
+			</div>
+		</div>
+		<div style="font-size:24px;font-weight:700;color:${out_color};">${_fmt(total_out)}</div>
+	</div>`;
+
+	// ── Monthly table ─────────────────────────────────────────────────────────
+	var tbody = month_rows.map(function (r) {
+		var out     = flt(r.outstanding, 2);
+		var out_clr = out > 0 ? "#e65100" : "#16a34a";
+		var cn_clr  = flt(r.credit_note, 2) > 0 ? "#d97706" : "#374151";
+		return `<tr style="border-bottom:1px solid #f3f4f6;"
+				onmouseover="this.style.background='#f9fafb'"
+				onmouseout="this.style.background=''">
+			<td style="padding:9px 12px;">
+				<a class="cml-month-link" href="javascript:void(0)"
+					data-month-start="${r.month_start}"
+					data-month-end="${r.month_end}"
+					data-month-label="${r.period}"
+					data-customer="${customer}"
+					data-company="${company}"
+					style="color:#1a56db;font-weight:600;text-decoration:underline;
+					       text-underline-offset:3px;font-size:12.5px;"
+				>${r.period}&nbsp;<i class="fa fa-search-plus" style="font-size:10px;opacity:.6;"></i></a>
+			</td>
+			<td style="padding:9px 12px;text-align:right;font-size:12.5px;">${_fmt(r.invoice_amount)}</td>
+			<td style="padding:9px 12px;text-align:right;font-size:12.5px;color:${cn_clr};">
+				${flt(r.credit_note) > 0 ? _fmt(r.credit_note) : "—"}
+			</td>
+			<td style="padding:9px 12px;text-align:right;font-size:12.5px;color:#16a34a;">${_fmt(r.paid_amount)}</td>
+			<td style="padding:9px 12px;text-align:right;font-size:12.5px;
+				color:${out_clr};font-weight:${out > 0 ? "600" : "normal"};">
+				${out > 0 ? "⏳ " : "✓ "}${_fmt(out)}
+			</td>
+		</tr>`;
+	}).join("");
+
+	var inv_table = `
+	<div style="border:1px solid #e5e7eb;border-radius:6px;overflow:hidden;">
+		<table style="width:100%;border-collapse:collapse;font-family:var(--font-stack);">
+			<thead>
+				<tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0;">
+					<th style="padding:9px 12px;text-align:left;font-size:11px;font-weight:600;color:#374151;text-transform:uppercase;letter-spacing:.3px;">Period</th>
+					<th style="padding:9px 12px;text-align:right;font-size:11px;font-weight:600;color:#374151;text-transform:uppercase;letter-spacing:.3px;">Invoice Amount</th>
+					<th style="padding:9px 12px;text-align:right;font-size:11px;font-weight:600;color:#d97706;text-transform:uppercase;letter-spacing:.3px;">Credit Note</th>
+					<th style="padding:9px 12px;text-align:right;font-size:11px;font-weight:600;color:#16a34a;text-transform:uppercase;letter-spacing:.3px;">Paid / Adjusted</th>
+					<th style="padding:9px 12px;text-align:right;font-size:11px;font-weight:600;color:#374151;text-transform:uppercase;letter-spacing:.3px;">Outstanding</th>
+				</tr>
+			</thead>
+			<tbody>${tbody}</tbody>
+		</table>
+	</div>`;
+
+	var header_bar = `
+	<div style="display:flex;justify-content:space-between;align-items:center;
+		background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;
+		padding:10px 14px;margin-bottom:14px;font-size:12.5px;">
+		<div><span style="color:#6b7280;">Customer:&nbsp;</span>
+			<strong style="color:#1e40af;">${customer_label}</strong></div>
+		<div><span style="color:#6b7280;">Period:&nbsp;</span>
+			<strong style="color:#1a56db;">
+				${frappe.datetime.str_to_user(from_date)} – ${frappe.datetime.str_to_user(to_date)}
+			</strong></div>
+		<div style="background:#dbeafe;color:#1e40af;border-radius:12px;padding:2px 10px;
+			font-weight:600;font-size:11.5px;">${month_rows.length} month${month_rows.length === 1 ? "" : "s"}</div>
+	</div>`;
+
+	var full_html = `<div style="max-height:70vh;overflow-y:auto;padding-right:2px;">` +
+		header_bar + summary_box + inv_table + `</div>`;
+
+	var d = new frappe.ui.Dialog({
+		title: "📊 " + customer_label + " — Monthly Ledger",
+		size: "extra-large",
+		fields: [{ fieldtype: "HTML", fieldname: "monthly_table", options: full_html }],
+		primary_action_label: "🖨️ Export PDF",
+		primary_action: function () {
+			_generate_all_months_pdf_for(customer, company, from_date, to_date);
+		},
+	});
+	d.show();
+}
+
+function _generate_all_months_pdf_for(customer, company, from_date, to_date) {
+	frappe.call({
+		method: "erpnext.accounts.report.customer_monthly_ledger.customer_monthly_ledger.get_all_invoices_for_period",
+		args: { customer, company, from_date, to_date },
+		freeze: true,
+		freeze_message: __("Preparing PDF…"),
+		callback: function (r) {
+			var data = r.message || {};
+			if (!(data.invoices || []).length && !Object.keys(data.month_summaries || {}).length) {
+				frappe.msgprint(__("No data found.")); return;
+			}
+			frappe.db.get_value("Customer", customer, "customer_name").then(function (res) {
+				var cname = ((res || {}).message || {}).customer_name || customer;
+				_open_html_tab(_build_all_months_pdf_html(data, cname, company, from_date, to_date));
+			});
 		},
 	});
 }
