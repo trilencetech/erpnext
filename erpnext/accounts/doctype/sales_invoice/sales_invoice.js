@@ -1090,17 +1090,17 @@ frappe.ui.form.on("Sales Invoice Timesheet", {
 // Settings → Client Script → Apply To: Sales Invoice
 // ============================================================
 
-frappe.ui.form.on("Sales Invoice", {
+//frappe.ui.form.on("Sales Invoice", {
 
-	refresh: function (frm) {
-		if (frm.doc.docstatus === 1 && !frm.doc.is_return) {
-			frm.add_custom_button(__("✏️ Update Sales Invoice"), function () {
-				gj_show_quick_edit_dialog(frm);
-			}, __("Actions"));
-		}
-	}
+//refresh: function (frm) {
+//	if (frm.doc.docstatus === 1 && !frm.doc.is_return) {
+//		frm.add_custom_button(__("✏️ Update Sales Invoice"), function () {
+//			gj_show_quick_edit_dialog(frm);
+//		}, __("Actions"));
+//	}
+//}
 
-});
+//});
 
 function gj_show_quick_edit_dialog(frm) {
 
