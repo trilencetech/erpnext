@@ -1212,12 +1212,10 @@ gajanand.stock_selector.show_stock_dialog = function (frm) {
 
         function calculate_totals(frm) {
             let total_qty = 0, total_amount = 0;
-            console.log("Teststts")
-                (frm.doc.items || []).forEach(row => {
-                    total_qty += row.qty || 0;
-                    console.log(total_qty)
-                    total_amount += row.amount || (row.qty * row.rate) || 0;
-                });
+            (frm.doc.items || []).forEach(row => {
+                total_qty += row.qty || 0;
+                total_amount += row.amount || (row.qty * row.rate) || 0;
+            });
             frm.set_value("total_qty", total_qty);
             frm.set_value("total_amount", total_amount);
         }

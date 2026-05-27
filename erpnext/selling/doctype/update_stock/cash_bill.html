@@ -1,0 +1,492 @@
+{%- set company_doc = frappe.get_doc("Company", doc.company) -%}
+{%- set cust_addr = frappe.get_doc("Address", doc.get("customer_address")) if doc.get("customer_address") else none -%}
+{%- set cust_name = frappe.db.get_value("Customer", doc.customer, "customer_name") or doc.customer -%}
+{%- set cust_mobile = frappe.db.get_value("Customer", doc.customer, "mobile_no") or "" -%}
+{%- set bank_acc = frappe.db.get_value("Bank Account", {"company": doc.company, "is_company_account": 1}, ["bank",
+"bank_account_no", "branch_code"], as_dict=True) -%}
+{%- set account_doc = frappe.get_doc("Account", company_doc.default_bank_account) if company_doc.default_bank_account
+else none -%}
+{%- set doc_date = frappe.utils.format_date(doc.creation, "dd-MM-yyyy") if doc.creation else "" -%}
+{%- set in_words_text = frappe.utils.money_in_words(doc.total_amount or 0) -%}
+{%- set total_qty_val = doc.total_qty or (doc.items | sum(attribute="qty")) -%}
+
+{%- macro ifmt(n) -%}
+{%- set n = n | float -%}{%- set neg = (n < 0) -%}{%- set n=n | abs -%} {%- set s="%.2f" | format(n) -%}{%- set
+    ip=s.split(".")[0] -%}{%- set dp=s.split(".")[1] -%} {%- set l=ip | length -%} {%- if l <=3 -%}{%- set r=ip -%} {%-
+    elif l==4 -%}{%- set r=ip[0] ~ "," ~ ip[1:] -%} {%- elif l==5 -%}{%- set r=ip[0:2] ~ "," ~ ip[2:] -%} {%- elif l==6
+    -%}{%- set r=ip[0] ~ "," ~ ip[1:3] ~ "," ~ ip[3:] -%} {%- elif l==7 -%}{%- set r=ip[0:2] ~ "," ~ ip[2:4] ~ "," ~
+    ip[4:] -%} {%- elif l==8 -%}{%- set r=ip[0] ~ "," ~ ip[1:3] ~ "," ~ ip[3:5] ~ "," ~ ip[5:] -%} {%- else -%}{%- set
+    r=ip[0:2] ~ "," ~ ip[2:4] ~ "," ~ ip[4:6] ~ "," ~ ip[6:] -%} {%- endif -%} {{ "-" if neg else "" }}{{ r }}.{{ dp -}}
+    {%- endmacro -%} <!DOCTYPE html>
+    <html>
+
+    <head>
+        <meta charset="UTF-8" />
+        <style>
+            @page {
+                size: A4 portrait;
+                margin: 10mm 8mm 8mm 8mm;
+            }
+
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                font-family: Arial, sans-serif;
+                font-size: 13px;
+                color: #000;
+                background: #fff;
+            }
+
+            @media print {
+                * {
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                }
+
+                .outer {
+                    border: 2px solid #000 !important;
+                }
+            }
+
+            /* fill full A4 content area */
+            .outer {
+                border: 2px solid #000;
+                min-height: 277mm;
+                display: flex;
+                flex-direction: column;
+            }
+
+            /* ── DOC TITLE ── */
+            .doc-title {
+                text-align: center;
+                font-size: 16px;
+                font-weight: 900;
+                letter-spacing: 4px;
+                padding: 7px 0;
+                border-bottom: 1.5px solid #000;
+                background: #f2f2f2;
+                text-transform: uppercase;
+                position: relative;
+            }
+
+            .doc-copy {
+                position: absolute;
+                right: 12px;
+                top: 50%;
+                transform: translateY(-50%);
+                font-size: 10px;
+                font-weight: 400;
+                letter-spacing: 1px;
+                color: #555;
+                border: 1px solid #999;
+                padding: 2px 6px;
+                border-radius: 3px;
+            }
+
+            /* ── TOP HEADER: Customer | Bill Details ── */
+            .top-split {
+                display: flex;
+                border-bottom: 1.5px solid #000;
+            }
+
+            .col-customer {
+                flex: 1.2;
+                padding: 10px 12px;
+                border-right: 1.5px solid #000;
+            }
+
+            .cfield {
+                display: flex;
+                align-items: baseline;
+                font-size: 13px;
+                margin-bottom: 6px;
+                line-height: 1.6;
+            }
+
+            .cfield-lbl {
+                width: 65px;
+                flex-shrink: 0;
+                color: #444;
+                font-size: 13px;
+            }
+
+            .cfield-sep {
+                width: 12px;
+                text-align: center;
+                flex-shrink: 0;
+                color: #555;
+            }
+
+            .cfield-val {
+                flex: 1;
+                font-size: 13px;
+                color: #000;
+            }
+
+            .cfield-val.bold {
+                font-weight: 900;
+                font-size: 15px;
+            }
+
+            .col-invoice {
+                flex: 1;
+                padding: 0;
+            }
+
+            .idr {
+                display: flex;
+                border-bottom: 1px solid #ddd;
+                min-height: 30px;
+                align-items: center;
+            }
+
+            .idr:last-child {
+                border-bottom: none;
+            }
+
+            .idk {
+                width: 95px;
+                flex-shrink: 0;
+                padding: 6px 8px;
+                font-size: 13px;
+                color: #444;
+                border-right: 1px solid #ddd;
+            }
+
+            .idsep {
+                width: 12px;
+                flex-shrink: 0;
+                text-align: center;
+                font-size: 13px;
+                color: #555;
+                border-right: 1px solid #ddd;
+            }
+
+            .idv {
+                padding: 6px 8px;
+                font-weight: 700;
+                font-size: 14px;
+                flex: 1;
+            }
+
+            /* ── ITEMS TABLE ── */
+            .items-table {
+                width: 100%;
+                border-collapse: collapse;
+                flex: 1;
+            }
+
+            .items-table th {
+                background: #ebebeb;
+                border-bottom: 2px solid #000;
+                border-right: 1.5px solid #000;
+                padding: 7px 6px;
+                text-align: center;
+                font-size: 13px;
+                font-weight: 700;
+                text-transform: uppercase;
+            }
+
+            .items-table th:last-child {
+                border-right: none;
+            }
+
+            .items-table td {
+                padding: 7px 6px;
+                font-size: 13px;
+                vertical-align: middle;
+                border-right: 1.5px solid #000;
+            }
+
+            .items-table td:last-child {
+                border-right: none;
+            }
+
+            .items-table td.ctr {
+                text-align: center;
+            }
+
+            .items-table td.rgt {
+                text-align: right;
+                font-size: 13px;
+            }
+
+            .items-table tr.subtotal td {
+                font-weight: 700;
+                background: #f5f5f5;
+                font-size: 14px;
+                border-top: 2px solid #000;
+            }
+
+            /* ── TOTALS ── */
+            .totals-wrap {
+                display: flex;
+                border-top: 1.5px solid #000;
+            }
+
+            .totals-left {
+                flex: 1;
+                padding: 8px 10px;
+                border-right: 1.5px solid #000;
+                font-size: 13px;
+            }
+
+            .totals-right {
+                width: 220px;
+                flex-shrink: 0;
+            }
+
+            .tri {
+                display: flex;
+                border-bottom: 1px solid #ddd;
+                height: 38px;
+                align-items: center;
+            }
+
+            .tri:last-child {
+                border-bottom: none;
+            }
+
+            .trl {
+                flex: 1;
+                padding: 4px 10px;
+                border-right: 1px solid #ddd;
+                font-size: 13px;
+            }
+
+            .trv {
+                width: 100px;
+                text-align: right;
+                padding: 4px 10px;
+                font-size: 13px;
+                font-weight: 600;
+                flex-shrink: 0;
+            }
+
+            .tri.grand .trl,
+            .tri.grand .trv {
+                font-weight: 800;
+                font-size: 16px;
+                background: #f0f0f0;
+            }
+
+            /* ── AMOUNT WORDS ── */
+            .amount-words {
+                border-top: 1.5px solid #000;
+                border-bottom: 1.5px solid #000;
+                padding: 7px 10px;
+                font-size: 13px;
+            }
+
+            /* ── FOOTER ── */
+            .bank-sig-wrap {
+                display: flex;
+                min-height: 80px;
+                margin-top: auto;
+            }
+
+            .bank-col {
+                flex: 1.8;
+                padding: 10px 12px;
+                border-right: 1.5px solid #000;
+                font-size: 11px;
+                line-height: 1.8;
+            }
+
+            .sig-col {
+                flex: 1;
+                padding: 10px 12px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                font-size: 11px;
+            }
+
+            .sig-line {
+                width: 100%;
+                border-top: 1px solid #000;
+                padding-top: 4px;
+                font-size: 11px;
+                font-weight: 700;
+                margin-top: 50px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="outer">
+
+            <!-- DOC TITLE -->
+            <div class="doc-title">
+                Sales Invoice
+                <span class="doc-copy">Original Copy</span>
+            </div>
+
+            <!-- TOP: Customer | Bill Details -->
+            <div class="top-split">
+
+                <!-- COLUMN 1: Customer -->
+                <div class="col-customer">
+                    <div class="cfield">
+                        <div class="cfield-lbl">Name</div>
+                        <div class="cfield-sep">:</div>
+                        <div class="cfield-val bold">{{ cust_name }}</div>
+                    </div>
+                    {%- if cust_addr %}
+                    <div class="cfield" style="align-items:flex-start">
+                        <div class="cfield-lbl">Address</div>
+                        <div class="cfield-sep">:</div>
+                        <div class="cfield-val">
+                            {{ cust_addr.address_line1 }}
+                            {%- if cust_addr.address_line2 %}, {{ cust_addr.address_line2 }}{% endif %}
+                            {%- if cust_addr.city %}<br>{{ cust_addr.city }}{% endif %}
+                            {%- if cust_addr.state %}, {{ cust_addr.state }}{% endif %}
+                        </div>
+                    </div>
+                    {%- endif %}
+                    {%- set cust_gstin =
+                    frappe.db.get_value("Customer", doc.customer, "gstin") -%} {%- if cust_gstin -%} <div
+                        class="party-gstin">GSTIN : {{
+                        cust_gstin }}</div> {%- endif -%}
+                </div>
+
+                <!-- COLUMN 2: Bill Details -->
+                <div class="col-invoice">
+                    <div class="idr">
+                        <div class="idk">Bill No.</div>
+                        <div class="idsep">:</div>
+                        <div class="idv">{{ doc.name }}</div>
+                    </div>
+                    <div class="idr">
+                        <div class="idk">Date</div>
+                        <div class="idsep">:</div>
+                        <div class="idv">{{ doc_date }}</div>
+                    </div>
+                </div>
+
+            </div><!-- /top-split -->
+
+            <!-- ITEMS TABLE -->
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th style="width:32px">Sr.</th>
+                        <th style="text-align:left;padding-left:8px">Description of Goods</th>
+                        <th style="width:90px">Qty (Kgs)</th>
+                        <th style="width:85px">Rate (₹)</th>
+                        <th style="width:105px">Amount (₹)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {%- for item in doc.items -%}
+                    <tr>
+                        <td class="ctr">{{ loop.index }}</td>
+                        <td style="text-align:left">{{ item.item_name or item.item_code }}</td>
+                        <td class="rgt">{{ "%.3f" | format(item.qty) }}</td>
+                        <td class="rgt">{{ ifmt(item.rate) }}</td>
+                        <td class="rgt">{{ ifmt(item.amount) }}</td>
+                    </tr>
+                    {%- endfor -%}
+                    {%- for i in range([18 - doc.items|length, 5]|max) -%}
+                    <tr>
+                        <td style="height:22px">&nbsp;</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    {%- endfor -%}
+                    <tr class="subtotal">
+                        <td colspan="2" style="text-align:right;padding-right:12px">Total</td>
+                        <td class="rgt">{{ "%.3f" | format(total_qty_val) }}</td>
+                        <td class="ctr"></td>
+                        <td class="rgt">{{ ifmt(doc.total_amount) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- TOTALS SECTION -->
+            <div class="totals-wrap">
+                <div class="totals-left">
+                    <strong>Our Bank Details :</strong>
+                    <table style="width:100%;border-collapse:collapse;margin-top:6px">
+                        <colgroup>
+                            <col style="width:55px">
+                            <col style="width:12px">
+                            <col>
+                            <col style="width:60px">
+                            <col style="width:12px">
+                            <col>
+                        </colgroup>
+                        <tr>
+                            <td style="font-size:13px;padding:3px 0;color:#444">Bank</td>
+                            <td style="font-size:13px;padding:3px 0;color:#555;text-align:center">:</td>
+                            <td style="font-size:13px;padding:3px 0;font-weight:700">
+                                {%- if account_doc -%}{{ account_doc.account_name }}{%- elif bank_acc -%}{{
+                                bank_acc.bank }}{%- else -%}—{%- endif -%}
+                            </td>
+                            <td style="font-size:13px;padding:3px 0;color:#444">A/C No.</td>
+                            <td style="font-size:13px;padding:3px 0;color:#555;text-align:center">:</td>
+                            <td style="font-size:13px;padding:3px 0;font-weight:700">
+                                {%- if account_doc -%}{{ account_doc.account_number }}{%- elif bank_acc -%}{{
+                                bank_acc.bank_account_no }}{%- else -%}—{%- endif -%}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="font-size:13px;padding:3px 0;color:#444">IFSC</td>
+                            <td style="font-size:13px;padding:3px 0;color:#555;text-align:center">:</td>
+                            <td style="font-size:13px;padding:3px 0;font-weight:700">
+                                {%- if account_doc -%}{{ account_doc.ifsc_code or "—" }}{%- elif bank_acc -%}{{
+                                bank_acc.branch_code }}{%- else -%}—{%- endif -%}
+                            </td>
+                            <td style="font-size:13px;padding:3px 0;color:#444">Branch</td>
+                            <td style="font-size:13px;padding:3px 0;color:#555;text-align:center">:</td>
+                            <td style="font-size:13px;padding:3px 0;font-weight:700">
+                                {%- if account_doc -%}{{ account_doc.get("branch") or "—" }}{%- else -%}—{%- endif -%}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="totals-right">
+                    {%- if doc.get("rounding_adjustment") and doc.rounding_adjustment != 0 %}
+                    <div class="tri">
+                        <div class="trl">Round Off</div>
+                        <div class="trv">{{ ifmt(doc.rounding_adjustment) }}</div>
+                    </div>
+                    {%- endif %}
+                    <div class="tri grand" style="border:1.5px solid #000">
+                        <div class="trl">Net Amount</div>
+                        <div class="trv">{{ ifmt(doc.total_amount) }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AMOUNT IN WORDS -->
+            <div class="amount-words">
+                ₹&nbsp;<strong>{{ in_words_text | upper }}</strong>
+            </div>
+
+            <!-- TERMS + SIGNATURE -->
+            <div class="bank-sig-wrap">
+                <div class="bank-col">
+                    <strong>Terms and Conditions :</strong><br>
+                    (1) We do not hold responsible for any breakage/damage/leakage in transit.<br>
+                    (2) Our responsibility ceases when goods are delivered to the carrier.<br>
+                    (3) Goods once sold will not be accepted back.<br>
+                    (4) Subject to Ahmedabad Jurisdiction.
+                </div>
+                <div class="sig-col">
+                    <div style="font-size:12px">For, <strong>{{ doc.company | upper }}</strong></div>
+                    <div class="sig-line">Authorized Signatory</div>
+                </div>
+            </div>
+
+        </div>
+    </body>
+
+    </html>

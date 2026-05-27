@@ -683,11 +683,10 @@ function _pdf_css() {
 	             font-size:13px; border-radius:4px; cursor:pointer; font-weight:700; letter-spacing:.5px; }
 	.print-btn:hover { background:#2d4a7f; }
 	@media print {
+		* { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; color-adjust:exact !important; }
 		body { background:#fff; padding:0; }
 		.page { box-shadow:none; padding:20px 28px; }
 		.print-wrap { display:none; }
-		.out-box, .opening-box, .grand-box, .month-hdr, .cn-hdr, .tot-row td {
-			-webkit-print-color-adjust:exact; print-color-adjust:exact; }
 	}`;
 }
 
