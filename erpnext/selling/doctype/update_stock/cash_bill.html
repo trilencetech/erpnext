@@ -7,8 +7,13 @@
 {%- set account_doc = frappe.get_doc("Account", company_doc.default_bank_account) if company_doc.default_bank_account
 else none -%}
 {%- set doc_date = frappe.utils.format_date(doc.creation, "dd-MM-yyyy") if doc.creation else "" -%}
-{%- set in_words_text = frappe.utils.money_in_words(doc.total_amount or 0) -%}
 {%- set total_qty_val = doc.total_qty or (doc.items | sum(attribute="qty")) -%}
+{%- set freight_val = (doc.freight_amount or 0) | float -%}
+{%- set tax_rate_val = (doc.tax_rate if doc.tax_rate is not none else 9) | float -%}
+{%- set net_before_tax = (doc.total_amount or 0) | float + freight_val -%}
+{%- set tax_amount_val = (doc.tax_amount or (net_before_tax * tax_rate_val / 100)) | float -%}
+{%- set grand_total_val = (doc.grand_total or (net_before_tax + tax_amount_val)) | float -%}
+{%- set in_words_text = frappe.utils.money_in_words(grand_total_val) -%}
 
 {%- macro ifmt(n) -%}
 {%- set n = n | float -%}{%- set neg = (n < 0) -%}{%- set n=n | abs -%} {%- set s="%.2f" | format(n) -%}{%- set
@@ -58,6 +63,11 @@ else none -%}
                 min-height: 277mm;
                 display: flex;
                 flex-direction: column;
+            }
+
+            .print-format td,
+            .print-format th {
+                padding: -2px !important;
             }
 
             /* ── DOC TITLE ── */
@@ -323,8 +333,8 @@ else none -%}
 
             <!-- DOC TITLE -->
             <div class="doc-title">
-                Sales Invoice
-                <span class="doc-copy">Original Copy</span>
+                {{company_doc.company_name}}- Sales Invoice
+
             </div>
 
             <!-- TOP: Customer | Bill Details -->
@@ -453,15 +463,27 @@ else none -%}
                     </table>
                 </div>
                 <div class="totals-right">
-                    {%- if doc.get("rounding_adjustment") and doc.rounding_adjustment != 0 %}
                     <div class="tri">
-                        <div class="trl">Round Off</div>
-                        <div class="trv">{{ ifmt(doc.rounding_adjustment) }}</div>
+                        <div class="trl">Sub Total</div>
+                        <div class="trv">{{ ifmt(doc.total_amount) }}</div>
+                    </div>
+                    {%- if freight_val > 0 %}
+                    <div class="tri">
+                        <div class="trl">Freight</div>
+                        <div class="trv">{{ ifmt(freight_val) }}</div>
                     </div>
                     {%- endif %}
-                    <div class="tri grand" style="border:1.5px solid #000">
+                    <div class="tri" style="border-top:1.5px solid #000">
                         <div class="trl">Net Amount</div>
-                        <div class="trv">{{ ifmt(doc.total_amount) }}</div>
+                        <div class="trv">{{ ifmt(net_before_tax) }}</div>
+                    </div>
+                    <div class="tri">
+                        <div class="trl">Tax @ {{ "%.0f" | format(tax_rate_val) }}%</div>
+                        <div class="trv">{{ ifmt(tax_amount_val) }}</div>
+                    </div>
+                    <div class="tri grand" style="border:1.5px solid #000;border-top:2px solid #000">
+                        <div class="trl">Gross Total</div>
+                        <div class="trv">{{ ifmt(grand_total_val) }}</div>
                     </div>
                 </div>
             </div>
