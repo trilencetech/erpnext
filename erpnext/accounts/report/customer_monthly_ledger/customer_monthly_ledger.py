@@ -329,12 +329,16 @@ def _get_monthly_data(filters):
         params, as_dict=True,
     )
 
-    # Credit notes in period
+    # Credit notes in period.
+    # Use ABS(outstanding_amount) not ABS(grand_total): a fully-applied credit note
+    # has outstanding_amount = 0 and its effect is already captured in the original
+    # invoice's paid_amount (grand_total - outstanding_amount). Only the unapplied
+    # portion should be deducted here to avoid double-counting.
     credit_notes = frappe.db.sql(
         """
         SELECT
             posting_date,
-            ABS(grand_total) AS credit_amount
+            ABS(outstanding_amount) AS credit_amount
         FROM   `tabSales Invoice`
         WHERE  docstatus = 1 AND is_return = 1
           AND  customer  = %(customer)s AND company = %(company)s
