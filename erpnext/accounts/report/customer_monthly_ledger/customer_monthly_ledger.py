@@ -515,11 +515,14 @@ def get_month_invoices(customer, company, month_start, month_end):
     )
 
     inv_total = flt(sum(flt(i.invoice_amount) for i in invoices), 2)
-    cn_total  = flt(sum(flt(c.credit_amount)  for c in credit_notes), 2)
+    # cn_deductible: only the unapplied portion (outstanding_amount < 0 means still open)
+    # A fully-applied CN has outstanding_amount = 0, so it contributes nothing here —
+    # its effect is already reflected in the original invoice's outstanding_amount.
+    cn_deductible = flt(sum(abs(flt(c.outstanding_amount)) for c in credit_notes), 2)
     fwd_out   = flt(sum(flt(i.outstanding)    for i in invoices), 2)
     month_out = flt(max(0.0, fwd_out), 2)
     paid_adj  = flt(max(0.0, inv_total - month_out), 2)
-    total_out = flt(max(0.0, month_out + opening_outstanding - cn_total), 2)
+    total_out = flt(max(0.0, month_out + opening_outstanding - cn_deductible), 2)
 
     return {
         "opening_outstanding": opening_outstanding,
@@ -527,7 +530,7 @@ def get_month_invoices(customer, company, month_start, month_end):
         "credit_notes":        credit_notes,
         "summary": {
             "invoice_total":       inv_total,
-            "credit_total":        cn_total,
+            "credit_total":        cn_deductible,   # unapplied portion only
             "paid_cash":           paid_adj,
             "month_outstanding":   month_out,
             "opening_outstanding": opening_outstanding,
