@@ -121,11 +121,11 @@ frappe.query_reports["Customer Monthly Ledger"] = {
 			.on("click.cml_customer", ".cml-customer-link", function (e) {
 				e.preventDefault();
 				e.stopPropagation();
-				var customer  = $(this).data("customer");
-				var label     = $(this).text().trim();
-				var company   = frappe.query_report.get_filter_value("company");
+				var customer = $(this).data("customer");
+				var label = $(this).text().trim();
+				var company = frappe.query_report.get_filter_value("company");
 				var from_date = frappe.query_report.get_filter_value("from_date");
-				var to_date   = frappe.query_report.get_filter_value("to_date");
+				var to_date = frappe.query_report.get_filter_value("to_date");
 				_load_customer_monthly_drilldown(customer, company, from_date, to_date, label);
 			});
 
@@ -137,9 +137,9 @@ frappe.query_reports["Customer Monthly Ledger"] = {
 			.on("click.cml_drilldown", ".cml-month-link", function (e) {
 				e.preventDefault();
 				e.stopPropagation();
-				var $el      = $(this);
+				var $el = $(this);
 				var customer = $el.data("customer") || frappe.query_report.get_filter_value("customer");
-				var company  = $el.data("company")  || frappe.query_report.get_filter_value("company");
+				var company = $el.data("company") || frappe.query_report.get_filter_value("company");
 				if (!customer) { frappe.msgprint(__("Please select a Customer first.")); return; }
 				_load_month_drilldown(
 					customer, company,
@@ -185,7 +185,7 @@ function _load_customer_monthly_drilldown(customer, company, from_date, to_date,
 		freeze: true,
 		freeze_message: __("Loading monthly ledger for {0}…", [customer_label]),
 		callback: function (r) {
-			var msg  = r.message || {};
+			var msg = r.message || {};
 			// API now returns {rows, opening_outstanding}; guard against old plain-array response
 			var rows = Array.isArray(msg) ? msg : (msg.rows || []);
 			var opening_outstanding = Array.isArray(msg) ? 0 : flt(msg.opening_outstanding || 0, 2);
@@ -205,13 +205,13 @@ function _load_customer_monthly_drilldown(customer, company, from_date, to_date,
 function _show_customer_monthly_dialog(rows, customer_label, customer, company, from_date, to_date, opening_outstanding) {
 	opening_outstanding = flt(opening_outstanding || 0, 2);
 
-	var total_row  = rows.find(function (r) { return r._row_type === "total"; }) || {};
+	var total_row = rows.find(function (r) { return r._row_type === "total"; }) || {};
 	var month_rows = rows.filter(function (r) { return r._row_type === "month"; });
 
 	// GL-based: total_row.outstanding = opening + period net = true closing balance
-	var closing_out  = flt(total_row.outstanding || 0, 2);
-	var period_net   = flt(closing_out - opening_outstanding, 2);
-	var all_clear    = closing_out === 0;
+	var closing_out = flt(total_row.outstanding || 0, 2);
+	var period_net = flt(closing_out - opening_outstanding, 2);
+	var all_clear = closing_out === 0;
 
 	// ── Opening Outstanding box (amber) — shown when there's a prior balance ──
 	var opening_box = "";
@@ -222,7 +222,7 @@ function _show_customer_monthly_dialog(rows, customer_label, customer, company, 
 			padding:12px 18px;margin-bottom:10px;">
 			<div>
 				<div style="font-size:12px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.5px;">
-					⏳ Opening Balance (before ${frappe.datetime.str_to_user(from_date)})
+					 Opening Balance (before ${frappe.datetime.str_to_user(from_date)})
 				</div>
 				<div style="font-size:11.5px;color:#78350f;margin-top:2px;">
 					Balance carried forward into this period
@@ -233,12 +233,12 @@ function _show_customer_monthly_dialog(rows, customer_label, customer, company, 
 	}
 
 	// ── Closing balance box ───────────────────────────────────────────────────
-	var out_bg     = all_clear ? "#f0fdf4" : "#fef2f2";
+	var out_bg = all_clear ? "#f0fdf4" : "#fef2f2";
 	var out_border = all_clear ? "#22c55e" : "#dc2626";
-	var out_color  = all_clear ? "#15803d" : "#dc2626";
+	var out_color = all_clear ? "#15803d" : "#dc2626";
 
-	var summary_label = all_clear ? "✅ Fully Cleared" : "⏳ Closing Balance";
-	var summary_sub   = opening_outstanding > 0
+	var summary_label = all_clear ? "✅ Fully Cleared" : " Closing Balance";
+	var summary_sub = opening_outstanding > 0
 		? `Opening ${_fmt(opening_outstanding)} + Period net ${_fmt(period_net)}`
 		: `${frappe.datetime.str_to_user(from_date)} – ${frappe.datetime.str_to_user(to_date)}`;
 
@@ -257,9 +257,9 @@ function _show_customer_monthly_dialog(rows, customer_label, customer, company, 
 
 	// ── Monthly table ─────────────────────────────────────────────────────────
 	var tbody = month_rows.map(function (r) {
-		var out     = flt(r.outstanding, 2);
+		var out = flt(r.outstanding, 2);
 		var out_clr = out > 0 ? "#e65100" : "#16a34a";
-		var cn_clr  = flt(r.credit_note, 2) > 0 ? "#d97706" : "#374151";
+		var cn_clr = flt(r.credit_note, 2) > 0 ? "#d97706" : "#374151";
 		return `<tr style="border-bottom:1px solid #f3f4f6;"
 				onmouseover="this.style.background='#f9fafb'"
 				onmouseout="this.style.background=''">
@@ -281,7 +281,7 @@ function _show_customer_monthly_dialog(rows, customer_label, customer, company, 
 			<td style="padding:9px 12px;text-align:right;font-size:12.5px;color:#16a34a;">${_fmt(r.paid_amount)}</td>
 			<td style="padding:9px 12px;text-align:right;font-size:12.5px;
 				color:${out_clr};font-weight:${out > 0 ? "600" : "normal"};">
-				${out > 0 ? "⏳ " : "✓ "}${_fmt(out)}
+				${out > 0 ? " " : "✓ "}${_fmt(out)}
 			</td>
 		</tr>`;
 	}).join("");
@@ -376,7 +376,7 @@ function _show_invoice_dialog(data, month_label, customer, company) {
 		">
 			<div>
 				<div style="font-size:12px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.5px;">
-					⏳ Opening Outstanding
+					 Opening Outstanding
 				</div>
 				<div style="font-size:11.5px;color:#78350f;margin-top:3px;">
 					Unpaid invoices raised before <strong>${month_label}</strong>
@@ -389,11 +389,11 @@ function _show_invoice_dialog(data, month_label, customer, company) {
 	// ── Invoice rows ──────────────────────────────────────────────────────────
 	var inv_tbody = "";
 	invoices.forEach(function (inv) {
-		var inv_amt  = flt(inv.invoice_amount, 2);
-		var paid_amt = flt(inv.paid_amount,    2);
-		var out_amt  = flt(inv.outstanding,    2);
-		var out_col  = out_amt > 0 ? "#dc2626" : "#16a34a";
-		var out_ico  = out_amt > 0 ? "⏳" : "✓";
+		var inv_amt = flt(inv.invoice_amount, 2);
+		var paid_amt = flt(inv.paid_amount, 2);
+		var out_amt = flt(inv.outstanding, 2);
+		var out_col = out_amt > 0 ? "#dc2626" : "#16a34a";
+		var out_ico = out_amt > 0 ? "" : "✓";
 
 		inv_tbody += `
 		<tr style="border-bottom:1px solid #f3f4f6;"
@@ -705,17 +705,17 @@ function _pdf_css() {
 
 function _pdf_inv_rows(invoices) {
 	return invoices.map(function (inv) {
-		var inv_amt  = parseFloat(inv.invoice_amount) || 0;
-		var paid_amt = parseFloat(inv.paid_amount)    || 0;
-		var out_amt  = parseFloat(inv.outstanding)    || 0;
-		var out_col  = out_amt > 0 ? "#dc2626" : "#16a34a";
+		var inv_amt = parseFloat(inv.invoice_amount) || 0;
+		var paid_amt = parseFloat(inv.paid_amount) || 0;
+		var out_amt = parseFloat(inv.outstanding) || 0;
+		var out_col = out_amt > 0 ? "#dc2626" : "#16a34a";
 		return `<tr>
 			<td>${inv.sales_invoice}</td>
 			<td>${_pdf_date(inv.posting_date)}</td>
 			<td>${_pdf_inr(inv_amt)}</td>
 			<td style="color:#16a34a;">${_pdf_inr(paid_amt)}</td>
 			<td style="color:${out_col};font-weight:${out_amt > 0 ? '600' : 'normal'};">
-				${out_amt > 0 ? "⏳ " : "✓ "}${_pdf_inr(out_amt)}
+				${out_amt > 0 ? " " : "✓ "}${_pdf_inr(out_amt)}
 			</td>
 		</tr>`;
 	}).join("");
@@ -772,7 +772,7 @@ function _build_single_month_pdf_html(data, month_label, customer_name, company)
 	if (s.opening_outstanding > 0) {
 		opening_html = `
 		<div class="opening-box">
-			<div class="opening-box-label">⏳ Opening Outstanding (before ${month_label})</div>
+			<div class="opening-box-label"> Opening Outstanding (before ${month_label})</div>
 			<div class="opening-box-amount">${_pdf_inr(s.opening_outstanding)}</div>
 		</div>`;
 	}
@@ -818,11 +818,11 @@ function _build_single_month_pdf_html(data, month_label, customer_name, company)
 // ── ALL MONTHS PDF BUILDER ────────────────────────────────────────────────────
 
 function _build_all_months_pdf_html(data, customer_name, company, from_date, to_date) {
-	var all_invoices    = data.invoices       || [];
-	var all_credit_notes = data.credit_notes  || [];
-	var opening_out     = flt(data.opening_outstanding || 0, 2);
+	var all_invoices = data.invoices || [];
+	var all_credit_notes = data.credit_notes || [];
+	var opening_out = flt(data.opening_outstanding || 0, 2);
 	var month_summaries = data.month_summaries || {};   // GL-based per-month summaries
-	var total_summary   = data.total_summary   || {};   // GL-based grand totals
+	var total_summary = data.total_summary || {};   // GL-based grand totals
 
 	// Build per-invoice/CN row groups keyed by YYYY-MM
 	var groups = {};
@@ -831,9 +831,9 @@ function _build_all_months_pdf_html(data, customer_name, company, from_date, to_
 		var d, key;
 		if (/^\d{4}-\d{2}$/.test(key_or_dt)) {
 			key = key_or_dt;
-			d   = new Date(key + "-01");
+			d = new Date(key + "-01");
 		} else {
-			d   = new Date(key_or_dt);
+			d = new Date(key_or_dt);
 			key = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
 		}
 		if (!groups[key]) {
@@ -849,13 +849,13 @@ function _build_all_months_pdf_html(data, customer_name, company, from_date, to_
 	Object.keys(month_summaries).forEach(function (key) { _ensure_group(key); });
 
 	var sections = Object.keys(groups).sort().map(function (key) {
-		var g  = groups[key];
+		var g = groups[key];
 		var ms = month_summaries[key] || {};
 
 		// Use figures from backend — accurate to the report date range
-		var m_inv  = flt(ms.invoice_total     || 0, 2);
-		var m_paid = flt(ms.paid_cash         || 0, 2);
-		var m_out  = flt(ms.month_outstanding || 0, 2);
+		var m_inv = flt(ms.invoice_total || 0, 2);
+		var m_paid = flt(ms.paid_cash || 0, 2);
+		var m_out = flt(ms.month_outstanding || 0, 2);
 
 		var inv_part = "";
 		if (g.invoices.length) {
@@ -888,14 +888,14 @@ function _build_all_months_pdf_html(data, customer_name, company, from_date, to_
 	// Grand total comes from the GL closing balance (accurate, not a sum of per-month outstandings)
 	var total_out = flt(total_summary.outstanding || 0, 2);
 	var from_disp = _pdf_date(from_date) || from_date;
-	var to_disp   = _pdf_date(to_date)   || to_date;
+	var to_disp = _pdf_date(to_date) || to_date;
 	var today_str = _pdf_date(frappe.datetime.get_today());
 
 	var opening_html = "";
 	if (opening_out > 0) {
 		opening_html = `
 		<div class="opening-box">
-			<div class="opening-box-label">⏳ Opening Outstanding (before ${from_disp})</div>
+			<div class="opening-box-label"> Opening Outstanding (before ${from_disp})</div>
 			<div class="opening-box-amount">${_pdf_inr(opening_out)}</div>
 		</div>`;
 	}
@@ -952,8 +952,8 @@ function _export_csv(invoices, credit_notes, month_label) {
 
 	var t_inv = rows.reduce(function (s, r) { return s + r[3]; }, 0);
 	var t_paid = rows.reduce(function (s, r) { return s + r[4]; }, 0);
-	var t_cn   = rows.reduce(function (s, r) { return s + r[5]; }, 0);
-	var t_out  = rows.reduce(function (s, r) { return s + r[6]; }, 0);
+	var t_cn = rows.reduce(function (s, r) { return s + r[5]; }, 0);
+	var t_out = rows.reduce(function (s, r) { return s + r[6]; }, 0);
 	rows.push(["TOTAL", "", "", flt(t_inv, 2), flt(t_paid, 2), flt(t_cn, 2), flt(t_out, 2)]);
 
 	var csv = [headers].concat(rows).map(function (row) {

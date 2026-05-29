@@ -296,6 +296,14 @@ erpnext.stock.PurchaseReceiptController = class PurchaseReceiptController extend
 		}
 
 		this.frm.toggle_reqd("supplier_warehouse", this.frm.doc.is_old_subcontracting_flow);
+
+		this.frm.add_custom_button(
+			__("Purchase Stock Report"),
+			function () {
+				show_purchase_stock_report(cur_frm);
+			},
+			__("Actions")
+		);
 	}
 
 	make_purchase_invoice() {
@@ -483,3 +491,348 @@ var validate_sample_quantity = function (frm, cdt, cdn) {
 		});
 	}
 };
+
+/* ─── Purchase Stock Report helpers ──────────────────────────────────────── */
+
+var PR_REPORT_STYLES = `
+	.pr-report-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+	.pr-report-toolbar .pr-search{flex:1;min-width:180px;border-radius:6px;border:1px solid #d1d5db;
+		padding:7px 12px;font-size:13px;outline:none;}
+	.pr-report-toolbar .pr-search:focus{border-color:#5e64ff;box-shadow:0 0 0 2px rgba(94,100,255,.15);}
+	.pr-report-wrap{overflow:auto;max-height:62vh;border-radius:8px;
+		border:1px solid #e5e7eb;box-shadow:0 1px 4px rgba(0,0,0,.07);}
+	.pr-report-table{width:100%;border-collapse:collapse;font-size:13px;}
+	.pr-report-table thead tr{
+		background:linear-gradient(135deg,#1a73e8 0%,#0d47a1 100%);color:#fff;
+		position:sticky;top:0;z-index:2;}
+	.pr-report-table thead th{padding:11px 14px;font-weight:600;font-size:12px;
+		letter-spacing:.4px;border:none;white-space:nowrap;}
+	.pr-report-table tbody tr{border-bottom:1px solid #f0f0f0;transition:background .15s;}
+	.pr-report-table tbody tr.even{background:#fafafa;}
+	.pr-report-table tbody tr:hover{background:#e8f0fe !important;}
+	.pr-report-table tbody td{padding:9px 14px;vertical-align:middle;}
+	.pr-group-row{cursor:pointer;}
+	.pr-group-row td:first-child{font-weight:600;color:#1a73e8;}
+	.pr-dn-row{background:#ffe5e5 !important;}
+	.pr-dn-row:hover{background:#ffd0d0 !important;}
+	.pr-count-badge{display:inline-block;background:#e8f0fe;color:#1a73e8;
+		border-radius:12px;padding:1px 9px;font-size:12px;font-weight:600;}
+	.pr-qty-cell{font-weight:600;font-family:monospace;font-size:13px;}
+	.pr-footer-tip{margin-top:8px;margin-bottom:0;font-size:12px;color:#888;}
+	.pr-alert-bar{display:flex;align-items:center;gap:8px;background:#fff8e1;
+		border:1px solid #ffe082;border-radius:6px;padding:8px 12px;
+		margin-bottom:12px;font-size:13px;color:#5d4037;}
+`;
+
+function _pr_inject_styles() {
+	if (!document.getElementById("pr-report-css")) {
+		let s = document.createElement("style");
+		s.id = "pr-report-css";
+		s.textContent = PR_REPORT_STYLES;
+		document.head.appendChild(s);
+	}
+}
+
+function _pr_build_summary_rows(data, filter) {
+	let f = (filter || "").toLowerCase();
+	return data
+		.filter(
+			(r) =>
+				!f ||
+				(r.item_code || "").toLowerCase().includes(f) ||
+				(r.item_name || "").toLowerCase().includes(f)
+		)
+		.map(
+			(r, i) => `
+		<tr class="pr-group-row ${i % 2 ? "even" : ""}"
+			data-item-code="${frappe.utils.escape_html(r.item_code)}">
+			<td>${frappe.utils.escape_html(r.item_code)}</td>
+			<td>${frappe.utils.escape_html(r.item_name || "")}</td>
+			<td style="text-align:center;">
+				<span class="pr-count-badge">${r.no_of_items}</span>
+			</td>
+			<td style="text-align:right;" class="pr-qty-cell">
+				${frappe.format(r.total_qty, { fieldtype: "Float" })}
+			</td>
+		</tr>`
+		)
+		.join("");
+}
+
+function show_purchase_stock_report(frm) {
+	_pr_inject_styles();
+	frappe.call({
+		method: "erpnext.stock.doctype.purchase_receipt.purchase_receipt.get_purchase_stock_report",
+		args: { purchase_receipt: frm.doc.name },
+		callback: function (r) {
+			if (!r.message || !r.message.length) {
+				frappe.msgprint(__("No items found for this Purchase Receipt."));
+				return;
+			}
+			let data = r.message;
+
+			let html = `
+			<div class="pr-report-toolbar">
+				<input type="text" id="pr-sum-search" class="pr-search"
+					placeholder="${__("Search by Item Code or Name…")}" />
+				<button class="btn btn-sm btn-default" id="pr-sum-pdf">
+					<i class="fa fa-file-pdf-o"></i>&ensp;${__("Export PDF")}
+				</button>
+			</div>
+			<div class="pr-report-wrap">
+				<table class="pr-report-table">
+					<thead>
+						<tr>
+							<th>${__("Item Code")}</th>
+							<th>${__("Item Name")}</th>
+							<th style="text-align:center;">${__("No. of Items")}</th>
+							<th style="text-align:right;">${__("Total Qty / Weight")}</th>
+						</tr>
+					</thead>
+					<tbody id="pr-sum-tbody">${_pr_build_summary_rows(data, "")}</tbody>
+				</table>
+			</div>
+			<p class="pr-footer-tip">
+				<i class="fa fa-hand-pointer-o"></i>&ensp;
+				${__("Click any row to view individual items.")}
+			</p>`;
+
+			let d = new frappe.ui.Dialog({
+				title: __("Purchase Stock Report — {0}", [frm.doc.name]),
+				fields: [{ fieldtype: "HTML", fieldname: "rh", options: html }],
+				size: "extra-large",
+			});
+			d.show();
+			d.$wrapper.find(".modal-dialog").css({ "max-width": "92vw", width: "92vw" });
+
+			let $tbody = d.$wrapper.find("#pr-sum-tbody");
+
+			function _attach_row_clicks() {
+				d.$wrapper.find(".pr-group-row").off("click").on("click", function () {
+					show_pr_stock_drilldown(frm, $(this).data("item-code"));
+				});
+			}
+
+			d.$wrapper.find("#pr-sum-search").on("input", function () {
+				$tbody.html(_pr_build_summary_rows(data, $(this).val()));
+				_attach_row_clicks();
+			});
+
+			_attach_row_clicks();
+
+			d.$wrapper.find("#pr-sum-pdf").on("click", function () {
+				_pr_export_summary_pdf(frm.doc.name, data);
+			});
+		},
+	});
+}
+
+/* ─── Drill-down ─────────────────────────────────────────────────────────── */
+
+function _pr_build_drill_rows(items, filter) {
+	let f = (filter || "").toLowerCase();
+	return items
+		.filter(
+			(it) =>
+				!f ||
+				(it.item_code || "").toLowerCase().includes(f) ||
+				(it.item_name || "").toLowerCase().includes(f)
+		)
+		.map(
+			(it, i) => `
+		<tr class="${it.has_submitted_dn ? "pr-dn-row" : i % 2 ? "even" : ""}">
+			<td>${frappe.utils.escape_html(it.item_code || "")}</td>
+			<td>${frappe.utils.escape_html(it.item_name || "")}</td>
+			<td style="text-align:right;" class="pr-qty-cell">
+				${frappe.format(it.qty, { fieldtype: "Float" })}
+			</td>
+			<td>${frappe.utils.escape_html(it.uom || "")}</td>
+		</tr>`
+		)
+		.join("");
+}
+
+function show_pr_stock_drilldown(frm, item_code) {
+	_pr_inject_styles();
+	frappe.call({
+		method: "erpnext.stock.doctype.purchase_receipt.purchase_receipt.get_purchase_stock_report_items",
+		args: { purchase_receipt: frm.doc.name, item_code: item_code },
+		callback: function (r) {
+			if (!r.message) return;
+			let items = r.message;
+			let dn_count = items.filter((it) => it.has_submitted_dn).length;
+
+			let alert_bar =
+				dn_count > 0
+					? `<div class="pr-alert-bar">
+						<i class="fa fa-exclamation-triangle" style="color:#e65100;font-size:15px;"></i>
+						<span>
+							<strong>${dn_count}</strong>
+							&nbsp;${__("item(s) already dispatched via a submitted Delivery Note (highlighted in red).")}
+						</span>
+					</div>`
+					: "";
+
+			let legend =
+				frm.doc.docstatus === 1
+					? `<p class="pr-footer-tip">
+						<span style="display:inline-block;width:14px;height:14px;background:#ffe5e5;
+							border:1px solid #f08080;border-radius:2px;vertical-align:middle;"></span>
+						&ensp;${__("Row highlighted in red = submitted Delivery Note exists for this item.")}
+					</p>`
+					: "";
+
+			let html = `
+			${alert_bar}
+			<div class="pr-report-toolbar">
+				<input type="text" id="pr-drill-search" class="pr-search"
+					placeholder="${__("Search by Item Code or Name…")}" />
+				<button class="btn btn-sm btn-default" id="pr-drill-pdf">
+					<i class="fa fa-file-pdf-o"></i>&ensp;${__("Export PDF")}
+				</button>
+			</div>
+			<div class="pr-report-wrap">
+				<table class="pr-report-table">
+					<thead>
+						<tr>
+							<th>${__("Item Code")}</th>
+							<th>${__("Item Name")}</th>
+							<th style="text-align:right;">${__("Qty / Weight")}</th>
+							<th>${__("UOM")}</th>
+						</tr>
+					</thead>
+					<tbody id="pr-drill-tbody">${_pr_build_drill_rows(items, "")}</tbody>
+				</table>
+			</div>
+			${legend}`;
+
+			let d = new frappe.ui.Dialog({
+				title: __("Items — {0}", [item_code]),
+				fields: [{ fieldtype: "HTML", fieldname: "dh", options: html }],
+				size: "extra-large",
+			});
+			d.show();
+			d.$wrapper.find(".modal-dialog").css({ "max-width": "92vw", width: "92vw" });
+
+			d.$wrapper.find("#pr-drill-search").on("input", function () {
+				d.$wrapper.find("#pr-drill-tbody").html(_pr_build_drill_rows(items, $(this).val()));
+			});
+
+			d.$wrapper.find("#pr-drill-pdf").on("click", function () {
+				_pr_export_drill_pdf(frm.doc.name, item_code, items);
+			});
+		},
+	});
+}
+
+/* ─── PDF helpers ────────────────────────────────────────────────────────── */
+
+var _PR_PDF_BASE_CSS = `
+	body{font-family:Arial,sans-serif;margin:24px;color:#222;}
+	h2{color:#1a73e8;margin:0 0 4px;}
+	.sub{color:#666;font-size:12px;margin:0 0 18px;}
+	table{width:100%;border-collapse:collapse;}
+	thead tr{background:#1a73e8;color:#fff;}
+	th{padding:9px 12px;font-size:11px;text-align:left;white-space:nowrap;}
+	td{padding:7px 12px;font-size:11px;border-bottom:1px solid #e8e8e8;}
+	tr.even{background:#f7f7f7;}
+	.dn-row{background:#ffe5e5;}
+	.legend{margin-top:12px;font-size:11px;color:#555;display:flex;align-items:center;gap:6px;}
+	.legend-box{width:12px;height:12px;background:#ffe5e5;border:1px solid #f08080;display:inline-block;}
+	@media print{@page{margin:14mm;}}
+`;
+
+function _pr_open_print_window(title, subtitle, head_html, body_html, legend_html) {
+	let ts = frappe.datetime.now_datetime();
+	let win = window.open("", "_blank");
+	if (!win) {
+		frappe.msgprint(__("Please allow popups for PDF export."));
+		return;
+	}
+
+	// Build via DOM to avoid deprecated document.write
+	let meta = win.document.createElement("meta");
+	meta.setAttribute("charset", "utf-8");
+	win.document.head.appendChild(meta);
+
+	win.document.title = title;
+
+	let style = win.document.createElement("style");
+	style.textContent = _PR_PDF_BASE_CSS;
+	win.document.head.appendChild(style);
+
+	win.document.body.innerHTML = `
+		<h2>${frappe.utils.escape_html(title)}</h2>
+		<p class="sub">${frappe.utils.escape_html(subtitle)}&nbsp;|&nbsp;Generated: ${ts}</p>
+		<table>
+			<thead><tr>${head_html}</tr></thead>
+			<tbody>${body_html}</tbody>
+		</table>
+		${legend_html || ""}
+	`;
+
+	win.focus();
+	win.print();
+}
+
+function _pr_export_summary_pdf(pr_name, data) {
+	let head = ["Item Code", "Item Name", "No. of Items", "Total Qty / Weight"]
+		.map((h, i) => `<th${i >= 2 ? ' style="text-align:' + (i === 2 ? "center" : "right") + ';"' : ""}>${h}</th>`)
+		.join("");
+
+	let body = data
+		.map(
+			(r, i) => `
+		<tr class="${i % 2 ? "even" : ""}">
+			<td><strong>${frappe.utils.escape_html(r.item_code)}</strong></td>
+			<td>${frappe.utils.escape_html(r.item_name || "")}</td>
+			<td style="text-align:center;">${r.no_of_items}</td>
+			<td style="text-align:right;font-weight:600;">
+				${frappe.format(r.total_qty, { fieldtype: "Float" })}
+			</td>
+		</tr>`
+		)
+		.join("");
+
+	_pr_open_print_window(
+		"Purchase Stock Report — " + pr_name,
+		pr_name,
+		head,
+		body,
+		""
+	);
+}
+
+function _pr_export_drill_pdf(pr_name, item_code, items) {
+	let head = ["Item Code", "Item Name", "Qty / Weight", "UOM"]
+		.map((h, i) => `<th${i === 3 ? ' style="text-align:right;"' : ""}>${h}</th>`)
+		.join("");
+
+	let body = items
+		.map(
+			(it, i) => `
+		<tr class="${it.has_submitted_dn ? "dn-row" : i % 2 ? "even" : ""}">
+			<td>${frappe.utils.escape_html(it.item_code || "")}</td>
+			<td>${frappe.utils.escape_html(it.item_name || "")}</td>
+			<td style="text-align:right;font-weight:600;">
+				${frappe.format(it.qty, { fieldtype: "Float" })}
+			</td>
+			<td>${frappe.utils.escape_html(it.uom || "")}</td>
+		</tr>`
+		)
+		.join("");
+
+	let legend = `
+		<div class="legend">
+			<span class="legend-box"></span>
+			Row highlighted in red = submitted Delivery Note exists for this item.
+		</div>`;
+
+	_pr_open_print_window(
+		"Items — " + item_code,
+		pr_name + " › " + item_code,
+		head,
+		body,
+		legend
+	);
+}

@@ -440,7 +440,7 @@ function gj_show_roll_dialog(frm) {
                 fieldname: "no_of_rolls",
                 label: "Number of Rolls",
                 reqd: 1,
-                default: 1,
+                default: 0,
                 description: "Enter count → weight boxes will appear below"
             },
             // ── Step 2: Weight boxes (HTML) ──

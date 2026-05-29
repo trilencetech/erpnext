@@ -1587,6 +1587,63 @@ def make_lcv(doctype, docname):
     return landed_cost_voucher.as_dict()
 
 
+@frappe.whitelist()
+def get_purchase_stock_report(purchase_receipt):
+    """Returns items grouped by item_code for the purchase stock report summary."""
+    rows = frappe.db.sql(
+        """
+        SELECT
+            item_code,
+            item_name,
+            COUNT(*) AS no_of_items,
+            SUM(qty) AS total_qty
+        FROM `tabPurchase Receipt Item`
+        WHERE parent = %s
+        GROUP BY item_code, item_name
+        ORDER BY item_code
+        """,
+        purchase_receipt,
+        as_dict=True,
+    )
+    return rows
+
+
+@frappe.whitelist()
+def get_purchase_stock_report_items(purchase_receipt, item_code):
+    """Returns individual items for a given item_code, flagging those with a submitted Delivery Note."""
+    items = frappe.db.sql(
+        """
+        SELECT item_id, item_code, item_name, qty, uom
+        FROM `tabPurchase Receipt Item`
+        WHERE parent = %s AND item_code = %s
+        ORDER BY idx
+        """,
+        (purchase_receipt, item_code),
+        as_dict=True,
+    )
+
+    item_ids = [row.item_id for row in items if row.item_id]
+    submitted_ids = set()
+
+    if item_ids:
+        dn_rows = frappe.db.sql(
+            """
+            SELECT DISTINCT dni.item_id
+            FROM `tabDelivery Note Item` dni
+            INNER JOIN `tabDelivery Note` dn ON dn.name = dni.parent
+            WHERE dni.item_id IN %s AND dn.docstatus = 1
+            """,
+            (item_ids,),
+            as_dict=True,
+        )
+        submitted_ids = {d.item_id for d in dn_rows}
+
+    for row in items:
+        row["has_submitted_dn"] = 1 if row.get("item_id") in submitted_ids else 0
+
+    return items
+
+
 def get_size_inch(width_mm):
     width_inch = float(width_mm) / 25.4
     size = round(width_inch, 1)
