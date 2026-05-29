@@ -3,7 +3,6 @@
 
 import frappe
 from frappe.model.document import Document
-from frappe.utils import flt
 
 
 class UpdateStock(Document):
@@ -19,24 +18,10 @@ class UpdateStock(Document):
         amended_from: DF.Link | None
         company: DF.Link
         customer: DF.Link
-        freight_amount: DF.Currency
-        grand_total: DF.Currency
         items: DF.Table[UpdateStockItem]
-        tax_amount: DF.Currency
-        tax_rate: DF.Float
         total_amount: DF.Currency
         total_qty: DF.Float
     # end: auto-generated types
-
-    def validate(self):
-        self._calculate_tax_totals()
-
-    def _calculate_tax_totals(self):
-        freight = flt(self.freight_amount or 0)
-        tax_rate = flt(self.tax_rate if self.tax_rate is not None else 9)
-        net_before_tax = flt(self.total_amount or 0) + freight
-        self.tax_amount = flt(net_before_tax * tax_rate / 100, 2)
-        self.grand_total = flt(net_before_tax + self.tax_amount, 2)
 
     def on_submit(self):
         for row in self.items:

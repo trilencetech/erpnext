@@ -25,7 +25,6 @@
    "in_list_view": 1,
    "label": "Item Code",
    "options": "Item",
-   "read_only": 1,
    "reqd": 1
   },
   {
@@ -65,7 +64,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-10-09 13:42:07.543825",
+ "modified": "2026-05-29 14:49:05.838384",
  "modified_by": "Administrator",
  "module": "Selling",
  "name": "Update Stock Item",

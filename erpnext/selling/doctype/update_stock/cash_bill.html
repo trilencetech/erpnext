@@ -7,13 +7,8 @@
 {%- set account_doc = frappe.get_doc("Account", company_doc.default_bank_account) if company_doc.default_bank_account
 else none -%}
 {%- set doc_date = frappe.utils.format_date(doc.creation, "dd-MM-yyyy") if doc.creation else "" -%}
+{%- set in_words_text = frappe.utils.money_in_words(doc.total_amount or 0) -%}
 {%- set total_qty_val = doc.total_qty or (doc.items | sum(attribute="qty")) -%}
-{%- set freight_val = (doc.freight_amount or 0) | float -%}
-{%- set tax_rate_val = (doc.tax_rate if doc.tax_rate is not none else 9) | float -%}
-{%- set net_before_tax = (doc.total_amount or 0) | float + freight_val -%}
-{%- set tax_amount_val = (doc.tax_amount or (net_before_tax * tax_rate_val / 100)) | float -%}
-{%- set grand_total_val = (doc.grand_total or (net_before_tax + tax_amount_val)) | float -%}
-{%- set in_words_text = frappe.utils.money_in_words(grand_total_val) -%}
 
 {%- macro ifmt(n) -%}
 {%- set n = n | float -%}{%- set neg = (n < 0) -%}{%- set n=n | abs -%} {%- set s="%.2f" | format(n) -%}{%- set
@@ -230,6 +225,8 @@ else none -%}
                 background: #f5f5f5;
                 font-size: 14px;
                 border-top: 2px solid #000;
+                height: 15px !important;
+                border-bottom: 2px solid #000;
             }
 
             /* ── TOTALS ── */
@@ -309,7 +306,7 @@ else none -%}
 
             .sig-col {
                 flex: 1;
-                padding: 10px 12px;
+                padding: 10px 44.5px;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
@@ -333,7 +330,7 @@ else none -%}
 
             <!-- DOC TITLE -->
             <div class="doc-title">
-                {{company_doc.company_name}}- Sales Invoice
+                Estimation Bill
 
             </div>
 
@@ -420,78 +417,7 @@ else none -%}
                 </tbody>
             </table>
 
-            <!-- TOTALS SECTION -->
-            <div class="totals-wrap">
-                <div class="totals-left">
-                    <strong>Our Bank Details :</strong>
-                    <table style="width:100%;border-collapse:collapse;margin-top:6px">
-                        <colgroup>
-                            <col style="width:55px">
-                            <col style="width:12px">
-                            <col>
-                            <col style="width:60px">
-                            <col style="width:12px">
-                            <col>
-                        </colgroup>
-                        <tr>
-                            <td style="font-size:13px;padding:3px 0;color:#444">Bank</td>
-                            <td style="font-size:13px;padding:3px 0;color:#555;text-align:center">:</td>
-                            <td style="font-size:13px;padding:3px 0;font-weight:700">
-                                {%- if account_doc -%}{{ account_doc.account_name }}{%- elif bank_acc -%}{{
-                                bank_acc.bank }}{%- else -%}—{%- endif -%}
-                            </td>
-                            <td style="font-size:13px;padding:3px 0;color:#444">A/C No.</td>
-                            <td style="font-size:13px;padding:3px 0;color:#555;text-align:center">:</td>
-                            <td style="font-size:13px;padding:3px 0;font-weight:700">
-                                {%- if account_doc -%}{{ account_doc.account_number }}{%- elif bank_acc -%}{{
-                                bank_acc.bank_account_no }}{%- else -%}—{%- endif -%}
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="font-size:13px;padding:3px 0;color:#444">IFSC</td>
-                            <td style="font-size:13px;padding:3px 0;color:#555;text-align:center">:</td>
-                            <td style="font-size:13px;padding:3px 0;font-weight:700">
-                                {%- if account_doc -%}{{ account_doc.ifsc_code or "—" }}{%- elif bank_acc -%}{{
-                                bank_acc.branch_code }}{%- else -%}—{%- endif -%}
-                            </td>
-                            <td style="font-size:13px;padding:3px 0;color:#444">Branch</td>
-                            <td style="font-size:13px;padding:3px 0;color:#555;text-align:center">:</td>
-                            <td style="font-size:13px;padding:3px 0;font-weight:700">
-                                {%- if account_doc -%}{{ account_doc.get("branch") or "—" }}{%- else -%}—{%- endif -%}
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-                <div class="totals-right">
-                    <div class="tri">
-                        <div class="trl">Sub Total</div>
-                        <div class="trv">{{ ifmt(doc.total_amount) }}</div>
-                    </div>
-                    {%- if freight_val > 0 %}
-                    <div class="tri">
-                        <div class="trl">Freight</div>
-                        <div class="trv">{{ ifmt(freight_val) }}</div>
-                    </div>
-                    {%- endif %}
-                    <div class="tri" style="border-top:1.5px solid #000">
-                        <div class="trl">Net Amount</div>
-                        <div class="trv">{{ ifmt(net_before_tax) }}</div>
-                    </div>
-                    <div class="tri">
-                        <div class="trl">Tax @ {{ "%.0f" | format(tax_rate_val) }}%</div>
-                        <div class="trv">{{ ifmt(tax_amount_val) }}</div>
-                    </div>
-                    <div class="tri grand" style="border:1.5px solid #000;border-top:2px solid #000">
-                        <div class="trl">Gross Total</div>
-                        <div class="trv">{{ ifmt(grand_total_val) }}</div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- AMOUNT IN WORDS -->
-            <div class="amount-words">
-                ₹&nbsp;<strong>{{ in_words_text | upper }}</strong>
-            </div>
 
             <!-- TERMS + SIGNATURE -->
             <div class="bank-sig-wrap">
@@ -503,7 +429,7 @@ else none -%}
                     (4) Subject to Ahmedabad Jurisdiction.
                 </div>
                 <div class="sig-col">
-                    <div style="font-size:12px">For, <strong>{{ doc.company | upper }}</strong></div>
+                    <div style="font-size:12px">For, Vardayani Enterprise</strong></div>
                     <div class="sig-line">Authorized Signatory</div>
                 </div>
             </div>

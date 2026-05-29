@@ -278,9 +278,10 @@ def _get_customer_list(filters):
 
 # ── MONTHLY DATA (customer filter set) ────────────────────────────────────────
 #
-# GL Entry based — same source-of-truth as customer_ledger_summary.
-# Each month bucket groups GL party movements by posting_date month.
-# outstanding per month = running closing balance at end of that month.
+# Sales Invoice based — same source-of-truth as get_month_invoices drilldown.
+# paid_amount per invoice = grand_total - outstanding_amount, attributed to the
+# invoice's own posting month regardless of when the payment was received.
+# outstanding per month   = running closing balance at end of that month.
 
 def _get_monthly_data(filters):
     customer  = filters.customer
@@ -291,27 +292,61 @@ def _get_monthly_data(filters):
     company_currency = frappe.get_cached_value(
         "Company", company, "default_currency") or "INR"
 
-    gl_entries = frappe.db.sql(
+    params = {
+        "company":    company,
+        "customer":   customer,
+        "from_date":  from_date,
+        "to_date":    to_date,
+    }
+
+    # Opening balance — invoices before from_date that still have outstanding
+    opening_row = frappe.db.sql(
         """
-        SELECT posting_date, debit, credit, voucher_no, is_opening
-        FROM   `tabGL Entry`
-        WHERE  docstatus < 2 AND is_cancelled = 0
-          AND  company    = %(company)s
-          AND  party_type = 'Customer'
-          AND  party      = %(customer)s
-          AND  posting_date <= %(to_date)s
-        ORDER  BY posting_date, name
+        SELECT COALESCE(SUM(outstanding_amount), 0) AS val
+        FROM   `tabSales Invoice`
+        WHERE  docstatus = 1 AND is_return = 0
+          AND  customer  = %(customer)s AND company = %(company)s
+          AND  posting_date < %(from_date)s
+          AND  outstanding_amount > 0
         """,
-        {"company": company, "customer": customer, "to_date": to_date},
-        as_dict=True,
+        params, as_dict=True,
+    )
+    opening_balance = flt((opening_row[0].val if opening_row else 0), 2)
+
+    # Invoices in period
+    invoices = frappe.db.sql(
+        """
+        SELECT
+            posting_date,
+            grand_total                        AS invoice_amount,
+            (grand_total - outstanding_amount) AS paid_amount
+        FROM   `tabSales Invoice`
+        WHERE  docstatus = 1 AND is_return = 0
+          AND  customer  = %(customer)s AND company = %(company)s
+          AND  posting_date BETWEEN %(from_date)s AND %(to_date)s
+        ORDER  BY posting_date
+        """,
+        params, as_dict=True,
     )
 
-    if not gl_entries:
+    # Credit notes in period
+    credit_notes = frappe.db.sql(
+        """
+        SELECT
+            posting_date,
+            ABS(grand_total) AS credit_amount
+        FROM   `tabSales Invoice`
+        WHERE  docstatus = 1 AND is_return = 1
+          AND  customer  = %(customer)s AND company = %(company)s
+          AND  posting_date BETWEEN %(from_date)s AND %(to_date)s
+        ORDER  BY posting_date
+        """,
+        params, as_dict=True,
+    )
+
+    if not invoices and not credit_notes:
         return []
 
-    return_invoices = _get_return_invoice_set(company, [customer], from_date, to_date)
-
-    opening_balance = 0.0
     month_data = {}
 
     def _ensure_month(dt):
@@ -331,18 +366,14 @@ def _get_monthly_data(filters):
             }
         return key
 
-    for gle in gl_entries:
-        amount = flt(gle.debit) - flt(gle.credit)
-        if gle.posting_date < from_date or gle.is_opening == "Yes":
-            opening_balance += amount
-        else:
-            key = _ensure_month(gle.posting_date)
-            if amount > 0:
-                month_data[key]["invoice_amount"] += amount
-            elif gle.voucher_no in return_invoices:
-                month_data[key]["credit_note"] -= amount   # make positive
-            else:
-                month_data[key]["paid_amount"] -= amount   # make positive
+    for inv in invoices:
+        key = _ensure_month(getdate(inv.posting_date))
+        month_data[key]["invoice_amount"] += flt(inv.invoice_amount)
+        month_data[key]["paid_amount"]    += flt(inv.paid_amount)
+
+    for cn in credit_notes:
+        key = _ensure_month(getdate(cn.posting_date))
+        month_data[key]["credit_note"] += flt(cn.credit_amount)
 
     if not month_data:
         return []
@@ -360,7 +391,6 @@ def _get_monthly_data(filters):
     total_invoice = flt(sum(m["invoice_amount"] for m in month_data.values()), 2)
     total_cn      = flt(sum(m["credit_note"]    for m in month_data.values()), 2)
     total_paid    = flt(sum(m["paid_amount"]    for m in month_data.values()), 2)
-    # Closing balance = opening + all period movements
     total_out     = flt(opening_balance + total_invoice - total_cn - total_paid, 2)
 
     rows = [{
@@ -402,16 +432,15 @@ def get_customer_monthly_ledger(customer, company, from_date, to_date):
     })
     rows = _get_monthly_data(filters)
 
-    # Opening = GL balance before from_date (same query used in _get_monthly_data)
+    # Opening = SI outstanding before from_date (same logic as _get_monthly_data)
     opening_row = frappe.db.sql(
         """
-        SELECT COALESCE(SUM(debit - credit), 0) AS val
-        FROM `tabGL Entry`
-        WHERE docstatus < 2 AND is_cancelled = 0
-          AND company    = %(company)s
-          AND party_type = 'Customer'
-          AND party      = %(customer)s
-          AND (posting_date < %(from_date)s OR is_opening = 'Yes')
+        SELECT COALESCE(SUM(outstanding_amount), 0) AS val
+        FROM   `tabSales Invoice`
+        WHERE  docstatus = 1 AND is_return = 0
+          AND  customer  = %(customer)s AND company = %(company)s
+          AND  posting_date < %(from_date)s
+          AND  outstanding_amount > 0
         """,
         {"company": company, "customer": customer, "from_date": getdate(from_date)},
         as_dict=True,
@@ -490,7 +519,7 @@ def get_month_invoices(customer, company, month_start, month_end):
     fwd_out   = flt(sum(flt(i.outstanding)    for i in invoices), 2)
     month_out = flt(max(0.0, fwd_out), 2)
     paid_adj  = flt(max(0.0, inv_total - month_out), 2)
-    total_out = flt(month_out + opening_outstanding, 2)
+    total_out = flt(max(0.0, month_out + opening_outstanding - cn_total), 2)
 
     return {
         "opening_outstanding": opening_outstanding,

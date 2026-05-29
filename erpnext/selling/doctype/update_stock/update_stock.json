@@ -14,13 +14,6 @@
   "items",
   "total_qty",
   "total_amount",
-  "section_break_tax_charges",
-  "freight_amount",
-  "column_break_tax1",
-  "tax_rate",
-  "tax_amount",
-  "column_break_tax2",
-  "grand_total",
   "amended_from"
  ],
  "fields": [
@@ -75,45 +68,6 @@
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Total Amount (INR):"
-  },
-  {
-   "fieldname": "section_break_tax_charges",
-   "fieldtype": "Section Break",
-   "label": "Tax & Charges"
-  },
-  {
-   "fieldname": "freight_amount",
-   "fieldtype": "Currency",
-   "label": "Freight Amount",
-   "default": "0"
-  },
-  {
-   "fieldname": "column_break_tax1",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "tax_rate",
-   "fieldtype": "Float",
-   "label": "Tax Rate (%)",
-   "default": "9"
-  },
-  {
-   "fieldname": "tax_amount",
-   "fieldtype": "Currency",
-   "label": "Tax Amount",
-   "read_only": 1
-  },
-  {
-   "fieldname": "column_break_tax2",
-   "fieldtype": "Column Break"
-  },
-  {
-   "bold": 1,
-   "fieldname": "grand_total",
-   "fieldtype": "Currency",
-   "in_list_view": 0,
-   "label": "Grand Total",
-   "read_only": 1
   },
   {
    "fieldname": "amended_from",

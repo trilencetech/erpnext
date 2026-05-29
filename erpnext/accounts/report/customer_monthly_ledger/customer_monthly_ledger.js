@@ -360,6 +360,7 @@ function _show_invoice_dialog(data, month_label, customer, company) {
 
 	var invoice_total = flt(s.invoice_total || 0, 2);
 	var paid_cash = flt(s.paid_cash || 0, 2);
+	var credit_total = flt(s.credit_total || 0, 2);
 	var month_outstanding = flt(s.month_outstanding || 0, 2);
 	var opening_outstanding = flt(s.opening_outstanding || 0, 2);
 	var total_outstanding = flt(s.total_outstanding || 0, 2);
@@ -475,7 +476,7 @@ function _show_invoice_dialog(data, month_label, customer, company) {
 	if (paid_cash > 0) {
 		sum_rows += `
 		<tr>
-			<td style="padding:6px 12px;font-size:12.5px;color:#16a34a;">(-) Paid / Adjusted <span style="font-size:10.5px;color:#6b7280;">(cash + credit notes applied)</span></td>
+			<td style="padding:6px 12px;font-size:12.5px;color:#16a34a;">(-) Paid / Adjusted</td>
 			<td style="padding:6px 12px;text-align:right;font-size:12.5px;color:#16a34a;">(${_fmt(paid_cash)})</td>
 		</tr>`;
 	}
@@ -494,6 +495,19 @@ function _show_invoice_dialog(data, month_label, customer, company) {
 		</tr>`;
 	}
 
+	if (credit_total > 0) {
+		sum_rows += `
+		<tr>
+			<td style="padding:6px 12px;font-size:12.5px;color:#7c3aed;">(-) Credit Notes</td>
+			<td style="padding:6px 12px;text-align:right;font-size:12.5px;color:#7c3aed;">(${_fmt(credit_total)})</td>
+		</tr>`;
+	}
+
+	var tot_label_parts = [];
+	if (opening_outstanding > 0) tot_label_parts.push("Month + Opening");
+	if (credit_total > 0) tot_label_parts.push("less Credit Notes");
+	var tot_label_suffix = tot_label_parts.length ? `(${tot_label_parts.join(", ")})` : "";
+
 	var total_section = `
 	<div style="margin-top:14px;background:${tot_bg};border:2px solid ${tot_border};border-radius:6px;overflow:hidden;">
 		<table style="width:100%;border-collapse:collapse;">
@@ -502,8 +516,7 @@ function _show_invoice_dialog(data, month_label, customer, company) {
 		<div style="display:flex;justify-content:space-between;align-items:center;
 			padding:10px 12px;border-top:2px solid ${tot_border};">
 			<span style="font-size:13.5px;font-weight:700;color:${tot_label};">
-				📊 ${all_clear ? "Fully Cleared" : "Total Outstanding"}
-				${opening_outstanding > 0 ? "(Month + Opening)" : ""}
+				📊 ${all_clear ? "Fully Cleared" : "Total Outstanding"} ${tot_label_suffix}
 			</span>
 			<span style="font-size:18px;font-weight:700;color:${tot_out};">${_fmt(total_outstanding)}</span>
 		</div>
