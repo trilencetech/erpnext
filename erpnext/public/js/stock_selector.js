@@ -144,7 +144,7 @@ function gj_show_mini_picker(frm, cdt, cdn, entries, abbr, income_account) {
                 var idx = parseInt($(this).data("idx"));
                 selected.push(entries[idx]);
             });
-
+            var masterRate = d.$wrapper.find("#gj-item-master-rate").val().trim();
             if (!selected.length) {
                 frappe.msgprint({ title: "Nothing selected", message: "Please check at least one row.", indicator: "orange" });
                 return;
@@ -154,12 +154,12 @@ function gj_show_mini_picker(frm, cdt, cdn, entries, abbr, income_account) {
             frm._gj_filling = true;
 
             // First entry fills the current row
-            gj_fill_row_sync(frm, cdt, cdn, selected[0], abbr, income_account);
+            gj_fill_row_sync(frm, cdt, cdn, selected[0], abbr, income_account, masterRate);
 
             // Additional entries get new rows — all synchronous, no async inside
             selected.slice(1).forEach(function (item) {
                 var new_row = frm.add_child("items");
-                gj_fill_row_sync(frm, new_row.doctype, new_row.name, item, abbr, income_account);
+                gj_fill_row_sync(frm, new_row.doctype, new_row.name, item, abbr, income_account, masterRate);
             });
 
             frm.refresh_field("items");
@@ -347,7 +347,10 @@ function gj_picker_html(entries) {
         <input type="number" id="gj-weight-filter" placeholder="e.g. 25.5" min="0" step="0.001">
         <span class="gj-filter-clear" id="gj-weight-clear" style="display:none">✕ Clear</span>
         <span id="gj-match-count" style="font-size:12px;color:#64748b;margin-left:auto"></span>
+        <label>Master Rate: </label>
+        <input type="number" id="gj-item-master-rate" placeholder="e.g. 250" min="0" step="0.001">
     </div>
+ 
     <div style="max-height:340px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px;">
         <table class="table gj-picker-table" style="margin:0;table-layout:fixed;width:100%">
             <thead>
@@ -756,8 +759,12 @@ function gj_add_rolls(frm, d, values) {
 // FILL THE CHILD TABLE ROW — synchronous, writes directly to
 // locals[] so NO form events are fired (prevents picker re-open)
 // ─────────────────────────────────────────────────────────────
-function gj_fill_row_sync(frm, cdt, cdn, item, abbr, income_account) {
+function gj_fill_row_sync(frm, cdt, cdn, item, abbr, income_account, masterRate) {
     var r = locals[cdt][cdn];
+    if (null != masterRate && masterRate > 0) {
+        item.item_price = masterRate;
+    }
+
 
     r.item_code = item.item_code;
     r.item_name = item.item_name;
