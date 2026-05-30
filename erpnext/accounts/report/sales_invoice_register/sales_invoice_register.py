@@ -1,6 +1,8 @@
 # Copyright (c) 2026, TriLence Tech and contributors
 # Sales Invoice Register — Script Report
 
+import re
+
 import frappe
 from frappe import _
 from frappe.utils import flt, formatdate, get_first_day, get_last_day, getdate
@@ -167,10 +169,8 @@ def get_bulk_invoice_html(company, from_date, to_date, customer=None):
     """
     Return combined printable HTML for all submitted Sales Invoices in the period.
     Uses the print format configured in Company.print_format_si.
-    Each invoice gets its own page-break section.
     """
-    print_format = frappe.db.get_value(
-        "Company", company, "print_format_si") or "Standard"
+    print_format = frappe.db.get_value("Company", company, "print_format_si") or "Standard"
 
     conditions = [
         "docstatus = 1",
@@ -193,48 +193,101 @@ def get_bulk_invoice_html(company, from_date, to_date, customer=None):
     )
 
     if not names:
-        frappe.throw(
-            _("No submitted Sales Invoices found for the selected period."))
+        frappe.throw(_("No submitted Sales Invoices found for the selected period."))
 
     pages = []
     for name in names:
         try:
-            html = frappe.get_print(
-                "Sales Invoice",
-                name,
-                print_format=print_format,
-                no_letterhead=True,
-            )
-            pages.append(html)
+            pages.append(_render_invoice_page(name, print_format))
         except Exception:
-            # skip invoices that fail to render (permissions, missing data)
             pass
 
     if not pages:
         frappe.throw(
             _("Could not render any invoice. Check the print format: {0}").format(print_format))
 
-    combined = (
-        """<!DOCTYPE html><html><head><meta charset="UTF-8">
-<style>
-  @page { size: A4 portrait; margin: 0; }
-  body  { margin: 0; padding: 0; background: #fff; }
-  .si-page { page-break-after: always; break-after: page; }
-  .si-page:last-child { page-break-after: auto; break-after: auto; }
-</style>
-</head><body>"""
-        + "".join(
-            '<div class="si-page">{}</div>'.format(p) for p in pages
-        )
-        + """<div style="text-align:center;margin:20px;font-family:Arial,sans-serif;">
-  <button onclick="window.print()"
-    style="background:#286cc6;color:#fff;border:none;padding:10px 36px;
-           font-size:14px;border-radius:4px;cursor:pointer;font-weight:700;
-           letter-spacing:.5px;">
-    🖨️&nbsp; Print / Save as PDF
-  </button>
-</div>
-</body></html>"""
+    combined = _wrap_pages_html(pages)
+    return {"html": combined, "count": len(pages), "print_format": print_format}
+
+
+@frappe.whitelist()
+def get_single_invoice_html(invoice_name, company):
+    """Return printable HTML for one Sales Invoice using Company.print_format_si."""
+    print_format = frappe.db.get_value("Company", company, "print_format_si") or "Standard"
+    html = _render_invoice_page(invoice_name, print_format)
+    # Inject auto-print trigger into the existing <head>
+    script = (
+        '<script>window.addEventListener("load",function(){'
+        'setTimeout(function(){window.print();},500);});</script>'
+    )
+    html = html.replace("</head>", script + "</head>", 1) if "</head>" in html else html + script
+    return {"html": html, "print_format": print_format}
+
+
+def _render_invoice_page(invoice_name, print_format_name):
+    """
+    Render a single invoice as clean, standalone HTML.
+
+    Uses the template stored in the Print Format document directly so the
+    output contains ONLY the invoice content — no Frappe printview chrome,
+    no toolbar, no external script/link tags.
+    """
+    # Direct template rendering: no frappe.get_print() wrapper
+    template_html = frappe.db.get_value("Print Format", print_format_name, "html") or ""
+    if template_html.strip():
+        doc = frappe.get_doc("Sales Invoice", invoice_name)
+        return frappe.render_template(template_html, {"doc": doc})
+
+    # Fallback for non-HTML print formats (e.g. "Standard")
+    # frappe.get_print returns the full Frappe printview page; extract only
+    # the body content and strip any injected scripts/link tags.
+    raw = frappe.get_print(
+        "Sales Invoice", invoice_name,
+        print_format=print_format_name,
+        no_letterhead=True,
+    )
+    styles = "\n".join(re.findall(r'<style[^>]*>.*?</style>', raw, re.DOTALL | re.IGNORECASE))
+    m = re.search(r'<body[^>]*>(.*?)</body\s*>', raw, re.DOTALL | re.IGNORECASE)
+    body = m.group(1).strip() if m else raw
+    body = re.sub(r'<script\b[^>]*>.*?</script>', '', body, flags=re.DOTALL | re.IGNORECASE)
+    return (
+        '<!DOCTYPE html><html><head><meta charset="UTF-8">\n'
+        + styles
+        + '\n</head><body>\n'
+        + body
+        + '\n</body></html>'
     )
 
-    return {"html": combined, "count": len(pages), "print_format": print_format}
+
+def _wrap_pages_html(pages):
+    """Combine multiple rendered invoice HTML pages into one printable document."""
+    # All pages share the same print format, so extract styles once
+    styles = "\n".join(
+        re.findall(r'<style[^>]*>.*?</style>', pages[0], re.DOTALL | re.IGNORECASE)
+    ) if pages else ""
+
+    body_parts = []
+    for p in pages:
+        m = re.search(r'<body[^>]*>(.*?)</body\s*>', p, re.DOTALL | re.IGNORECASE)
+        part = m.group(1).strip() if m else p
+        # Strip any scripts that crept in (safety net)
+        part = re.sub(r'<script\b[^>]*>.*?</script>', '', part, flags=re.DOTALL | re.IGNORECASE)
+        body_parts.append(part)
+
+    return (
+        '<!DOCTYPE html><html><head><meta charset="UTF-8">\n'
+        + styles + "\n"
+        + "<style>\n"
+        + "  .si-page { page-break-after: always; break-after: page; }\n"
+        + "  .si-page:last-of-type { page-break-after: avoid; break-after: avoid; }\n"
+        + "  @media print { body { background: #fff; } }\n"
+        + "</style>\n"
+        + "<script>\n"
+        + "  window.addEventListener('load',function(){\n"
+        + "    setTimeout(function(){window.print();},500);\n"
+        + "  });\n"
+        + "</script>\n"
+        + "</head><body>\n"
+        + "".join('<div class="si-page">{}</div>\n'.format(b) for b in body_parts)
+        + "</body></html>"
+    )

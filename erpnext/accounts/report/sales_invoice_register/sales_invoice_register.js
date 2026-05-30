@@ -134,14 +134,24 @@ function _sir_open_invoice_pdf(invoice_name) {
 	var company = frappe.query_report.get_filter_value("company");
 	if (!company) { frappe.msgprint(__("Please select a Company.")); return; }
 
-	frappe.db.get_value("Company", company, "print_format_si", function (r) {
-		var fmt = (r && r.print_format_si) ? r.print_format_si : "Standard";
-		var url = "/printview?doctype=Sales%20Invoice&name=" +
-			encodeURIComponent(invoice_name) +
-			"&format=" + encodeURIComponent(fmt) +
-			"&no_letterhead=0&_lang=en";
-		window.open(url, "_blank");
+	frappe.call({
+		method: "erpnext.accounts.report.sales_invoice_register.sales_invoice_register.get_single_invoice_html",
+		args: { invoice_name: invoice_name, company: company },
+		freeze: true,
+		freeze_message: __("Preparing invoice PDF…"),
+		callback: function (r) {
+			var res = r.message || {};
+			if (!res.html) { frappe.msgprint(__("Could not generate PDF.")); return; }
+			_sir_open_blob(res.html);
+		},
 	});
+}
+
+function _sir_open_blob(html) {
+	var blob = new Blob([html], { type: "text/html;charset=utf-8;" });
+	var url  = URL.createObjectURL(blob);
+	window.open(url, "_blank");
+	setTimeout(function () { URL.revokeObjectURL(url); }, 15000);
 }
 
 
@@ -183,10 +193,7 @@ function _sir_export_all_pdfs() {
 					indicator: "green",
 				}, 6);
 
-				var blob = new Blob([res.html], { type: "text/html;charset=utf-8;" });
-				var url = URL.createObjectURL(blob);
-				window.open(url, "_blank");
-				setTimeout(function () { URL.revokeObjectURL(url); }, 15000);
+				_sir_open_blob(res.html);
 			},
 		});
 	});
