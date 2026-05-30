@@ -167,8 +167,7 @@ class PurchaseInvoice(BuyingController):
         shipping_address: DF.Link | None
         shipping_address_display: DF.SmallText | None
         shipping_rule: DF.Link | None
-        status: DF.Literal["", "Draft", "Return", "Debit Note Issued", "Submitted",
-                           "Paid", "Partly Paid", "Unpaid", "Overdue", "Cancelled", "Internal Transfer"]
+        status: DF.Literal["", "Draft", "Return", "Debit Note Issued", "Submitted", "Paid", "Partly Paid", "Unpaid", "Overdue", "Cancelled", "Internal Transfer"]
         subscription: DF.Link | None
         supplied_items: DF.Table[PurchaseReceiptItemSupplied]
         supplier: DF.Link
@@ -238,6 +237,30 @@ class PurchaseInvoice(BuyingController):
 
     def invoice_is_blocked(self):
         return self.on_hold and (not self.release_date or self.release_date > getdate(nowdate()))
+
+    def autoname(self):
+        company_abbr = frappe.db.get_value(
+            "Company", self.company, "abbr") or "XX"
+
+        today = getdate(nowdate())
+        year = today.year
+        month = today.month
+
+        # Indian fiscal year runs April (4) to March (3)
+        if month < 4:  # Jan, Feb, Mar → still previous FY
+            start_year = year - 1
+            end_year = year
+        else:          # Apr–Dec → current FY
+            start_year = year
+            end_year = year + 1
+
+        # e.g., April 2025 → March 2026 = "25-26"
+        fiscal_year = f"{str(start_year)[-2:]}-{str(end_year)[-2:]}"
+        base_series = frappe.model.naming.make_autoname(
+            f"PI-{company_abbr}-.###")
+
+        # Append fiscal year suffix manually
+        self.name = f"{base_series}/{fiscal_year}"
 
     def validate(self):
         if not self.is_opening:
