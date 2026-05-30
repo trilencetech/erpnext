@@ -47,6 +47,9 @@
   "set_target_warehouse",
   "section_break_hyfw",
   "items",
+  "less_items_section",
+  "less_items",
+  "total_less_amount",
   "section_break_31",
   "freight",
   "total_net_weight",
@@ -533,6 +536,25 @@
    "fieldtype": "Table",
    "label": "Delivery Note Items",
    "options": "Delivery Note Item"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "less_items_section",
+   "fieldtype": "Section Break",
+   "label": "Less / Deductions"
+  },
+  {
+   "fieldname": "less_items",
+   "fieldtype": "Table",
+   "label": "Less Items",
+   "options": "Delivery Note Less Item"
+  },
+  {
+   "default": "0",
+   "fieldname": "total_less_amount",
+   "fieldtype": "Currency",
+   "label": "Total Less Amount",
+   "read_only": 1
   },
   {
    "fieldname": "pricing_rule_details",
@@ -1447,7 +1469,7 @@
  "idx": 146,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-05-22 14:00:06.728604",
+ "modified": "2026-05-30 15:04:13.562194",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Delivery Note",

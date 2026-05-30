@@ -13,8 +13,8 @@
  {
   "docstatus": 0,
   "doctype": "Custom HTML Block",
-  "html": "<div class=\"menu-grid\">\n  <div class=\"menu-item\">\n    <div class=\"menu-icon\">📥</div>\n    <a href=\"/app/sales-order\" target=\"_blank\">Sales Orders</a>\n  </div>\n  <div class=\"menu-item\">\n    <div class=\"menu-icon\">🛒</div>\n    <a href=\"/app/delivery-note\" target=\"_blank\">Delivery Note</a>\n  </div>\n  <div class=\"menu-item\">\n    <div class=\"menu-icon\">💳</div>\n    <a href=\"/app/sales-invoice\" target=\"_blank\">Sales Invoice</a>\n  </div>\n</div>\n",
-  "modified": "2025-12-12 12:10:03.893158",
+  "html": "<div class=\"menu-grid\">\n  <div class=\"menu-item\">\n    <div class=\"menu-icon\">📥</div>\n    <a href=\"/app/sales-order\" target=\"_blank\">Sales Orders</a>\n  </div>\n  <div class=\"menu-item\">\n    <div class=\"menu-icon\">🛒</div>\n    <a href=\"/app/delivery-note\" target=\"_blank\">Delivery Note</a>\n  </div>\n  <div class=\"menu-item\">\n    <div class=\"menu-icon\">💳</div>\n    <a href=\"/app/sales-invoice\" target=\"_blank\">Sales Invoice</a>\n  </div>\n  <div class=\"menu-item\">\n    <div class=\"menu-icon\">💳</div>\n    <a href=\"/app/query-report/Sales%20Invoice%20Register\" target=\"_blank\">Sales Invoice Export</a>\n  </div>\n</div>\n",
+  "modified": "2026-05-30 15:56:58.521899",
   "name": "Sale Management",
   "private": 0,
   "roles": [],

@@ -136,6 +136,31 @@ frappe.ui.form.on("Delivery Note Item", {
 	},
 });
 
+// ── Less Items child table events ──────────────────────────────────────
+function dn_recalc_less_row(frm, cdt, cdn) {
+	var row = locals[cdt][cdn];
+	var amt = flt(row.less_weight) * flt(row.less_rate);
+	frappe.model.set_value(cdt, cdn, "less_amount", amt);
+	dn_recalc_less_total(frm);
+}
+
+function dn_recalc_less_total(frm) {
+	var total = 0;
+	(frm.doc.less_items || []).forEach(function (row) {
+		total += flt(row.less_amount);
+	});
+	frm.set_value("total_less_amount", total);
+	frm.set_value("apply_discount_on", "Net Total");
+	frm.set_value("discount_amount", total);
+	frm.refresh_field("total_less_amount");
+}
+
+frappe.ui.form.on("Delivery Note Less Item", {
+	less_weight: function (frm, cdt, cdn) { dn_recalc_less_row(frm, cdt, cdn); },
+	less_rate:   function (frm, cdt, cdn) { dn_recalc_less_row(frm, cdt, cdn); },
+	less_items_remove: function (frm) { dn_recalc_less_total(frm); },
+});
+
 erpnext.stock.DeliveryNoteController = class DeliveryNoteController extends (
 	erpnext.selling.SellingController
 ) {

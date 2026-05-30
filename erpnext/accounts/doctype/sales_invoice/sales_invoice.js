@@ -657,6 +657,8 @@ cur_frm.set_query("asset", "items", function (doc, cdt, cdn) {
 	};
 });
 
+
+
 frappe.ui.form.on("Sales Invoice", {
 	setup: function (frm) {
 		frm.add_fetch("customer", "tax_id", "tax_id");
@@ -1552,3 +1554,28 @@ var select_loyalty_program = function (frm, loyalty_programs) {
 
 	dialog.show();
 };
+
+// ── Less Items child table events ──────────────────────────────────────
+function si_recalc_less_row(frm, cdt, cdn) {
+	var row = locals[cdt][cdn];
+	var amt = flt(row.less_weight) * flt(row.less_rate);
+	frappe.model.set_value(cdt, cdn, "less_amount", amt);
+	si_recalc_less_total(frm);
+}
+
+function si_recalc_less_total(frm) {
+	var total = 0;
+	(frm.doc.less_items || []).forEach(function (row) {
+		total += flt(row.less_amount);
+	});
+	frm.set_value("total_less_amount", total);
+	frm.set_value("apply_discount_on", "Net Total");
+	frm.set_value("discount_amount", total);
+	frm.refresh_field("total_less_amount");
+}
+
+frappe.ui.form.on("Sales Invoice Less Item", {
+	less_weight: function (frm, cdt, cdn) { si_recalc_less_row(frm, cdt, cdn); },
+	less_rate: function (frm, cdt, cdn) { si_recalc_less_row(frm, cdt, cdn); },
+	less_items_remove: function (frm) { si_recalc_less_total(frm); },
+});

@@ -28,6 +28,7 @@ class DeliveryNote(SellingController):
         from erpnext.accounts.doctype.sales_taxes_and_charges.sales_taxes_and_charges import SalesTaxesandCharges
         from erpnext.selling.doctype.sales_team.sales_team import SalesTeam
         from erpnext.stock.doctype.delivery_note_item.delivery_note_item import DeliveryNoteItem
+        from erpnext.stock.doctype.delivery_note_less_item.delivery_note_less_item import DeliveryNoteLessItem
         from erpnext.stock.doctype.packed_item.packed_item import PackedItem
         from frappe.types import DF
 
@@ -88,6 +89,7 @@ class DeliveryNote(SellingController):
         issue_credit_note: DF.Check
         items: DF.Table[DeliveryNoteItem]
         language: DF.Data | None
+        less_items: DF.Table[DeliveryNoteLessItem]
         letter_head: DF.Link | None
         lr_date: DF.Date | None
         lr_no: DF.Data | None
@@ -136,6 +138,7 @@ class DeliveryNote(SellingController):
         title: DF.Data | None
         total: DF.Currency
         total_commission: DF.Currency
+        total_less_amount: DF.Currency
         total_net_weight: DF.Float
         total_qty: DF.Float
         total_taxes_and_charges: DF.Currency
@@ -306,6 +309,7 @@ class DeliveryNote(SellingController):
                         _("Sales Order required for Item {0}").format(d.item_code))
 
     def validate(self):
+        self.recalc_less_items()
         self.validate_posting_time()
         super().validate()
         self.validate_references()
@@ -329,6 +333,18 @@ class DeliveryNote(SellingController):
 
         self.validate_against_stock_reservation_entries()
         self.reset_default_field_value("set_warehouse", "items", "warehouse")
+
+    def recalc_less_items(self):
+        total = 0.0
+        for row in self.less_items or []:
+            row.less_amount = flt(row.less_weight) * flt(row.less_rate)
+            total += row.less_amount
+        self.total_less_amount = total
+        if total:
+            self.apply_discount_on = "Net Total"
+            self.discount_amount = total
+        else:
+            self.discount_amount = 0.0
 
     def validate_with_previous_doc(self):
         super().validate_with_previous_doc(
@@ -904,6 +920,12 @@ def make_sales_invoice(source_name, target_doc=None, args=None):
         target.update({"posting_time": source.posting_time})
         target.update({"delivery_challan": source.name})
 
+        # copy less/deduction totals from delivery note (rows copied via mapping)
+        if flt(source.total_less_amount):
+            target.total_less_amount = flt(source.total_less_amount)
+            target.apply_discount_on = "Net Total"
+            target.discount_amount = flt(source.total_less_amount)
+
         # set company address
         if source.company_address:
             target.update({"company_address": source.company_address})
@@ -970,6 +992,9 @@ def make_sales_invoice(source_name, target_doc=None, args=None):
                 "doctype": "Sales Team",
                 "field_map": {"incentives": "incentives"},
                 "add_if_empty": True,
+            },
+            "Delivery Note Less Item": {
+                "doctype": "Sales Invoice Less Item",
             },
         },
         target_doc,

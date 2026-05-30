@@ -53,6 +53,9 @@
   "set_target_warehouse",
   "section_break_42",
   "items",
+  "less_items_section",
+  "less_items",
+  "total_less_amount",
   "section_break_30",
   "total_qty",
   "total_net_weight",
@@ -732,6 +735,25 @@
    "oldfieldtype": "Table",
    "options": "Sales Invoice Item",
    "reqd": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "less_items_section",
+   "fieldtype": "Section Break",
+   "label": "Less / Deductions"
+  },
+  {
+   "fieldname": "less_items",
+   "fieldtype": "Table",
+   "label": "Less Items",
+   "options": "Sales Invoice Less Item"
+  },
+  {
+   "default": "0",
+   "fieldname": "total_less_amount",
+   "fieldtype": "Currency",
+   "label": "Total Less Amount",
+   "read_only": 1
   },
   {
    "fieldname": "pricing_rule_details",
@@ -2239,7 +2261,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2026-05-18 12:15:29.445270",
+ "modified": "2026-05-30 15:03:45.071089",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Sales Invoice",

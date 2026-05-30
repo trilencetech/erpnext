@@ -64,6 +64,7 @@ class SalesInvoice(SellingController):
         from erpnext.accounts.doctype.pricing_rule_detail.pricing_rule_detail import PricingRuleDetail
         from erpnext.accounts.doctype.sales_invoice_advance.sales_invoice_advance import SalesInvoiceAdvance
         from erpnext.accounts.doctype.sales_invoice_item.sales_invoice_item import SalesInvoiceItem
+        from erpnext.accounts.doctype.sales_invoice_less_item.sales_invoice_less_item import SalesInvoiceLessItem
         from erpnext.accounts.doctype.sales_invoice_payment.sales_invoice_payment import SalesInvoicePayment
         from erpnext.accounts.doctype.sales_invoice_timesheet.sales_invoice_timesheet import SalesInvoiceTimesheet
         from erpnext.accounts.doctype.sales_taxes_and_charges.sales_taxes_and_charges import SalesTaxesandCharges
@@ -139,6 +140,7 @@ class SalesInvoice(SellingController):
         is_return: DF.Check
         items: DF.Table[SalesInvoiceItem]
         language: DF.Data | None
+        less_items: DF.Table[SalesInvoiceLessItem]
         letter_head: DF.Link | None
         loyalty_amount: DF.Currency
         loyalty_points: DF.Int
@@ -146,8 +148,7 @@ class SalesInvoice(SellingController):
         loyalty_redemption_account: DF.Link | None
         loyalty_redemption_cost_center: DF.Link | None
         named_place: DF.Data | None
-        naming_series: DF.Literal["ACC-SINV-.YYYY.-",
-                                  "ACC-SINV-RET-.YYYY.-", "GE-/25-26"]
+        naming_series: DF.Literal["ACC-SINV-.YYYY.-", "ACC-SINV-RET-.YYYY.-", "GE-/25-26"]
         net_total: DF.Currency
         next_invoice_no: DF.Data | None
         only_include_allocated_payments: DF.Check
@@ -186,8 +187,7 @@ class SalesInvoice(SellingController):
         shipping_address_name: DF.Link | None
         shipping_rule: DF.Link | None
         source: DF.Link | None
-        status: DF.Literal["", "Draft", "Return", "Credit Note Issued", "Submitted", "Paid", "Partly Paid", "Unpaid",
-                           "Unpaid and Discounted", "Partly Paid and Discounted", "Overdue and Discounted", "Overdue", "Cancelled", "Internal Transfer"]
+        status: DF.Literal["", "Draft", "Return", "Credit Note Issued", "Submitted", "Paid", "Partly Paid", "Unpaid", "Unpaid and Discounted", "Partly Paid and Discounted", "Overdue and Discounted", "Overdue", "Cancelled", "Internal Transfer"]
         subscription: DF.Link | None
         tax_category: DF.Link | None
         tax_id: DF.Data | None
@@ -204,6 +204,7 @@ class SalesInvoice(SellingController):
         total_billing_amount: DF.Currency
         total_billing_hours: DF.Float
         total_commission: DF.Currency
+        total_less_amount: DF.Currency
         total_net_weight: DF.Float
         total_qty: DF.Float
         total_taxes_and_charges: DF.Currency
@@ -286,6 +287,7 @@ class SalesInvoice(SellingController):
             self.indicator_title = _("Paid")
 
     def validate(self):
+        self.recalc_less_items()
         self.validate_auto_set_posting_time()
         super().validate()
         self.validate_sequence()
@@ -369,6 +371,18 @@ class SalesInvoice(SellingController):
 
         self.allow_write_off_only_on_pos()
         self.reset_default_field_value("set_warehouse", "items", "warehouse")
+
+    def recalc_less_items(self):
+        total = 0.0
+        for row in self.less_items or []:
+            row.less_amount = flt(row.less_weight) * flt(row.less_rate)
+            total += row.less_amount
+        self.total_less_amount = total
+        if total:
+            self.apply_discount_on = "Net Total"
+            self.discount_amount = total
+        else:
+            self.discount_amount = 0.0
 
     def validate_accounts(self):
         self.validate_write_off_account()

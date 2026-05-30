@@ -1,0 +1,65 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-05-30 00:00:00.000000",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "less_item_description",
+  "less_weight",
+  "less_rate",
+  "less_amount"
+ ],
+ "fields": [
+  {
+   "fieldname": "less_item_description",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Less Item Description",
+   "reqd": 1,
+   "columns": 4
+  },
+  {
+   "fieldname": "less_weight",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Weight (Kgs)",
+   "reqd": 1,
+   "precision": "3",
+   "columns": 2
+  },
+  {
+   "fieldname": "less_rate",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Rate",
+   "reqd": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "less_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Amount",
+   "read_only": 1,
+   "columns": 2
+  }
+ ],
+ "idx": 1,
+ "index_web_pages_for_search": 0,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-05-30 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Stock",
+ "name": "Delivery Note Less Item",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
