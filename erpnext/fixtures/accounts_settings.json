@@ -36,7 +36,7 @@
   "maintain_same_rate_action": "Stop",
   "make_payment_via_journal_entry": 0,
   "merge_similar_account_heads": 0,
-  "modified": null,
+  "modified": "2026-05-31 16:47:59.184884",
   "name": "Accounts Settings",
   "over_billing_allowance": 0.0,
   "post_change_gl_entries": 1,
