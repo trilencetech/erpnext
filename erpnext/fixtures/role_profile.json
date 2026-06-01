@@ -2,6 +2,81 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-05-13 10:55:04.092381",
+  "name": "Job Card Admin",
+  "role_profile": "Job Card Admin",
+  "roles": [
+   {
+    "parent": "Job Card Admin",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Job Card Admin"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-06-01 10:00:28.823185",
+  "name": "Cutting Manager",
+  "role_profile": "Cutting Manager",
+  "roles": [
+   {
+    "parent": "Cutting Manager",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Cutting Dept Manager"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-06-01 10:03:33.050585",
+  "name": "Printer",
+  "role_profile": "Printer",
+  "roles": [
+   {
+    "parent": "Printer",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Print Dept Manager"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-06-01 10:07:16.441464",
+  "name": "Print Account Dept",
+  "role_profile": "Print Account Dept",
+  "roles": [
+   {
+    "parent": "Print Account Dept",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Accountant"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-06-01 10:09:15.803998",
+  "name": "Printing Design Dept",
+  "role_profile": "Printing Design Dept",
+  "roles": [
+   {
+    "parent": "Printing Design Dept",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Designer"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
   "modified": "2026-02-18 12:13:55.746997",
   "name": "Inventory",
   "role_profile": "Inventory",
