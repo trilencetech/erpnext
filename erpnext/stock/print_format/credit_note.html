@@ -1,0 +1,569 @@
+<style>
+    @page {
+        size: A4;
+        margin: 0;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    .print-format1 {
+        width: 210mm;
+        height: 297mm;
+        position: relative;
+        background: white;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 13px;
+        color: #000;
+        margin: 0 auto;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        overflow: hidden;
+    }
+
+    .print-format {
+        padding: 0 !important;
+    }
+
+    .page-content {
+        padding-top: 80px;
+        padding-left: 12mm;
+        padding-right: 12mm;
+        padding-bottom: 10mm;
+        height: 297mm;
+        overflow: hidden;
+    }
+
+    /* Header */
+    .invoice-header {
+        text-align: center;
+        margin-bottom: 10px;
+        margin-top: 50px;
+    }
+
+    .invoice-header h2 {
+        margin: 0;
+        padding: 6px 0;
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: 2px;
+
+    }
+
+    /* Main Container - Single outer border */
+    .invoice-container {
+        border: 2px solid #000;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    /* Two-column layout - no gap, shared border */
+    .info-grid {
+        display: flex;
+        border-bottom: 2px solid #000;
+    }
+
+    .info-box {
+        flex: 1;
+        background: #fff;
+    }
+
+    .info-box:first-child {
+        border-right: 2px solid #000;
+    }
+
+    .info-box-title {
+        background: #e8e8e8;
+        padding: 5px 12px;
+        font-weight: 700;
+        font-size: 13px;
+        border-bottom: 2px solid #000;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .info-box-content {
+        padding: 8px 12px;
+    }
+
+    .info-box-content table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .info-box-content td {
+        padding: 3px 0;
+        vertical-align: top;
+        line-height: 1.2;
+        font-size: 13px;
+    }
+
+    .info-box-content td b {
+        display: inline-block;
+        min-width: 85px;
+        font-weight: 600;
+    }
+
+    /* Item Section - no separate border, part of container */
+    .item-section {
+        background: #fff;
+        border-bottom: 2px solid #000;
+
+    }
+
+    .item-section-title {
+        background: #e8e8e8;
+        padding: 5px 12px;
+        font-weight: 700;
+        font-size: 13px;
+        border-bottom: 2px solid #000;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .item-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+
+    }
+
+    .item-table thead {
+        background: #f5f5f5;
+        border-bottom: 2px solid #000;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .item-table th {
+        padding: 5px 8px;
+        text-align: left;
+        font-weight: 700;
+        border-right: 2px solid black;
+        font-size: 12px;
+
+    }
+
+    .item-table th:last-child {
+        border-right: none;
+    }
+
+    .item-table tbody tr {}
+
+    .item-table tbody tr:last-child {
+        border-bottom: none;
+    }
+
+    .item-table td {
+        padding: 4px 8px;
+        vertical-align: middle;
+        border-right: 2px solid black;
+        line-height: 1;
+    }
+
+    .item-table td:last-child {
+        border-right: none;
+    }
+
+    .item-table td:nth-child(4),
+    .item-table td:nth-child(5),
+    .item-table td:nth-child(6) {
+        text-align: right;
+    }
+
+    /* Bottom Section - Bank & Tax - shared borders */
+    .bottom-grid {
+        display: flex;
+        border-bottom: 2px solid #000;
+    }
+
+    .bottom-box {
+        flex: 1;
+        background: #fff;
+    }
+
+    .bottom-box:first-child {
+        border-right: 2px solid #000;
+    }
+
+    .bottom-box-title {
+        background: #e8e8e8;
+        padding: 5px 12px;
+        font-weight: 700;
+        font-size: 13px;
+        border-bottom: 2px solid #000;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .bottom-box-content {
+        padding: 8px 12px;
+    }
+
+    .bottom-box-content table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .bottom-box-content td {
+        padding: 3px 0;
+        vertical-align: top;
+        line-height: 1;
+        font-size: 13px;
+    }
+
+    .bottom-box-content td b {
+        display: inline-block;
+        min-width: 95px;
+        font-weight: 600;
+    }
+
+    .bottom-box-content tr:last-child td {
+        padding-top: 8px;
+        border-top: 1px solid #ddd;
+        font-weight: 700;
+        font-size: 13px;
+    }
+
+    /* Amount in Words - part of container */
+    .words-section {
+        padding: 6px 12px;
+        background: #f9f9f9;
+        border-bottom: 2px solid #000;
+        font-size: 12px;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .words-section b {
+        font-weight: 700;
+        margin-right: 8px;
+    }
+
+    /* Footer - shared borders, no bottom border on container */
+    .footer-grid {
+        display: flex;
+    }
+
+    .footer-box {
+        padding: 10px 12px;
+        background: #fff;
+    }
+
+    .footer-left {
+        flex: 1.5;
+        border-right: 2px solid #000;
+    }
+
+    .footer-right {
+        flex: 1;
+        text-align: right;
+    }
+
+    .footer-box strong {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .footer-left div {
+        margin: 3px 0;
+        line-height: 1;
+        font-size: 11px;
+    }
+
+    .signature-area {
+        margin-top: 10px;
+        float: right;
+    }
+
+    .signature-area img {
+        display: block;
+        margin: 8px auto 5px auto;
+        width: 80px;
+        height: 40px;
+        object-fit: contain;
+    }
+
+    /* Print Optimization */
+    @media print {
+        @page {
+            margin: 0;
+            size: A4;
+        }
+
+        .print-format1 {
+            width: 210mm;
+            height: 297mm;
+            margin: 0;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            overflow: hidden !important;
+            page-break-after: avoid !important;
+        }
+
+        .page-content {
+            padding-top: 80px;
+            padding-left: 12mm;
+            padding-right: 12mm;
+            padding-bottom: 10mm;
+            height: 297mm;
+            overflow: hidden !important;
+            page-break-after: avoid !important;
+        }
+
+        /* Ensure borders print dark */
+        .invoice-container,
+        .info-grid,
+        .info-box:first-child,
+        .info-box-title,
+        .item-section,
+        .item-section-title,
+
+        .item-table thead,
+        .bottom-grid,
+        .bottom-box:first-child,
+        .bottom-box-title,
+        .words-section,
+        .footer-left {
+            border-color: black !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        /* Force background colors to print */
+        .info-box-title,
+        .item-section-title,
+        .bottom-box-title,
+        .item-table thead,
+        .words-section {
+            background-color: #e8e8e8 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+
+        /* Prevent page breaks */
+        * {
+            page-break-inside: avoid !important;
+            page-break-after: avoid !important;
+        }
+
+        /* Keep signature image small in print */
+        .signature-area img {
+            width: 80px !important;
+            height: 40px !important;
+            max-width: 80px !important;
+            max-height: 40px !important;
+
+        }
+    }
+</style>
+
+<div class="print-format1">
+    <div class="page-content">
+
+        <!-- Header -->
+        <div class="invoice-header">
+            <h2>CREDIT NOTE</h2>
+        </div>
+
+        {% set customer_doc = frappe.get_doc("Customer", doc.customer) %}
+
+        <!-- Single container with shared borders -->
+        <div class="invoice-container">
+
+            <!-- Customer & Invoice Details -->
+            <div class="info-grid">
+                <div class="info-box">
+                    <div class="info-box-title">Customer Details</div>
+                    <div class="info-box-content">
+                        <table>
+                            <tr>
+                                <td><b>Name: {{ doc.customer_name }} </b> </td>
+                            </tr>
+                            <tr>
+                                <td style="line-height:1.4!important"><b>Address:</b> {{ doc.address_display |
+                                    replace("<br>", ", ") }}</td>
+                            </tr>
+                            <tr>
+                                <td><b>GST No:</b> {{ customer_doc.gstin or "N/A" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <div class="info-box-title">Invoice Details</div>
+                    <div class="info-box-content">
+                        <table>
+                            <tr>
+                                <td><b>Credit Note No: {{ doc.name }} </b> </td>
+                            </tr>
+                            <tr>
+                                <td><b>Date:</b> {{ frappe.utils.formatdate(doc.posting_date) }}</td>
+                            </tr>
+                            <tr>
+                                <td><b>Challan No:</b> {{ doc.delivery_challan or "N/A" }}</td>
+                            </tr>
+
+                            <tr>
+                                <td><b>Against Invoice No:</b> {{ doc.return_against }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item Details -->
+            <div class="item-section">
+                <div class="item-section-title">Item Details</div>
+                <table class="item-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 5%;">Sr</th>
+                            <th style="width: 45%;">Description</th>
+                            <th style="width: 12%;">HSN/SAC</th>
+                            <th style="width: 8%;">Qty</th>
+                            <th style="width: 12%;">Rate</th>
+                            <th style="width: 18%;">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for i in range(12) %}
+                        {% if doc.items[i] and doc.items[i].item_name != 'Freight Charges' %}
+                        <tr>
+                            <td>{{ i + 1 }}</td>
+                            <td>{{ doc.items[i].item_name }}</td>
+                            <td>{{ doc.items[i].gst_hsn_code }}</td>
+                            <td>{{ doc.items[i].qty | abs }}</td>
+                            <td>₹ {{ "{:,.2f}".format(abs(doc.items[i].rate)) }}</td>
+                            <td>₹ {{ "{:,.2f}".format(abs(doc.items[i].amount)) }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% set ns = namespace(sgst=0, cgst=0) %}
+            {% for tax in doc.taxes %}
+            {% if "SGST" in (tax.account_head or "") or "SGST" in (tax.description or "") %}
+            {% set ns.sgst = ns.sgst + tax.tax_amount %}
+            {% endif %}
+            {% if "CGST" in (tax.account_head or "") or "CGST" in (tax.description or "") %}
+            {% set ns.cgst = ns.cgst + tax.tax_amount %}
+            {% endif %}
+            {% endfor %}
+
+            {% set company_doc = frappe.get_doc("Company", doc.company) %}
+            {% set account_doc = frappe.get_doc("Account", company_doc.default_bank_account) %}
+
+            <!-- Bank & Tax Details -->
+            <div class="bottom-grid">
+                <div class="bottom-box">
+                    <div class="bottom-box-title">Bank and Company Details</div>
+                    <div class="bottom-box-content">
+                        <table>
+                            <tr>
+                                <td><b>Bank Name:</b> </td>
+                                <td> <b> {{ account_doc.account_name }} </b> </td>
+                            </tr>
+                            <tr>
+                                <td><b>IFSC:</b> </td>
+                                <td> <b> {{ account_doc.ifsc_code }} </b></td>
+                            </tr>
+                            <tr>
+                                <td><b>A/C No:</b> </td>
+                                <td> <b> {{ account_doc.account_number }} </b></td>
+                            </tr>
+                            <tr>
+                                <td><b>Branch:</b> </td>
+                                <td> <b> {{ account_doc.branch }} </b></td>
+                            </tr>
+                            <tr>
+                                <td><b>Our GSTIN:</b> </td>
+                                <td><b>{{ company_doc.gstin }} </b></td>
+                            </tr>
+                            <tr>
+                                <td><b>MSME:</b> </td>
+                                <td>{{ company_doc.msme }}</td>
+                            </tr>
+
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bottom-box">
+                    <div class="bottom-box-title">Sub Total
+                        <span style="text-align: right;padding-left:170px"> ₹ {{ "{:,.2f}".format(abs(doc.net_total -
+                            doc.freight)) }} </span>
+                    </div>
+                    <div class="bottom-box-content">
+                        <table>
+                            <tr>
+                                <td style="line-height:1.6 !important"><b>Frieght</b></td>
+                                <td style="text-align: right;">₹ {{ "{:,.2f}".format(abs(doc.freight)) }}</td>
+                            </tr>
+                            <tr>
+                                <td style="line-height:1.6 !important"><b>SGST</b></td>
+                                <td style="text-align: right;">₹ {{ "{:,.2f}".format(abs(ns.sgst)) }}</td>
+                            </tr>
+                            <tr>
+                                <td style="line-height:1.6 !important"><b>CGST</b></td>
+                                <td style="text-align: right;">₹ {{ "{:,.2f}".format(abs(ns.cgst)) }}</td>
+                            </tr>
+                            <tr>
+                                <td style="line-height:2.0 !important"><b>Grand Total</b></td>
+                                <td style="text-align: right;">₹ {{ "{:,.2f}".format(abs(doc.grand_total)) }}</td>
+                            </tr>
+                            <tr>
+                                <td style="line-height:1.2 !important"><b>Net Payable Amount</b></td>
+                                <td style="text-align: right;">₹ {{ "{:,.2f}".format(abs(doc.rounded_total)) }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Amount in Words -->
+            <div class="words-section">
+                <b>In Words: {{ doc.in_words }} </b>
+            </div>
+
+            <!-- Footer - Terms & Signature -->
+            <div class="footer-grid">
+                <div class="footer-box footer-left">
+                    <strong>Terms & Conditions</strong>
+                    <div>(1) We do not hold responsible for any breakage/damage/leakage in transit.</div>
+                    <div>(2) Our responsibility ceases when the goods are delivered to the carrier.</div>
+                    <div>(3) Goods once sold will not be accepted back.</div>
+                    <div>(4) Interest @ 24% p.a. will be charged, if invoice is not paid on or before due date.</div>
+                    <div>(5) Subject to Ahmedabad Jurisdiction.</div>
+                </div>
+
+                <div class="footer-box footer-right">
+                    <strong>For {{ company_doc.company_name }}</strong>
+                    <div class="signature-area">
+                        <img src="{{ frappe.utils.get_url() }}/files/Veer_Sign.png" alt="Signature" />
+                        <div style="margin-top: 10px; font-weight: 600; font-size: 11px;">Authorized Signatory</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <!-- End of invoice-container -->
+
+    </div>
+</div>
