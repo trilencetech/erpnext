@@ -1,0 +1,359 @@
+/*
+ * GPF Theme — blue gradient "professional" reskin for the standard ERPNext Desk.
+ * Loaded on every Desk page via app_include_css (see hooks.py).
+ * Works by retuning Frappe's existing CSS custom properties + a small set of
+ * high-impact selector overrides — no structural/template changes.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+/* ---------------------------------------------------------------------- */
+/* 1. Core tokens                                                          */
+/* ---------------------------------------------------------------------- */
+:root,
+[data-theme="light"] {
+	--font-stack: "DM Sans", "InterVariable", "Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI",
+		Roboto, Helvetica, Arial, sans-serif;
+	--primary: #2563eb;
+	--sidebar-select-color: #dbeafe;
+	--highlight-color: #eff6ff;
+	--card-shadow: 0 8px 24px -12px rgba(30, 64, 175, 0.25);
+	--card-shadow-hover: 0 14px 32px -12px rgba(30, 64, 175, 0.35);
+	--border-radius-md: 12px;
+	--border-radius-lg: 14px;
+	--subtle-fg: #eef4ff;
+	--subtle-accent: #eef4ff;
+	--control-bg: #f4f8ff;
+	--control-bg-on-gray: #eaf1ff;
+	--disabled-control-bg: #eef4ff;
+	--input-disabled-bg: #eef4ff;
+	--btn-default-bg: #f4f8ff;
+	--btn-default-hover-bg: #dbeafe;
+	--heading-color: #1e293b;
+	--text-color: #334155;
+	--text-muted: #64748b;
+	--text-light: #94a3b8;
+	--disabled-text-color: #94a3b8;
+	--icon-stroke: #64748b;
+	--border-color: #e6eef9;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 2. App canvas — light blue gradient backdrop                           */
+/* ---------------------------------------------------------------------- */
+html,
+body {
+	background-image: radial-gradient(at 0% 0%, #eff6ff 0%, transparent 55%),
+		radial-gradient(at 100% 0%, #e0f2fe 0%, transparent 55%),
+		linear-gradient(180deg, #eff6ff 0%, #f0f9ff 45%, #eef2ff 100%);
+	background-attachment: fixed;
+	background-repeat: no-repeat;
+}
+
+.page-container {
+	background-color: transparent !important;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 3. Navbar                                                               */
+/* ---------------------------------------------------------------------- */
+.navbar {
+	background: #ffffff;
+	border-bottom: 1px solid #dbeafe;
+	box-shadow: 0 1px 0 0 rgba(37, 99, 235, 0.05);
+}
+
+/* ---------------------------------------------------------------------- */
+/* 4. Page head + title                                                    */
+/* ---------------------------------------------------------------------- */
+.page-head {
+	background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 55%, #38bdf8 100%);
+	border-bottom: none;
+	box-shadow: var(--card-shadow);
+	--icon-stroke: #ffffff;
+}
+
+.page-head .title-text {
+	background-image: none;
+	-webkit-background-clip: border-box;
+	background-clip: border-box;
+	color: #ffffff !important;
+}
+
+.page-head .sidebar-toggle-btn {
+	--icon-stroke: #ffffff;
+}
+
+.page-head .sub-heading {
+	color: rgba(255, 255, 255, 0.85);
+}
+
+.page-head .btn.icon-btn {
+	background-color: rgba(255, 255, 255, 0.15);
+	border: none !important;
+}
+
+.page-head .btn.icon-btn:hover {
+	background-color: rgba(255, 255, 255, 0.28);
+}
+
+/* ---------------------------------------------------------------------- */
+/* 5. Sidebars (workspace / list / form)                                   */
+/* ---------------------------------------------------------------------- */
+.standard-sidebar-item {
+	position: relative;
+	border-radius: var(--border-radius-md);
+	--icon-stroke: #94a3b8;
+	transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.standard-sidebar-item:hover {
+	background-color: #eff6ff;
+	transform: translateX(2px);
+	--icon-stroke: #2563eb;
+}
+
+.standard-sidebar-item.selected {
+	font-weight: 600;
+	color: #1d4ed8;
+	--icon-stroke: #2563eb;
+}
+
+.standard-sidebar-item.selected > a {
+	color: #1d4ed8;
+}
+
+.standard-sidebar-item.selected::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	top: 6px;
+	bottom: 6px;
+	width: 3px;
+	border-radius: var(--border-radius-full);
+	background: linear-gradient(180deg, #38bdf8, #2563eb);
+}
+
+.standard-sidebar-section .standard-sidebar-label {
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: #93a8c9;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 6. Cards / widgets                                                      */
+/* ---------------------------------------------------------------------- */
+.layout-main-section.frappe-card {
+	border-radius: var(--border-radius-lg);
+	border-color: #e0ecff;
+	box-shadow: var(--card-shadow);
+	transition: box-shadow 0.25s ease;
+}
+
+.widget {
+	border-radius: var(--border-radius-lg);
+	box-shadow: var(--card-shadow);
+	border: 1px solid #e0ecff;
+	transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.widget:hover {
+	transform: translateY(-2px);
+	box-shadow: var(--card-shadow-hover);
+}
+
+.form-tabs-list {
+	border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 7. Buttons                                                              */
+/* ---------------------------------------------------------------------- */
+.btn-primary {
+	background: linear-gradient(135deg, #38bdf8 0%, #2563eb 50%, #38bdf8 100%) !important;
+	background-size: 200% auto;
+	border: none !important;
+	color: #ffffff !important;
+	box-shadow: 0 8px 20px -8px rgba(37, 99, 235, 0.45);
+	transition: background-position 0.4s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+	background-position: right center !important;
+	box-shadow: 0 10px 24px -8px rgba(37, 99, 235, 0.55);
+	transform: translateY(-1px);
+}
+
+.btn-primary:active {
+	transform: translateY(0);
+}
+
+.btn.btn-default,
+.btn.btn-secondary {
+	background-color: #ffffff !important;
+	border: 1px solid #bfdbfe !important;
+	border-radius: var(--border-radius-md);
+	color: #1d4ed8 !important;
+	font-weight: 500;
+	transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.btn.btn-default:hover,
+.btn.btn-secondary:hover {
+	background-color: #eff6ff !important;
+	border-color: #93c5fd !important;
+	color: #1d4ed8 !important;
+	box-shadow: 0 6px 16px -8px rgba(37, 99, 235, 0.3);
+	transform: translateY(-1px);
+}
+
+.btn.btn-default:active,
+.btn.btn-secondary:active {
+	background-color: #dbeafe !important;
+	transform: translateY(0);
+	box-shadow: none;
+}
+
+.btn.btn-default.disabled,
+.btn.btn-secondary.disabled,
+.btn.btn-default:disabled,
+.btn.btn-secondary:disabled {
+	background-color: #f8fafc !important;
+	border-color: #e2e8f0 !important;
+	color: #94a3b8 !important;
+	transform: none;
+	box-shadow: none;
+}
+
+.btn.icon-btn {
+	border-radius: var(--border-radius-full);
+}
+
+.page-actions .btn-primary,
+.page-actions .btn-secondary {
+	font-weight: 600;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 8. List view                                                            */
+/* ---------------------------------------------------------------------- */
+.list-row-head {
+	background-color: #eef4ff;
+}
+
+.list-row-container:nth-of-type(even) .list-row:not(.list-row-head) {
+	background-color: #f7faff;
+}
+
+.list-row:hover:not(.list-row-head) {
+	background-color: #eef6ff !important;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 9. Form controls                                                        */
+/* ---------------------------------------------------------------------- */
+.form-control,
+.input-with-feedback,
+.awesomplete .input-with-feedback {
+	border: 1px solid #e0ecff;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.form-control:hover:not(:disabled):not([readonly]) {
+	border-color: #bfdbfe;
+}
+
+.form-control:focus,
+.input-with-feedback:focus,
+.awesomplete input:focus {
+	background-color: #ffffff !important;
+	border-color: #93c5fd !important;
+	box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15) !important;
+}
+
+.form-control:disabled,
+.form-control[readonly] {
+	border-color: #e7eef9;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 9b. Form sections & tabs                                                */
+/* ---------------------------------------------------------------------- */
+.form-section .section-head {
+	position: relative;
+	padding-left: 18px;
+	font-weight: 600;
+	color: var(--heading-color);
+}
+
+.form-section .section-head::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 4px;
+	height: 18px;
+	border-radius: var(--border-radius-full);
+	background: linear-gradient(180deg, #38bdf8, #2563eb);
+}
+
+.form-column .column-label {
+	color: var(--heading-color);
+}
+
+.form-tabs-list .nav-link {
+	border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
+	transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.form-tabs-list .nav-link:hover {
+	color: #2563eb;
+	background-color: #eff6ff;
+}
+
+.form-tabs-list .nav-link.active {
+	color: #2563eb !important;
+	border-bottom: 2px solid #2563eb !important;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 10. Avatars                                                             */
+/* ---------------------------------------------------------------------- */
+.standard-image {
+	background-image: linear-gradient(135deg, #60a5fa, #2563eb);
+	color: #ffffff !important;
+	border: none;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 11. Scrollbars                                                          */
+/* ---------------------------------------------------------------------- */
+::-webkit-scrollbar {
+	width: 10px;
+	height: 10px;
+}
+
+::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+	background: #93c5fd;
+	border-radius: var(--border-radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: #60a5fa;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 12. Indicator pills                                                     */
+/* ---------------------------------------------------------------------- */
+.indicator-pill,
+.indicator-pill-right {
+	font-weight: 600;
+}

@@ -43,10 +43,12 @@ develop_version = "15.x.x-develop"
 
 app_include_js = ["erpnext.bundle.js", "/assets/erpnext/js/company_navbar.js"]
 app_include_css = ["erpnext.bundle.css",
-                   "/assets/erpnext/css/company_selector.css"]
+                   "/assets/erpnext/css/company_selector.css",
+                   "/assets/erpnext/css/gpf_theme.css"]
 web_include_js = "erpnext-web.bundle.js"
 web_include_css = "erpnext-web.bundle.css"
 email_css = "email_erpnext.bundle.css"
+
 
 doctype_js = {
     "Address": "public/js/address.js",
