@@ -14,7 +14,7 @@
 [data-theme="light"] {
 	--font-stack: "DM Sans", "InterVariable", "Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI",
 		Roboto, Helvetica, Arial, sans-serif;
-	--primary: #2563eb;
+	--primary: #6790ea;
 	--sidebar-select-color: #dbeafe;
 	--highlight-color: #eff6ff;
 	--card-shadow: 0 8px 24px -12px rgba(30, 64, 175, 0.25);
@@ -67,7 +67,7 @@ body {
 /* 4. Page head + title                                                    */
 /* ---------------------------------------------------------------------- */
 .page-head {
-	background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 55%, #38bdf8 100%);
+	background: linear-gradient(135deg, #59c6cd 0%, #5cfaef 55%, #127eae 100%);
 	border-bottom: none;
 	box-shadow: var(--card-shadow);
 	--icon-stroke: #ffffff;
@@ -119,7 +119,7 @@ body {
 	--icon-stroke: #2563eb;
 }
 
-.standard-sidebar-item.selected > a {
+.standard-sidebar-item.selected>a {
 	color: #1d4ed8;
 }
 
@@ -172,7 +172,7 @@ body {
 /* 7. Buttons                                                              */
 /* ---------------------------------------------------------------------- */
 .btn-primary {
-	background: linear-gradient(135deg, #38bdf8 0%, #2563eb 50%, #38bdf8 100%) !important;
+	background: linear-gradient(135deg, #a5a0c0 0%, #0812f0 50%, #199cd6 100%) !important;
 	background-size: 200% auto;
 	border: none !important;
 	color: #ffffff !important;
@@ -193,7 +193,6 @@ body {
 
 .btn.btn-default,
 .btn.btn-secondary {
-	background-color: #ffffff !important;
 	border: 1px solid #bfdbfe !important;
 	border-radius: var(--border-radius-md);
 	color: #1d4ed8 !important;
@@ -203,7 +202,6 @@ body {
 
 .btn.btn-default:hover,
 .btn.btn-secondary:hover {
-	background-color: #eff6ff !important;
 	border-color: #93c5fd !important;
 	color: #1d4ed8 !important;
 	box-shadow: 0 6px 16px -8px rgba(37, 99, 235, 0.3);
