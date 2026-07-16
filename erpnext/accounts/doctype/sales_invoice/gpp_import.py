@@ -395,13 +395,16 @@ def _update_si(si_name, row):
     frappe.db.commit()
 
 
+_GPP_HSN = "998912"
+
+
 def _ensure_printing_item(item_name):
     """Return item_code, creating the item under Printing Group if it doesn't exist."""
     item_code = item_name.strip()
+    abbr = frappe.db.get_value("Company", GPP_COMPANY, "abbr") or ""
+    item_tax_template = f"GST 18% - {abbr}"
+
     if not frappe.db.exists("Item", item_code):
-        hsn = frappe.db.get_value(
-            "Item", {"item_group": "Printing Group"}, "gst_hsn_code"
-        ) or ""
         item = frappe.new_doc("Item")
         item.item_code = item_code
         item.item_name = item_code
@@ -410,6 +413,21 @@ def _ensure_printing_item(item_name):
         item.is_stock_item = 0
         item.is_sales_item = 1
         item.is_purchase_item = 0
-        item.gst_hsn_code = hsn
+        item.gst_hsn_code = _GPP_HSN
+        if frappe.db.exists("Item Tax Template", item_tax_template):
+            item.append("taxes", {"item_tax_template": item_tax_template})
         item.insert(ignore_permissions=True)
+    else:
+        updates = {}
+        if not frappe.db.get_value("Item", item_code, "gst_hsn_code"):
+            updates["gst_hsn_code"] = _GPP_HSN
+        if updates:
+            frappe.db.set_value("Item", item_code, updates, update_modified=False)
+        # Backfill item tax template if missing
+        has_tax = frappe.db.exists("Item Tax", {"parent": item_code, "item_tax_template": item_tax_template})
+        if not has_tax and frappe.db.exists("Item Tax Template", item_tax_template):
+            item = frappe.get_doc("Item", item_code)
+            if not item.taxes:
+                item.append("taxes", {"item_tax_template": item_tax_template})
+                item.save(ignore_permissions=True)
     return item_code
