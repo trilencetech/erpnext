@@ -30,6 +30,16 @@ fixtures = [
     {"doctype": "Role Profile"},
     {"doctype": "Module Profile"},
     {"doctype": "Custom DocPerm"},
+    {"doctype": "Custom Field", "filters": [["name", "in", [
+        "Sales Invoice-gpp_printflow_section",
+        "Sales Invoice-gpp_job_id",
+        "Sales Invoice-gpp_col_break",
+        "Sales Invoice-gpp_job_description",
+        "Delivery Note-gpp_printflow_section",
+        "Delivery Note-gpp_job_id",
+        "Delivery Note-gpp_col_break",
+        "Delivery Note-gpp_job_description"
+    ]]]},
     {"doctype": "Email Template"},
     {"doctype": "Print Format"},
     {"doctype": "Web Page"},

@@ -811,6 +811,9 @@ def get_payment_terms_template(party_name, party_type, company=None):
         customer = frappe.get_cached_value(
             "Customer", party_name, fieldname=["payment_terms", "customer_group"], as_dict=1
         )
+        if not customer:
+            # Customer not found in ERPNext — skip payment terms lookup
+            return template
         template = customer.payment_terms
 
         if not template and customer.customer_group:

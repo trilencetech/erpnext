@@ -70,7 +70,7 @@ body {
 	background: linear-gradient(135deg, #59c6cd 0%, #5cfaef 55%, #127eae 100%);
 	border-bottom: none;
 	box-shadow: var(--card-shadow);
-	--icon-stroke: #ffffff;
+	--icon-stroke: #c71f1f;
 }
 
 .page-head .title-text {

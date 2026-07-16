@@ -11,10 +11,10 @@
   "title",
   "next_invoice_no",
   "customer",
-  "customer_name",
-  "tax_id",
   "company",
   "delivery_challan",
+  "customer_name",
+  "tax_id",
   "company_tax_id",
   "column_break1",
   "posting_date",
@@ -2226,7 +2226,6 @@
    "options": "currency"
   },
   {
-   "allow_on_submit": 1,
    "fieldname": "delivery_challan",
    "fieldtype": "Link",
    "hide_days": 1,
@@ -2236,8 +2235,7 @@
    "oldfieldname": "company",
    "oldfieldtype": "Link",
    "options": "Delivery Note",
-   "remember_last_selected_value": 1,
-   "reqd": 1
+   "remember_last_selected_value": 1
   },
   {
    "fieldname": "next_invoice_no",
@@ -2261,7 +2259,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2026-05-30 15:03:45.071089",
+ "modified": "2026-07-02 10:07:27.934000",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Sales Invoice",
