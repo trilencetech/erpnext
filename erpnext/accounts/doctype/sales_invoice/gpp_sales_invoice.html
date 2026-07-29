@@ -28,74 +28,6 @@ frappe.db.get_single_value("System Settings", "date_format").replace("mm","MM") 
     <head>
         <meta charset="UTF-8" />
         <style>
-            @media print {
-                .outer {
-                    border: 2px solid #000 !important;
-                    outline: 2px solid #000 !important;
-                    outline-offset: -2px;
-                    -webkit-print-color-adjust: exact !important;
-                    print-color-adjust: exact !important;
-                }
-
-                * {
-                    -webkit-print-color-adjust: exact !important;
-                    print-color-adjust: exact !important;
-                }
-
-                .doc-title {
-                    border-bottom: 1px solid #000 !important;
-                }
-
-                .top-split {
-                    border-bottom: 1px solid #000 !important;
-                }
-
-                .col-customer {
-                    border-right: 1px solid #000 !important;
-                }
-
-                .col-invoice {
-                    border-right: 1px solid #000 !important;
-                }
-
-                .items-table {
-                    border-top: 1px solid #000 !important;
-                }
-
-                .items-table th {
-                    border-bottom: 2px solid #000 !important;
-                }
-
-                .items-table td {
-                    border-right: 2px solid #000 !important;
-                }
-
-                .items-table tr.subtotal td {
-                    border-top: 1.5px solid #000 !important;
-                }
-
-                .totals-wrap {
-                    border-top: 1px solid #000 !important;
-                }
-
-                .totals-left {
-                    border-right: 1px solid #000 !important;
-                }
-
-                .amount-words {
-                    border-top: 1px solid #000 !important;
-                    border-bottom: 1px solid #000 !important;
-                }
-
-                .bank-col {
-                    border-right: 1px solid #000 !important;
-                }
-
-                .tri.grand {
-                    border: 1px solid #000 !important;
-                }
-            }
-
             @page {
                 size: A4 portrait;
                 /* Top/bottom: space for pre-printed letterhead & footer */
@@ -117,6 +49,7 @@ frappe.db.get_single_value("System Settings", "date_format").replace("mm","MM") 
 
             .outer {
                 border: 2px solid #000;
+                overflow: hidden;
             }
 
             /* DOC TITLE */
@@ -278,17 +211,19 @@ frappe.db.get_single_value("System Settings", "date_format").replace("mm","MM") 
             .items-table {
                 width: 100%;
                 border-collapse: collapse;
+                table-layout: fixed;
             }
 
             .items-table th {
                 background: #ebebeb;
-                border-bottom: 2px solid #000 !important;
+                border-bottom: 2px solid #000;
                 border-right: 1px solid #000;
                 padding: 4px 5px;
-                text-align: center !important;
+                text-align: center;
                 font-size: 11px;
                 font-weight: 700;
                 text-transform: uppercase;
+                overflow: hidden;
             }
 
             .items-table td {
@@ -296,7 +231,10 @@ frappe.db.get_single_value("System Settings", "date_format").replace("mm","MM") 
                 padding: 3.5px 5px;
                 font-size: 11px;
                 vertical-align: middle;
-                border-right: 1px solid #000 !important;
+                border-right: 1px solid #000;
+                overflow-wrap: break-word;
+                word-break: break-word;
+                overflow: hidden;
             }
 
             .items-table tbody tr:last-child td {
@@ -310,14 +248,14 @@ frappe.db.get_single_value("System Settings", "date_format").replace("mm","MM") 
             .items-table td.rgt {
                 text-align: right;
                 font-family: SANS-SERIF;
-                font-size: 12px;
+                font-size: 11px;
             }
 
             .items-table tr.subtotal td {
                 font-weight: 700;
                 background: #f5f5f5;
-                font-size: 12px;
-                border-top: 1.5px solid #000 !important;
+                font-size: 11px;
+                border-top: 1.5px solid #000;
                 border-bottom: none;
             }
 
@@ -415,6 +353,75 @@ frappe.db.get_single_value("System Settings", "date_format").replace("mm","MM") 
             .signature-area {
                 margin-top: 10px;
                 float: right;
+            }
+
+            /* ── PRINT OVERRIDES (must come last to win over screen CSS) ── */
+            @media print {
+                * {
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                }
+
+                .outer {
+                    border: 2px solid #000 !important;
+                    outline: 2px solid #000 !important;
+                    outline-offset: -1px;
+                    overflow: hidden !important;
+                }
+
+                .doc-title {
+                    border-bottom: 1px solid #000 !important;
+                }
+
+                .top-split {
+                    border-bottom: 1px solid #000 !important;
+                }
+
+                .col-customer {
+                    border-right: 1px solid #000 !important;
+                }
+
+                .col-invoice {
+                    border-right: 1px solid #000 !important;
+                }
+
+                .items-table {
+                    border-top: 1px solid #000 !important;
+                }
+
+                .items-table th {
+                    border-bottom: 2px solid #000 !important;
+                    border-right: 1px solid #000 !important;
+                }
+
+                .items-table td {
+                    border-right: 1px solid #000 !important;
+                }
+
+                .items-table tr.subtotal td {
+                    border-top: 1.5px solid #000 !important;
+                }
+
+                .totals-wrap {
+                    border-top: 1px solid #000 !important;
+                }
+
+                .totals-left {
+                    border-right: 1px solid #000 !important;
+                }
+
+                .amount-words {
+                    border-top: 1px solid #000 !important;
+                    border-bottom: 1px solid #000 !important;
+                }
+
+                .bank-col {
+                    border-right: 1px solid #000 !important;
+                }
+
+                .tri.grand {
+                    border: 1px solid #000 !important;
+                }
             }
         </style>
     </head>
@@ -515,22 +522,18 @@ frappe.db.get_single_value("System Settings", "date_format").replace("mm","MM") 
                         <th style="width:78px">Amount (₹)</th>
                     </tr>
                 </thead>
-                <tbody> {#- Group rows by item_code + rate, summing qty and amount -#} {%- set grp = namespace(d={}) -%}
-                    {%- for item in doc.items -%} {%- set k = item.item_code ~ "||" ~ item.rate -%} {%- if k in grp.d
-                    -%} {%- set ex = grp.d[k] -%} {%- set _ = grp.d.update({k: {"item_name": ex.item_name, "item_code":
-                    ex.item_code, "gst_hsn_code": ex.gst_hsn_code, "qty": ex.qty + item.qty, "rate": ex.rate, "uom":
-                    ex.uom, "amount": ex.amount + item.amount, "description": ex.description}}) -%} {%- else -%} {%- set _ = grp.d.update({k:
-                    {"item_name": item.item_name, "item_code": item.item_code, "gst_hsn_code": item.gst_hsn_code or "",
-                    "qty": item.qty, "rate": item.rate, "uom": item.uom, "amount": item.amount, "description": item.description or ""}}) -%} {%- endif -%} {%-
-                    endfor -%} {%- set grp_list = grp.d.values() | list -%} {%- for row in grp_list -%} <tr>
+                <tbody> {%- for item in doc.items -%} <tr>
                         <td class="ctr">{{ loop.index }}</td>
-                        <td style="text-align:left"><strong>{{ row.item_name }}</strong>{% if row.description and row.description != row.item_name %}<br><span style="font-size:10px;color:#444">{{ row.description }}</span>{% endif %}</td>
-                        <td class="ctr">{{ row.gst_hsn_code }}</td>
-                        <td class="rgt">{{ "%.3f" | format(row.qty) }}</td>
-                        <td class="rgt">{{ ifmt(row.rate) }}</td>
-                        <td class="ctr">{{ row.uom }}</td>
-                        <td class="rgt">{{ ifmt(row.amount) }}</td>
-                    </tr> {%- endfor -%} {%- for i in range([10 - grp_list|length, 4]|max) -%} <tr>
+                        <td style="text-align:left"><strong>{{ item.item_name }}</strong>{% if item.description and
+                            item.description != item.item_name %}<br><span style="font-size:10px;color:#444">{{
+                                item.description }}</span>{% endif %}</td>
+                        <td class="ctr">{{ item.gst_hsn_code or "" }}</td>
+                        <td class="rgt">{{ "%.3f" | format(item.qty) }}</td>
+                        <td class="rgt">{{ ifmt(item.rate) }}</td>
+                        <td class="ctr">{{ item.uom }}</td>
+                        <td class="rgt">{{ ifmt(item.amount) }}</td>
+                    </tr> {%- endfor -%} {%- if doc.items|length < 10 -%} {%- for i in range(10 - doc.items|length) -%}
+                        <tr>
                         <td style="height:14px">&nbsp;</td>
                         <td></td>
                         <td></td>
@@ -538,77 +541,74 @@ frappe.db.get_single_value("System Settings", "date_format").replace("mm","MM") 
                         <td></td>
                         <td></td>
                         <td></td>
-                        </td>
-                    </tr> {%- endfor -%} <tr class="subtotal">
-                        <td colspan="3" style="text-align:right;padding-right:146px !important;font-size:12px"> Payment
-                            within 45 Days. Due On : {{ doc.due_date if doc.due_date else '—' }} </td>
-                        <td class="rgt">{{ "%.3f" | format(grp_list | sum(attribute='qty')) }}</td>
-                        <td colspan="2" class="ctr"></td>
-                        <td class="rgt">{{ ifmt(doc.net_total) }} </td>
-                    </tr>
-                    {%- if doc.less_items and doc.less_items | length > 0 -%}
-                    {%- for less in doc.less_items -%}
-                    <tr style="font-style:italic;color:#555">
-                        <td class="ctr">–</td>
-                        <td style="text-align:left">Less : {{ less.less_item_description }}</td>
-                        <td class="ctr"></td>
-                        <td class="rgt">{{ "%.3f" | format(less.less_weight) }}</td>
-                        <td class="rgt">{{ ifmt(less.less_rate) }}</td>
-                        <td class="ctr">Kgs</td>
-                        <td class="rgt" style="color:#c00">({{ ifmt(less.less_amount) }})</td>
-                    </tr>
-                    {%- endfor -%}
-                    <tr style="font-weight:700;border-top:1px dashed #000">
-                        <td colspan="3" style="text-align:right;padding-right:8px">Net After Deduction</td>
-                        <td class="rgt">{{ "%.3f" | format((grp_list | sum(attribute='qty')) - (doc.less_items |
-                            sum(attribute='less_weight'))) }}</td>
-                        <td colspan="2" class="ctr"></td>
-                        <td class="rgt">{{ ifmt(doc.net_total - doc.total_less_amount) }}</td>
-                    </tr>
-                    {%- endif -%}
+                        </tr> {%- endfor -%} {%- endif -%} <tr class="subtotal">
+                            <td colspan="3" style="text-align:right;padding-right:146px !important;font-size:12px">
+                                Payment
+                                within 45 Days. Due On : {{ doc.due_date if doc.due_date else '—' }} </td>
+                            <td class="rgt">{{ "%.3f" | format(doc.items | sum(attribute='qty')) }}</td>
+                            <td colspan="2" class="ctr"></td>
+                            <td class="rgt">{{ ifmt(doc.net_total) }} </td>
+                        </tr>
+                        {%- if doc.less_items and doc.less_items | length > 0 -%}
+                        {%- for less in doc.less_items -%}
+                        <tr style="font-style:italic;color:#555">
+                            <td class="ctr">–</td>
+                            <td style="text-align:left">Less : {{ less.less_item_description }}</td>
+                            <td class="ctr"></td>
+                            <td class="rgt">{{ "%.3f" | format(less.less_weight) }}</td>
+                            <td class="rgt">{{ ifmt(less.less_rate) }}</td>
+                            <td class="ctr">Kgs</td>
+                            <td class="rgt" style="color:#c00">({{ ifmt(less.less_amount) }})</td>
+                        </tr>
+                        {%- endfor -%}
+                        <tr style="font-weight:700;border-top:1px dashed #000">
+                            <td colspan="3" style="text-align:right;padding-right:8px">Net After Deduction</td>
+                            <td class="rgt">{{ "%.3f" | format((doc.items | sum(attribute='qty')) - (doc.less_items |
+                                sum(attribute='less_weight'))) }}</td>
+                            <td colspan="2" class="ctr"></td>
+                            <td class="rgt">{{ ifmt(doc.net_total - doc.total_less_amount) }}</td>
+                        </tr>
+                        {%- endif -%}
                 </tbody>
             </table> <!-- TOTALS -->
             <div class="totals-wrap">
                 <div class="totals-left"> <strong>Our Bank Details :</strong>
-                    <table style="width:100%;border-collapse:collapse;margin-top:4px">
+                    <table style="width:100%;border-collapse:collapse;margin-top:2px">
                         <colgroup>
                             <col style="width:54px">
                             <col style="width:10px">
                             <col>
                         </colgroup>
                         <tr>
-                            <td style="font-size:12px;padding:2px 0;color:#333;vertical-align:top">Bank</td>
-                            <td style="font-size:12px;padding:2px 0;color:#555;text-align:center;vertical-align:top">:
+                            <td style="font-size:11px;padding:1px 0;color:#333;vertical-align:top">Bank</td>
+                            <td style="font-size:11px;padding:1px 0;color:#555;text-align:center;vertical-align:top">:
                             </td>
-                            <td style="font-size:12px;padding:2px 0;font-weight:700;vertical-align:top"> {%- if
+                            <td style="font-size:11px;padding:1px 0;font-weight:700;vertical-align:top"> {%- if
                                 account_doc -%}{{ account_doc.account_name }}{%- elif bank_acc -%}{{ bank_acc.bank }}{%-
                                 else -%}—{%- endif -%} </td>
-                            <td style="font-size:12px;padding:2px 0;color:#333">A/C No.</td>
-                            <td style="font-size:12px;padding:2px 0;color:#555;text-align:center">:</td>
-                            <td style="font-size:12px;padding:2px 0;font-weight:700"> {%- if account_doc -%}{{
+                            <td style="font-size:11px;padding:1px 0;color:#333">A/C No.</td>
+                            <td style="font-size:11px;padding:1px 0;color:#555;text-align:center">:</td>
+                            <td style="font-size:11px;padding:1px 0;font-weight:700"> {%- if account_doc -%}{{
                                 account_doc.account_number }}{%- elif bank_acc -%}{{ bank_acc.bank_account_no }}{%- else
                                 -%}—{%- endif -%} </td>
                         </tr>
                         <tr>
-                            <td style="font-size:12px;padding:2px 0;color:#333">IFSC</td>
-                            <td style="font-size:12px;padding:2px 0;color:#555;text-align:center">:</td>
-                            <td style="font-size:12px;padding:2px 0;font-weight:700"> {%- if account_doc -%}{{
+                            <td style="font-size:11px;padding:1px 0;color:#333">IFSC</td>
+                            <td style="font-size:11px;padding:1px 0;color:#555;text-align:center">:</td>
+                            <td style="font-size:11px;padding:1px 0;font-weight:700"> {%- if account_doc -%}{{
                                 account_doc.ifsc_code }}{%- elif bank_acc -%}{{ bank_acc.branch_code }}{%- else -%}—{%-
                                 endif -%} </td>
-                            <td style="font-size:12px;padding:2px 0;color:#333">Branch</td>
-                            <td style="font-size:12px;padding:2px 0;color:#555;text-align:center">:</td>
-                            <td style="font-size:12px;padding:2px 0;font-weight:700">{{ account_doc.branch }}</td>
+                            <td style="font-size:11px;padding:1px 0;color:#333">Branch</td>
+                            <td style="font-size:11px;padding:1px 0;color:#555;text-align:center">:</td>
+                            <td style="font-size:11px;padding:1px 0;font-weight:700">{{ account_doc.branch }}</td>
                         </tr>
                         <tr>
-                            <td colspan="3" style="padding:2px 0"></td>
-                        </tr>
-                        <tr>
-                            <td style="font-size:12px;padding:2px 0;color:#333">GSTIN</td>
-                            <td style="font-size:12px;padding:2px 0;color:#555;text-align:center">:</td>
-                            <td style="font-size:12px;padding:2px 0;font-weight:700">{{ company_doc.gstin or '' }}</td>
-                            <td style="font-size:12px;padding:2px 0;color:#333">MSME</td>
-                            <td style="font-size:12px;padding:2px 0;color:#555;text-align:center">:</td>
-                            <td style="font-size:12px;padding:2px 0;font-weight:700 !important"><b>{{ company_doc.msme
+                            <td style="font-size:11px;padding:1px 0;color:#333">GSTIN</td>
+                            <td style="font-size:11px;padding:1px 0;color:#555;text-align:center">:</td>
+                            <td style="font-size:11px;padding:1px 0;font-weight:700">{{ company_doc.gstin or '' }}</td>
+                            <td style="font-size:11px;padding:1px 0;color:#333">MSME</td>
+                            <td style="font-size:11px;padding:1px 0;color:#555;text-align:center">:</td>
+                            <td style="font-size:11px;padding:1px 0;font-weight:700 !important"><b>{{ company_doc.msme
                                     }}</b></td>
                         </tr>
                     </table>

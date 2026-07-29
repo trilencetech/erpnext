@@ -378,6 +378,7 @@
    "fieldtype": "Date",
    "hide_days": 1,
    "hide_seconds": 1,
+   "in_list_view": 1,
    "label": "Date",
    "no_copy": 1,
    "oldfieldname": "posting_date",
@@ -2259,7 +2260,7 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
- "modified": "2026-07-02 10:07:27.934000",
+ "modified": "2026-07-29 13:11:04.717745",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Sales Invoice",

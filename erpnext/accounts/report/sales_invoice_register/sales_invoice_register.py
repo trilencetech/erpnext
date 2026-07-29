@@ -96,7 +96,7 @@ def _data(filters):
     )
 
     conditions = [
-        "docstatus = 1",
+        "docstatus !=  2",
         "is_return = 0",
         "company = %(company)s",
         "posting_date BETWEEN %(from_date)s AND %(to_date)s",
@@ -121,7 +121,7 @@ def _data(filters):
             outstanding_amount,
             status
         FROM `tabSales Invoice`
-        WHERE {cond} AND docstatus='1'
+        WHERE {cond} AND docstatus !='2'
         ORDER BY posting_date, name
         """.format(cond=" AND ".join(conditions)),
         params,
@@ -170,10 +170,11 @@ def get_bulk_invoice_html(company, from_date, to_date, customer=None):
     Return combined printable HTML for all submitted Sales Invoices in the period.
     Uses the print format configured in Company.print_format_si.
     """
-    print_format = frappe.db.get_value("Company", company, "print_format_si") or "Standard"
+    print_format = frappe.db.get_value(
+        "Company", company, "print_format_si") or "Standard"
 
     conditions = [
-        "docstatus = 1",
+        "docstatus != 2",
         "is_return = 0",
         "company = %(company)s",
         "posting_date BETWEEN %(from_date)s AND %(to_date)s",
@@ -193,7 +194,8 @@ def get_bulk_invoice_html(company, from_date, to_date, customer=None):
     )
 
     if not names:
-        frappe.throw(_("No submitted Sales Invoices found for the selected period."))
+        frappe.throw(
+            _("No submitted Sales Invoices found for the selected period."))
 
     pages = []
     for name in names:
@@ -213,14 +215,16 @@ def get_bulk_invoice_html(company, from_date, to_date, customer=None):
 @frappe.whitelist()
 def get_single_invoice_html(invoice_name, company):
     """Return printable HTML for one Sales Invoice using Company.print_format_si."""
-    print_format = frappe.db.get_value("Company", company, "print_format_si") or "Standard"
+    print_format = frappe.db.get_value(
+        "Company", company, "print_format_si") or "Standard"
     html = _render_invoice_page(invoice_name, print_format)
     # Inject auto-print trigger into the existing <head>
     script = (
         '<script>window.addEventListener("load",function(){'
         'setTimeout(function(){window.print();},500);});</script>'
     )
-    html = html.replace("</head>", script + "</head>", 1) if "</head>" in html else html + script
+    html = html.replace("</head>", script + "</head>",
+                        1) if "</head>" in html else html + script
     return {"html": html, "print_format": print_format}
 
 
@@ -233,7 +237,8 @@ def _render_invoice_page(invoice_name, print_format_name):
     no toolbar, no external script/link tags.
     """
     # Direct template rendering: no frappe.get_print() wrapper
-    template_html = frappe.db.get_value("Print Format", print_format_name, "html") or ""
+    template_html = frappe.db.get_value(
+        "Print Format", print_format_name, "html") or ""
     if template_html.strip():
         doc = frappe.get_doc("Sales Invoice", invoice_name)
         return frappe.render_template(template_html, {"doc": doc})
@@ -246,10 +251,13 @@ def _render_invoice_page(invoice_name, print_format_name):
         print_format=print_format_name,
         no_letterhead=True,
     )
-    styles = "\n".join(re.findall(r'<style[^>]*>.*?</style>', raw, re.DOTALL | re.IGNORECASE))
-    m = re.search(r'<body[^>]*>(.*?)</body\s*>', raw, re.DOTALL | re.IGNORECASE)
+    styles = "\n".join(re.findall(
+        r'<style[^>]*>.*?</style>', raw, re.DOTALL | re.IGNORECASE))
+    m = re.search(r'<body[^>]*>(.*?)</body\s*>',
+                  raw, re.DOTALL | re.IGNORECASE)
     body = m.group(1).strip() if m else raw
-    body = re.sub(r'<script\b[^>]*>.*?</script>', '', body, flags=re.DOTALL | re.IGNORECASE)
+    body = re.sub(r'<script\b[^>]*>.*?</script>', '',
+                  body, flags=re.DOTALL | re.IGNORECASE)
     return (
         '<!DOCTYPE html><html><head><meta charset="UTF-8">\n'
         + styles
@@ -263,15 +271,18 @@ def _wrap_pages_html(pages):
     """Combine multiple rendered invoice HTML pages into one printable document."""
     # All pages share the same print format, so extract styles once
     styles = "\n".join(
-        re.findall(r'<style[^>]*>.*?</style>', pages[0], re.DOTALL | re.IGNORECASE)
+        re.findall(r'<style[^>]*>.*?</style>',
+                   pages[0], re.DOTALL | re.IGNORECASE)
     ) if pages else ""
 
     body_parts = []
     for p in pages:
-        m = re.search(r'<body[^>]*>(.*?)</body\s*>', p, re.DOTALL | re.IGNORECASE)
+        m = re.search(r'<body[^>]*>(.*?)</body\s*>',
+                      p, re.DOTALL | re.IGNORECASE)
         part = m.group(1).strip() if m else p
         # Strip any scripts that crept in (safety net)
-        part = re.sub(r'<script\b[^>]*>.*?</script>', '', part, flags=re.DOTALL | re.IGNORECASE)
+        part = re.sub(r'<script\b[^>]*>.*?</script>',
+                      '', part, flags=re.DOTALL | re.IGNORECASE)
         body_parts.append(part)
 
     return (
@@ -288,6 +299,7 @@ def _wrap_pages_html(pages):
         + "  });\n"
         + "</script>\n"
         + "</head><body>\n"
-        + "".join('<div class="si-page">{}</div>\n'.format(b) for b in body_parts)
+        + "".join('<div class="si-page">{}</div>\n'.format(b)
+                  for b in body_parts)
         + "</body></html>"
     )
