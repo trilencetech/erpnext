@@ -516,9 +516,8 @@ frappe.db.get_single_value("System Settings", "date_format").replace("mm","MM") 
                         <th style="width:26px">Sr.</th>
                         <th style="text-align:left;padding-left:5px">Description of Goods</th>
                         <th style="width:62px">HSN Code</th>
-                        <th style="width:64px">Qty.</th>
-                        <th style="width:60px">Rate</th>
-                        <th style="width:36px">Per</th>
+                        <th style="width:75px">Sheets/Qty</th>
+                        <th style="width:50px">Rate</th>
                         <th style="width:78px">Amount (₹)</th>
                     </tr>
                 </thead>
@@ -528,9 +527,10 @@ frappe.db.get_single_value("System Settings", "date_format").replace("mm","MM") 
                             item.description != item.item_name %}<br><span style="font-size:10px;color:#444">{{
                                 item.description }}</span>{% endif %}</td>
                         <td class="ctr">{{ item.gst_hsn_code or "" }}</td>
-                        <td class="rgt">{{ "%.3f" | format(item.qty) }}</td>
-                        <td class="rgt">{{ ifmt(item.rate) }}</td>
-                        <td class="ctr">{{ item.uom }}</td>
+                        <td class="rgt">{{ "%.0f" | format(item.gpp_sheets) if item.gpp_sheets else "%.3f" |
+                            format(item.qty) }}</td>
+                        <td class="rgt">{{ ifmt(item.rate) if (not item.gpp_sheets or item.gpp_sheets == item.qty) else
+                            "" }}</td>
                         <td class="rgt">{{ ifmt(item.amount) }}</td>
                     </tr> {%- endfor -%} {%- if doc.items|length < 10 -%} {%- for i in range(10 - doc.items|length) -%}
                         <tr>
@@ -540,13 +540,12 @@ frappe.db.get_single_value("System Settings", "date_format").replace("mm","MM") 
                         <td></td>
                         <td></td>
                         <td></td>
-                        <td></td>
                         </tr> {%- endfor -%} {%- endif -%} <tr class="subtotal">
-                            <td colspan="3" style="text-align:right;padding-right:146px !important;font-size:12px">
+                            <td colspan="3" style="text-align:right;padding-right:106px !important;font-size:12px">
                                 Payment
                                 within 45 Days. Due On : {{ doc.due_date if doc.due_date else '—' }} </td>
                             <td class="rgt">{{ "%.3f" | format(doc.items | sum(attribute='qty')) }}</td>
-                            <td colspan="2" class="ctr"></td>
+                            <td class="ctr"></td>
                             <td class="rgt">{{ ifmt(doc.net_total) }} </td>
                         </tr>
                         {%- if doc.less_items and doc.less_items | length > 0 -%}
@@ -555,9 +554,8 @@ frappe.db.get_single_value("System Settings", "date_format").replace("mm","MM") 
                             <td class="ctr">–</td>
                             <td style="text-align:left">Less : {{ less.less_item_description }}</td>
                             <td class="ctr"></td>
-                            <td class="rgt">{{ "%.3f" | format(less.less_weight) }}</td>
+                            <td class="rgt">{{ "%.3f" | format(less.less_weight) }} Kgs</td>
                             <td class="rgt">{{ ifmt(less.less_rate) }}</td>
-                            <td class="ctr">Kgs</td>
                             <td class="rgt" style="color:#c00">({{ ifmt(less.less_amount) }})</td>
                         </tr>
                         {%- endfor -%}
@@ -565,7 +563,7 @@ frappe.db.get_single_value("System Settings", "date_format").replace("mm","MM") 
                             <td colspan="3" style="text-align:right;padding-right:8px">Net After Deduction</td>
                             <td class="rgt">{{ "%.3f" | format((doc.items | sum(attribute='qty')) - (doc.less_items |
                                 sum(attribute='less_weight'))) }}</td>
-                            <td colspan="2" class="ctr"></td>
+                            <td class="ctr"></td>
                             <td class="rgt">{{ ifmt(doc.net_total - doc.total_less_amount) }}</td>
                         </tr>
                         {%- endif -%}

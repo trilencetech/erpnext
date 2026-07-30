@@ -122,7 +122,8 @@ def create_from_printflow_billing(billing_data, sales_invoice=None):
                     "message":      f"Sales Invoice {sales_invoice} does not exist.",
                 }
 
-            docstatus = frappe.db.get_value("Sales Invoice", sales_invoice, "docstatus")
+            docstatus = frappe.db.get_value(
+                "Sales Invoice", sales_invoice, "docstatus")
 
             if docstatus == 1:
                 return {
@@ -161,7 +162,8 @@ def create_from_printflow_billing(billing_data, sales_invoice=None):
         }
 
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "create_from_printflow_billing error")
+        frappe.log_error(frappe.get_traceback(),
+                         "create_from_printflow_billing error")
         return {"responseCode": 500, "action": "error", "message": str(e)}
 
 
@@ -210,73 +212,46 @@ def _parse_excel(file_url):
     return results
 
 
-def _build_item_rows(row):
-    """Return list of {item_code, description, qty, rate} from billing row.
-
-    Print Charge and Lamination columns in the Excel are TOTAL amounts (not per-sheet).
-    We spread them over sheet qty so that qty × rate = total on the invoice line.
-    Plate Cancellation and Other Charges are fixed amounts (qty = 1).
-    """
-    items = []
-
-    print_type = cstr(row.get("print_type", "")).strip()
-    print_charge = flt(row.get("print_charge") or 0)
-    lamination = flt(row.get("lamination") or 0)
-    plate_cancel = flt(row.get("plate_cancellation") or 0)
-    other_title = cstr(row.get("other_charges", "") or "").strip()
-    other_amt = flt(row.get("other_amt") or 0)
-
-    sheets_raw = row.get("sheets")
-    sheet_qty = flt(sheets_raw) if sheets_raw not in (None, "") else 0.0
-    qty = sheet_qty if sheet_qty > 0 else 1.0   # fallback so we never divide by 0
-
-    desc = cstr(row.get("description", "") or "").strip()
-    paper_size = cstr(row.get("paper_size", "") or "").strip()
-    print_size = cstr(row.get("print_size", "") or "").strip()
-
-    spec_parts = []
-    if desc:
-        spec_parts.append(desc)
-    if paper_size:
-        spec_parts.append(f"Paper: {paper_size}")
-    if print_size:
-        spec_parts.append(f"Print Size: {print_size}")
-    main_desc = " | ".join(spec_parts) if spec_parts else (
-        print_type or "Printing")
-
-    # 1. Print Type — total charge spread over sheet qty to give per-sheet rate.
-    # "Printing" is used as the item code when the Print Type column is blank.
-    if print_charge > 0:
-        effective_type = print_type or "Printing"
-        per_rate = flt(print_charge / qty, 4)
-        code = _ensure_printing_item(effective_type)
-        items.append({"item_code": code, "description": main_desc,
-                      "qty": qty, "rate": per_rate})
-
-    # 2. Lamination — total charge spread over sheet qty
-    if lamination > 0:
-        per_rate = flt(lamination / qty, 4)
-        code = _ensure_printing_item("Lamination")
-        items.append({"item_code": code, "description": "Lamination",
-                      "qty": qty, "rate": per_rate})
-
-    # 3. Plate Cancellation — fixed charge, qty = 1
-    if plate_cancel > 0:
-        code = _ensure_printing_item("Plate Cancellation")
-        items.append({"item_code": code, "description": "Plate Cancellation",
-                      "qty": 1, "rate": plate_cancel})
-
-    # 4. Other Charges — item name taken from Other Charge Title column, qty = 1
-    if other_title and other_amt > 0:
-        code = _ensure_printing_item(other_title)
-        items.append({"item_code": code, "description": other_title,
-                      "qty": 1, "rate": other_amt})
-
-    if not items:
+def _build_item_rows_from_items(row):
+    """Return list of {item_code, description, qty, rate, uom, sheets} using the items
+    array sent directly by PrintFlow — rate and amount are used as-is."""
+    raw_items = row.get("items") or []
+    if not raw_items:
         frappe.throw(
-            _(f"No charge amounts found for row: {row.get('bill_no', '?')}"))
+            _(f"No items found in billing data for: {row.get('bill_no', '?')}"))
 
-    return items
+    # Top-level sheets fallback (PrintFlow may send sheets once at row level)
+    top_level_sheets = row.get("sheets")
+
+    result = []
+    for r in raw_items:
+        item_name = cstr(r.get("item_name") or r.get(
+            "item_code") or "").strip()
+        if not item_name:
+            continue
+        item_code = _ensure_printing_item(item_name)
+
+        # Prefer item-level sheets; fall back to top-level sheets from billing row
+        sheets_raw = r.get("sheets")
+
+        if sheets_raw in (None, ""):
+            sheets_raw = top_level_sheets
+        sheets_val = flt(sheets_raw) if sheets_raw not in (None, "") else None
+
+        result.append({
+            "item_code":   item_code,
+            "description": cstr(r.get("description") or item_name).strip(),
+            "qty":         flt(r.get("qty") or 1),
+            "rate":        flt(r.get("rate") or 0),
+            "uom":         cstr(r.get("uom") or "Nos").strip() or "Nos",
+            "sheets":      sheets_val,
+        })
+
+    if not result:
+        frappe.throw(
+            _(f"No valid items in billing data for: {row.get('bill_no', '?')}"))
+
+    return result
 
 
 def _create_si(row):
@@ -285,7 +260,8 @@ def _create_si(row):
     job_no = cstr(row.get("job_no", "")).strip()
     description = cstr(row.get("description", "")).strip()
     bill_no = cstr(row.get("bill_no", "")).strip()
-    posting_date = cstr(row.get("posting_date", "") or row.get("date", "") or today()).strip() or today()
+    posting_date = cstr(row.get("posting_date", "") or row.get(
+        "date", "") or today()).strip() or today()
 
     sheets_raw = row.get("sheets")
     sheets = cstr(sheets_raw).strip() if sheets_raw not in (None, "") else ""
@@ -301,7 +277,7 @@ def _create_si(row):
         specs_parts.append(f"Print Size: {print_size}")
     specs_line = " | ".join(specs_parts)
 
-    item_rows = _build_item_rows(row)
+    item_rows = _build_item_rows_from_items(row)
     remarks = f"PrintFlow Bill No: {bill_no}" if bill_no else ""
 
     si = frappe.new_doc("Sales Invoice")
@@ -316,19 +292,23 @@ def _create_si(row):
         si.remarks = remarks
 
     for r in item_rows:
-        si.append("items", {
+        row_data = {
             "item_code":   r["item_code"],
             "item_name":   r["item_code"],
             "description": r["description"],
             "qty":         r["qty"],
             "rate":        r["rate"],
-            "uom":         "Nos",
-        })
+            "uom":         r["uom"],
+        }
+        if r.get("sheets"):
+            row_data["gpp_sheets"] = r["sheets"]
+        si.append("items", row_data)
 
     si.set_missing_values()
     si.calculate_taxes_and_totals()
     si.insert(ignore_permissions=True)
-    frappe.db.set_value("Sales Invoice", si.name, "posting_date", posting_date, update_modified=False)
+    frappe.db.set_value("Sales Invoice", si.name,
+                        "posting_date", posting_date, update_modified=False)
     frappe.db.commit()
 
     return si.name
@@ -340,7 +320,8 @@ def _update_si(si_name, row):
     job_no = cstr(row.get("job_no", "")).strip()
     description = cstr(row.get("description", "")).strip()
     bill_no = cstr(row.get("bill_no", "")).strip()
-    posting_date = cstr(row.get("posting_date", "") or row.get("date", "") or today()).strip() or today()
+    posting_date = cstr(row.get("posting_date", "") or row.get(
+        "date", "") or today()).strip() or today()
 
     sheets_raw = row.get("sheets")
     sheets = cstr(sheets_raw).strip() if sheets_raw not in (None, "") else ""
@@ -356,7 +337,7 @@ def _update_si(si_name, row):
         specs_parts.append(f"Print Size: {print_size}")
     specs_line = " | ".join(specs_parts)
 
-    item_rows = _build_item_rows(row)
+    item_rows = _build_item_rows_from_items(row)
     remarks = f"PrintFlow Bill No: {bill_no}" if bill_no else ""
 
     si = frappe.get_doc("Sales Invoice", si_name)
@@ -377,21 +358,25 @@ def _update_si(si_name, row):
     # Replace items completely with fresh data
     si.items = []
     for r in item_rows:
-        si.append("items", {
+        row_data = {
             "item_code":   r["item_code"],
             "item_name":   r["item_code"],
             "description": r["description"],
             "qty":         r["qty"],
             "rate":        r["rate"],
-            "uom":         "Nos",
-        })
+            "uom":         r["uom"],
+        }
+        if r.get("sheets"):
+            row_data["gpp_sheets"] = r["sheets"]
+        si.append("items", row_data)
 
     # Don't call set_missing_values() here — it re-fetches customer party details
     # and throws if payment terms are missing on the customer. The existing doc
     # already has all required fields; just recalculate totals and save.
     si.calculate_taxes_and_totals()
     si.save(ignore_permissions=True)
-    frappe.db.set_value("Sales Invoice", si_name, "posting_date", posting_date, update_modified=False)
+    frappe.db.set_value("Sales Invoice", si_name,
+                        "posting_date", posting_date, update_modified=False)
     frappe.db.commit()
 
 
@@ -422,9 +407,11 @@ def _ensure_printing_item(item_name):
         if not frappe.db.get_value("Item", item_code, "gst_hsn_code"):
             updates["gst_hsn_code"] = _GPP_HSN
         if updates:
-            frappe.db.set_value("Item", item_code, updates, update_modified=False)
+            frappe.db.set_value("Item", item_code, updates,
+                                update_modified=False)
         # Backfill item tax template if missing
-        has_tax = frappe.db.exists("Item Tax", {"parent": item_code, "item_tax_template": item_tax_template})
+        has_tax = frappe.db.exists(
+            "Item Tax", {"parent": item_code, "item_tax_template": item_tax_template})
         if not has_tax and frappe.db.exists("Item Tax Template", item_tax_template):
             item = frappe.get_doc("Item", item_code)
             if not item.taxes:

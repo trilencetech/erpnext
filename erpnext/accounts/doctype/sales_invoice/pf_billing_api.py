@@ -67,14 +67,17 @@ def _make_si(customer, company, posting_date, remarks, item_rows,
     if pf_print_specs:     si.pf_print_specs     = pf_print_specs
     if pf_period:          si.pf_period          = pf_period
     for r in item_rows:
-        si.append("items", {
+        row_data = {
             "item_code":   r["item_code"],
             "item_name":   r["item_code"],
             "description": r["description"],
             "qty":         r["qty"],
             "rate":        r["rate"],
             "uom":         "Nos",
-        })
+        }
+        if r.get("sheets"):
+            row_data["gpp_sheets"] = r["sheets"]
+        si.append("items", row_data)
     si.set_missing_values()
     si.calculate_taxes_and_totals()
     si.insert(ignore_permissions=True)
@@ -175,7 +178,10 @@ def create_invoice_from_billing(billing_data, si_name=None):
                 raise _BillingError(400, f"items[{i}] ({item_name}): provide either rate or amount")
             desc = cstr(it.get("description", "") or "").strip() or item_name
             code = _ensure_printing_item(item_name)
-            item_rows.append({"item_code": code, "description": desc, "qty": qty, "rate": rate})
+            sheets_raw = it.get("sheets")
+            sheets_val = flt(sheets_raw) if sheets_raw not in (None, "") else None
+            item_rows.append({"item_code": code, "description": desc, "qty": qty, "rate": rate,
+                              "sheets": sheets_val})
 
         remarks_parts = [f"PrintFlow {source_type}: {source_name}"]
         if pf_period:
@@ -223,14 +229,17 @@ def create_invoice_from_billing(billing_data, si_name=None):
             if pf_period:      si.pf_period          = pf_period
             si.items = []
             for r in item_rows:
-                si.append("items", {
+                row_data = {
                     "item_code":   r["item_code"],
                     "item_name":   r["item_code"],
                     "description": r["description"],
                     "qty":         r["qty"],
                     "rate":        r["rate"],
                     "uom":         "Nos",
-                })
+                }
+                if r.get("sheets"):
+                    row_data["gpp_sheets"] = r["sheets"]
+                si.append("items", row_data)
             si.calculate_taxes_and_totals()
             si.save(ignore_permissions=True)
             frappe.db.set_value("Sales Invoice", si_name, "posting_date", posting_date, update_modified=False)

@@ -45,6 +45,7 @@ class SalesInvoiceItem(Document):
 		enable_deferred_revenue: DF.Check
 		expense_account: DF.Link | None
 		finance_book: DF.Link | None
+		gpp_sheets: DF.Int
 		grant_commission: DF.Check
 		has_item_scanned: DF.Check
 		image: DF.Attach | None
