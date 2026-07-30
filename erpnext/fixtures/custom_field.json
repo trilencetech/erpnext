@@ -140,7 +140,7 @@
   "in_list_view": 0,
   "in_preview": 0,
   "in_standard_filter": 0,
-  "insert_after": "customer_name",
+  "insert_after": "update_billed_amount_in_sales_order",
   "is_system_generated": 0,
   "is_virtual": 0,
   "label": "PrintFlow Job Details",
