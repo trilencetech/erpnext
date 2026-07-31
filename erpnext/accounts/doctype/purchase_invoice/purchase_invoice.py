@@ -254,10 +254,15 @@ class PurchaseInvoice(BuyingController):
             start_year = year
             end_year = year + 1
 
+        if self.is_return:
+            base_series = frappe.model.naming.make_autoname(
+                f"CR-{company_abbr}-.##")
+        else:
+            base_series = frappe.model.naming.make_autoname(
+                f"PI-{company_abbr}-.###")
+
         # e.g., April 2025 → March 2026 = "25-26"
         fiscal_year = f"{str(start_year)[-2:]}-{str(end_year)[-2:]}"
-        base_series = frappe.model.naming.make_autoname(
-            f"PI-{company_abbr}-.###")
 
         # Append fiscal year suffix manually
         self.name = f"{base_series}/{fiscal_year}"
