@@ -167,7 +167,8 @@ class PurchaseInvoice(BuyingController):
         shipping_address: DF.Link | None
         shipping_address_display: DF.SmallText | None
         shipping_rule: DF.Link | None
-        status: DF.Literal["", "Draft", "Return", "Debit Note Issued", "Submitted", "Paid", "Partly Paid", "Unpaid", "Overdue", "Cancelled", "Internal Transfer"]
+        status: DF.Literal["", "Draft", "Return", "Debit Note Issued", "Submitted",
+                           "Paid", "Partly Paid", "Unpaid", "Overdue", "Cancelled", "Internal Transfer"]
         subscription: DF.Link | None
         supplied_items: DF.Table[PurchaseReceiptItemSupplied]
         supplier: DF.Link
@@ -256,7 +257,7 @@ class PurchaseInvoice(BuyingController):
 
         if self.is_return:
             base_series = frappe.model.naming.make_autoname(
-                f"CR-{company_abbr}-.##")
+                f"DB-{company_abbr}-.##")
         else:
             base_series = frappe.model.naming.make_autoname(
                 f"PI-{company_abbr}-.###")
