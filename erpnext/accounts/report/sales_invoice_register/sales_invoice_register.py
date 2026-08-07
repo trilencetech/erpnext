@@ -269,29 +269,54 @@ def _render_invoice_page(invoice_name, print_format_name):
 
 def _wrap_pages_html(pages):
     """Combine multiple rendered invoice HTML pages into one printable document."""
-    # All pages share the same print format, so extract styles once
     styles = "\n".join(
-        re.findall(r'<style[^>]*>.*?</style>',
-                   pages[0], re.DOTALL | re.IGNORECASE)
+        re.findall(r'<style[^>]*>.*?</style>', pages[0], re.DOTALL | re.IGNORECASE)
     ) if pages else ""
+
+    # Extract the letterhead background URL from the rendered template CSS so we
+    # can re-apply it per-page div.  The template sets it on `body`; with a single
+    # body spanning all invoices and background-repeat:no-repeat, only the first
+    # physical page would show the letterhead.  Applying it to each .si-page div
+    # (height:297mm = one A4 page) gives every invoice its own independent background.
+    _bg_url_re = re.compile(
+        r'body\s*\{[^}]*background(?:-image)?\s*:\s*url\(["\']?([^"\')\s]+)["\']?\)',
+        re.DOTALL | re.IGNORECASE,
+    )
+    bg_match = _bg_url_re.search(styles)
+    bg_url   = bg_match.group(1) if bg_match else None
 
     body_parts = []
     for p in pages:
-        m = re.search(r'<body[^>]*>(.*?)</body\s*>',
-                      p, re.DOTALL | re.IGNORECASE)
+        m = re.search(r'<body[^>]*>(.*?)</body\s*>', p, re.DOTALL | re.IGNORECASE)
         part = m.group(1).strip() if m else p
-        # Strip any scripts that crept in (safety net)
-        part = re.sub(r'<script\b[^>]*>.*?</script>',
-                      '', part, flags=re.DOTALL | re.IGNORECASE)
+        part = re.sub(r'<script\b[^>]*>.*?</script>', '', part, flags=re.DOTALL | re.IGNORECASE)
         body_parts.append(part)
+
+    # Per-page background CSS — only injected when a URL was found in the template.
+    if bg_url:
+        page_bg_css = (
+            "  .si-page {\n"
+            f"    background: url('{bg_url}') no-repeat top center !important;\n"
+            "    background-size: 210mm 297mm !important;\n"
+            "    -webkit-print-color-adjust: exact !important;\n"
+            "    print-color-adjust: exact !important;\n"
+            "  }\n"
+        )
+    else:
+        page_bg_css = ""
 
     return (
         '<!DOCTYPE html><html><head><meta charset="UTF-8">\n'
         + styles + "\n"
         + "<style>\n"
-        + "  .si-page { page-break-after: always; break-after: page; }\n"
+        # Each .si-page is exactly one A4 page tall (matching @page{margin:0}).
+        # height:297mm + page-break-after ensures every invoice starts on a fresh
+        # physical page and has its own independent background image.
+        + "  .si-page { height: 297mm; page-break-after: always; break-after: page; overflow: hidden; }\n"
         + "  .si-page:last-of-type { page-break-after: avoid; break-after: avoid; }\n"
-        + "  @media print { body { background: #fff; } }\n"
+        # Suppress the body-level background — each .si-page carries its own.
+        + "  body { background: none !important; }\n"
+        + page_bg_css
         + "</style>\n"
         + "<script>\n"
         + "  window.addEventListener('load',function(){\n"
@@ -299,7 +324,6 @@ def _wrap_pages_html(pages):
         + "  });\n"
         + "</script>\n"
         + "</head><body>\n"
-        + "".join('<div class="si-page">{}</div>\n'.format(b)
-                  for b in body_parts)
+        + "".join('<div class="si-page">{}</div>\n'.format(b) for b in body_parts)
         + "</body></html>"
     )
