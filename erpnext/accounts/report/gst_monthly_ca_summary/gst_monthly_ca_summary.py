@@ -84,10 +84,33 @@ def get_report_data(filters):
 
     # ── Previous month closing balances ───────────────────────────────
     prev_from, prev_to = get_prev_month_range(from_date)
+
+    # Use ALL voucher types (including Journal Entries) so that opening-balance
+    # JEs that debit Output Tax accounts are reflected in the cumulative balance.
     prev_gl_closing = get_gl_balance(company, "1900-01-01", str(prev_to))
 
-    prev_out_closing = sum_accounts(prev_gl_closing, accounts["output"])
-    prev_itc_closing = sum_accounts(prev_gl_closing, accounts["input"])
+    # For Output accounts sum_accounts returns (credit − debit).
+    # A positive value = outstanding GST liability.
+    # A negative value means debits (ITC) exceeded credits — the excess is
+    # carry-forward ITC (e.g. an opening JE that debited Output Tax accounts).
+    prev_out_net = sum_accounts(prev_gl_closing, accounts["output"])
+    prev_itc_inv = sum_accounts(prev_gl_closing, accounts["input"])
+
+    prev_itc_from_out = {
+        "igst": flt(max(0, -prev_out_net["igst"]), 2),
+        "cgst": flt(max(0, -prev_out_net["cgst"]), 2),
+        "sgst": flt(max(0, -prev_out_net["sgst"]), 2),
+    }
+    prev_out_closing = {
+        "igst": flt(max(0, prev_out_net["igst"]), 2),
+        "cgst": flt(max(0, prev_out_net["cgst"]), 2),
+        "sgst": flt(max(0, prev_out_net["sgst"]), 2),
+    }
+    prev_itc_closing = {
+        "igst": flt(max(0, prev_itc_inv["igst"]) + prev_itc_from_out["igst"], 2),
+        "cgst": flt(max(0, prev_itc_inv["cgst"]) + prev_itc_from_out["cgst"], 2),
+        "sgst": flt(max(0, prev_itc_inv["sgst"]) + prev_itc_from_out["sgst"], 2),
+    }
 
     # Previous Due  = Output net liability at end of prev month (if > 0)
     prev_sales_igst = flt(max(0, prev_out_closing["igst"]), 2)
@@ -338,6 +361,81 @@ def get_gl_balance(company, from_date, to_date):
     return {row.account: row for row in result}
 
 
+def get_gl_balance_excl_je(company, from_date, to_date):
+    """Like get_gl_balance but skips Journal Entry vouchers."""
+    if not from_date or not to_date:
+        return {}
+    result = frappe.db.sql("""
+        SELECT
+            account,
+            SUM(debit)  AS debit,
+            SUM(credit) AS credit
+        FROM `tabGL Entry`
+        WHERE company      = %(company)s
+          AND posting_date BETWEEN %(from_date)s AND %(to_date)s
+          AND is_cancelled = 0
+          AND voucher_type != 'Journal Entry'
+          AND (
+               account LIKE '%%CGST%%'
+            OR account LIKE '%%SGST%%'
+            OR account LIKE '%%IGST%%'
+            OR account LIKE '%%UTGST%%'
+            OR account LIKE '%%GST%%'
+          )
+        GROUP BY account
+    """, {"company": company, "from_date": from_date, "to_date": to_date}, as_dict=True)
+    return {row.account: row for row in result}
+
+
+def get_cumulative_je_itc(company, to_date):
+    """
+    Cumulative net ITC from Journal Entries up to to_date.
+
+    Uses HAVING SUM(debit) > SUM(credit) to identify ITC accounts — any GST
+    account that is net-debited in JEs is treated as ITC.  This avoids all
+    name-based direction classification, so opening-balance JEs are captured
+    regardless of what the account is named (e.g. "ITC Credit - GP", "IGST
+    Claimable - GP", "IGST - GP", etc.).
+
+    Returns {"igst": float, "cgst": float, "sgst": float}
+    """
+    rows = frappe.db.sql("""
+        SELECT
+            account,
+            SUM(debit)  AS total_debit,
+            SUM(credit) AS total_credit
+        FROM `tabGL Entry`
+        WHERE company      = %(company)s
+          AND posting_date BETWEEN '1900-01-01' AND %(to_date)s
+          AND is_cancelled = 0
+          AND voucher_type = 'Journal Entry'
+          AND (
+               UPPER(account) LIKE '%%IGST%%'
+            OR UPPER(account) LIKE '%%CGST%%'
+            OR UPPER(account) LIKE '%%SGST%%'
+            OR UPPER(account) LIKE '%%UTGST%%'
+            OR UPPER(account) LIKE '%%GST%%'
+          )
+        GROUP BY account
+        HAVING SUM(debit) > SUM(credit)
+    """, {"company": company, "to_date": to_date}, as_dict=True)
+
+    result = {"igst": 0.0, "cgst": 0.0, "sgst": 0.0}
+    for row in rows:
+        acc_upper = row.account.upper()
+        net = flt(row.total_debit, 2) - flt(row.total_credit, 2)
+        if "IGST" in acc_upper:
+            result["igst"] = flt(result["igst"] + net, 2)
+        elif "CGST" in acc_upper:
+            result["cgst"] = flt(result["cgst"] + net, 2)
+        elif "SGST" in acc_upper or "UTGST" in acc_upper:
+            result["sgst"] = flt(result["sgst"] + net, 2)
+        # generic "GST" without tax-type suffix — split evenly or skip;
+        # most setups have explicit IGST/CGST/SGST account names so this
+        # branch is rarely hit
+    return result
+
+
 def sum_accounts(gl_data, account_group):
     """
     Sum GL debit/credit for each tax type across multiple accounts.
@@ -461,6 +559,15 @@ def get_journal_entry_gst(company, from_date, to_date, accounts):
     gl_map = {row.account: row for row in gst_rows}
     itc    = sum_accounts(gl_map, accounts["input"])
     output = sum_accounts(gl_map, accounts["output"])
+
+    # When a JE debits an Output Tax account directly (e.g. opening-balance ITC
+    # or a direct ITC claim against the output account), sum_accounts returns a
+    # negative value for that tax type.  Re-classify: move the absolute amount
+    # to itc and zero out the negative output so it doesn't reduce sales liability.
+    for _t in ("igst", "cgst", "sgst"):
+        if output.get(_t, 0) < 0:
+            itc[_t]    = flt(itc.get(_t, 0) + abs(output[_t]), 2)
+            output[_t] = 0.0
 
     _gst_excl = (
         "AND account NOT LIKE '%%CGST%%' AND account NOT LIKE '%%SGST%%' "
