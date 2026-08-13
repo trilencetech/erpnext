@@ -85,8 +85,10 @@ def _customer_list_columns():
             "options": "currency",
             "width": 160,
         },
-        {"label": _("Row Type"),   "fieldname": "_row_type", "fieldtype": "Data", "hidden": 1, "width": 0},
-        {"label": _("Customer ID"), "fieldname": "_customer", "fieldtype": "Data", "hidden": 1, "width": 0},
+        {"label": _("Row Type"),   "fieldname": "_row_type",
+         "fieldtype": "Data", "hidden": 1, "width": 0},
+        {"label": _("Customer ID"), "fieldname": "_customer",
+         "fieldtype": "Data", "hidden": 1, "width": 0},
     ]
 
 
@@ -126,10 +128,14 @@ def _monthly_columns():
             "options": "currency",
             "width": 160,
         },
-        {"label": _("Month Start"), "fieldname": "month_start", "fieldtype": "Date",  "hidden": 1, "width": 0},
-        {"label": _("Month End"),   "fieldname": "month_end",   "fieldtype": "Date",  "hidden": 1, "width": 0},
-        {"label": _("Row Type"),    "fieldname": "_row_type",   "fieldtype": "Data",  "hidden": 1, "width": 0},
-        {"label": _("Customer ID"), "fieldname": "_customer",   "fieldtype": "Data",  "hidden": 1, "width": 0},
+        {"label": _("Month Start"), "fieldname": "month_start",
+         "fieldtype": "Date",  "hidden": 1, "width": 0},
+        {"label": _("Month End"),   "fieldname": "month_end",
+         "fieldtype": "Date",  "hidden": 1, "width": 0},
+        {"label": _("Row Type"),    "fieldname": "_row_type",
+         "fieldtype": "Data",  "hidden": 1, "width": 0},
+        {"label": _("Customer ID"), "fieldname": "_customer",
+         "fieldtype": "Data",  "hidden": 1, "width": 0},
     ]
 
 
@@ -171,9 +177,9 @@ def _get_return_invoice_set(company, customers, from_date, to_date):
 # Opening = GL balance before from_date (or is_opening = Yes).
 
 def _get_customer_list(filters):
-    company   = filters.company
+    company = filters.company
     from_date = getdate(filters.from_date)
-    to_date   = getdate(filters.to_date)
+    to_date = getdate(filters.to_date)
 
     company_currency = frappe.get_cached_value(
         "Company", company, "default_currency") or "INR"
@@ -198,7 +204,8 @@ def _get_customer_list(filters):
         return []
 
     parties = list({g.party for g in gl_entries})
-    return_invoices = _get_return_invoice_set(company, parties, from_date, to_date)
+    return_invoices = _get_return_invoice_set(
+        company, parties, from_date, to_date)
 
     cust_name_map = {
         r.name: r.customer_name
@@ -212,7 +219,8 @@ def _get_customer_list(filters):
     for gle in gl_entries:
         p = gle.party
         if p not in per_cust:
-            per_cust[p] = {"opening": 0.0, "invoiced": 0.0, "credit_note": 0.0, "paid": 0.0}
+            per_cust[p] = {"opening": 0.0, "invoiced": 0.0,
+                           "credit_note": 0.0, "paid": 0.0}
         amount = flt(gle.debit) - flt(gle.credit)
         if gle.posting_date < from_date or gle.is_opening == "Yes":
             per_cust[p]["opening"] += amount
@@ -228,18 +236,18 @@ def _get_customer_list(filters):
     grand_opening = grand_inv = grand_cn = grand_paid = grand_out = 0.0
 
     for cust in sorted(per_cust.keys(), key=lambda c: cust_name_map.get(c, c)):
-        d        = per_cust[cust]
-        opening  = flt(d["opening"],     2)
+        d = per_cust[cust]
+        opening = flt(d["opening"],     2)
         invoiced = flt(d["invoiced"],    2)
-        cn       = flt(d["credit_note"], 2)
-        paid     = flt(d["paid"],        2)
-        closing  = flt(opening + invoiced - cn - paid, 2)
+        cn = flt(d["credit_note"], 2)
+        paid = flt(d["paid"],        2)
+        closing = flt(opening + invoiced - cn - paid, 2)
 
         grand_opening += opening
-        grand_inv     += invoiced
-        grand_cn      += cn
-        grand_paid    += paid
-        grand_out     += closing
+        grand_inv += invoiced
+        grand_cn += cn
+        grand_paid += paid
+        grand_out += closing
 
         rows.append({
             "period":              cust_name_map.get(cust, cust),
@@ -284,10 +292,10 @@ def _get_customer_list(filters):
 # outstanding per month   = running closing balance at end of that month.
 
 def _get_monthly_data(filters):
-    customer  = filters.customer
-    company   = filters.company
+    customer = filters.customer
+    company = filters.company
     from_date = getdate(filters.from_date)
-    to_date   = getdate(filters.to_date)
+    to_date = getdate(filters.to_date)
 
     company_currency = frappe.get_cached_value(
         "Company", company, "default_currency") or "INR"
@@ -318,8 +326,8 @@ def _get_monthly_data(filters):
         """
         SELECT
             posting_date,
-            grand_total                        AS invoice_amount,
-            (grand_total - outstanding_amount) AS paid_amount
+            rounded_total                        AS invoice_amount,
+            (rounded_total - outstanding_amount) AS paid_amount
         FROM   `tabSales Invoice`
         WHERE  docstatus = 1 AND is_return = 0
           AND  customer  = %(customer)s AND company = %(company)s
@@ -373,7 +381,7 @@ def _get_monthly_data(filters):
     for inv in invoices:
         key = _ensure_month(getdate(inv.posting_date))
         month_data[key]["invoice_amount"] += flt(inv.invoice_amount)
-        month_data[key]["paid_amount"]    += flt(inv.paid_amount)
+        month_data[key]["paid_amount"] += flt(inv.paid_amount)
 
     for cn in credit_notes:
         key = _ensure_month(getdate(cn.posting_date))
@@ -387,15 +395,16 @@ def _get_monthly_data(filters):
     for key in sorted(month_data.keys()):
         m = month_data[key]
         m["invoice_amount"] = flt(m["invoice_amount"], 2)
-        m["credit_note"]    = flt(m["credit_note"],    2)
-        m["paid_amount"]    = flt(m["paid_amount"],    2)
+        m["credit_note"] = flt(m["credit_note"],    2)
+        m["paid_amount"] = flt(m["paid_amount"],    2)
         running += m["invoice_amount"] - m["credit_note"] - m["paid_amount"]
-        m["outstanding"]    = flt(running, 2)
+        m["outstanding"] = flt(running, 2)
 
-    total_invoice = flt(sum(m["invoice_amount"] for m in month_data.values()), 2)
-    total_cn      = flt(sum(m["credit_note"]    for m in month_data.values()), 2)
-    total_paid    = flt(sum(m["paid_amount"]    for m in month_data.values()), 2)
-    total_out     = flt(opening_balance + total_invoice - total_cn - total_paid, 2)
+    total_invoice = flt(sum(m["invoice_amount"]
+                        for m in month_data.values()), 2)
+    total_cn = flt(sum(m["credit_note"] for m in month_data.values()), 2)
+    total_paid = flt(sum(m["paid_amount"] for m in month_data.values()), 2)
+    total_out = flt(opening_balance + total_invoice - total_cn - total_paid, 2)
 
     rows = [{
         "period":         frappe.bold(
@@ -446,7 +455,8 @@ def get_customer_monthly_ledger(customer, company, from_date, to_date):
           AND  posting_date < %(from_date)s
           AND  outstanding_amount > 0
         """,
-        {"company": company, "customer": customer, "from_date": getdate(from_date)},
+        {"company": company, "customer": customer,
+            "from_date": getdate(from_date)},
         as_dict=True,
     )
     opening_outstanding = flt((opening_row[0].val if opening_row else 0), 2)
@@ -487,8 +497,8 @@ def get_month_invoices(customer, company, month_start, month_end):
         SELECT
             name                               AS sales_invoice,
             posting_date,
-            grand_total                        AS invoice_amount,
-            (grand_total - outstanding_amount) AS paid_amount,
+            rounded_total                        AS invoice_amount,
+            (rounded_total - outstanding_amount) AS paid_amount,
             outstanding_amount                 AS outstanding,
             status
         FROM `tabSales Invoice`
@@ -505,7 +515,7 @@ def get_month_invoices(customer, company, month_start, month_end):
         SELECT
             name                                    AS sales_invoice,
             posting_date,
-            ABS(grand_total)                        AS credit_amount,
+            ABS(rounded_total)                        AS credit_amount,
             COALESCE(return_against, '')            AS return_against,
             outstanding_amount,
             status
@@ -522,11 +532,13 @@ def get_month_invoices(customer, company, month_start, month_end):
     # cn_deductible: only the unapplied portion (outstanding_amount < 0 means still open)
     # A fully-applied CN has outstanding_amount = 0, so it contributes nothing here —
     # its effect is already reflected in the original invoice's outstanding_amount.
-    cn_deductible = flt(sum(abs(flt(c.outstanding_amount)) for c in credit_notes), 2)
-    fwd_out   = flt(sum(flt(i.outstanding)    for i in invoices), 2)
+    cn_deductible = flt(sum(abs(flt(c.outstanding_amount))
+                        for c in credit_notes), 2)
+    fwd_out = flt(sum(flt(i.outstanding) for i in invoices), 2)
     month_out = flt(max(0.0, fwd_out), 2)
-    paid_adj  = flt(max(0.0, inv_total - month_out), 2)
-    total_out = flt(max(0.0, month_out + opening_outstanding - cn_deductible), 2)
+    paid_adj = flt(max(0.0, inv_total - month_out), 2)
+    total_out = flt(
+        max(0.0, month_out + opening_outstanding - cn_deductible), 2)
 
     return {
         "opening_outstanding": opening_outstanding,
@@ -573,8 +585,8 @@ def get_all_invoices_for_period(customer, company, from_date, to_date):
         SELECT
             name                               AS sales_invoice,
             posting_date,
-            grand_total                        AS invoice_amount,
-            (grand_total - outstanding_amount) AS paid_amount,
+            rounded_total                        AS invoice_amount,
+            (rounded_total - outstanding_amount) AS paid_amount,
             outstanding_amount                 AS outstanding,
             status
         FROM `tabSales Invoice`
@@ -591,7 +603,7 @@ def get_all_invoices_for_period(customer, company, from_date, to_date):
         SELECT
             name                         AS sales_invoice,
             posting_date,
-            ABS(grand_total)             AS credit_amount,
+            ABS(rounded_total)             AS credit_amount,
             COALESCE(return_against, '') AS return_against,
             outstanding_amount,
             status
@@ -609,7 +621,8 @@ def get_all_invoices_for_period(customer, company, from_date, to_date):
     for inv in invoices:
         key = getdate(inv.posting_date).strftime("%Y-%m")
         if key not in buckets:
-            buckets[key] = {"invoice_total": 0.0, "credit_total": 0.0, "_fwd_out": 0.0}
+            buckets[key] = {"invoice_total": 0.0,
+                            "credit_total": 0.0, "_fwd_out": 0.0}
         buckets[key]["invoice_total"] = flt(
             buckets[key]["invoice_total"] + flt(inv.invoice_amount), 2)
         buckets[key]["_fwd_out"] = flt(
@@ -618,13 +631,14 @@ def get_all_invoices_for_period(customer, company, from_date, to_date):
     for cn in credit_notes:
         key = getdate(cn.posting_date).strftime("%Y-%m")
         if key not in buckets:
-            buckets[key] = {"invoice_total": 0.0, "credit_total": 0.0, "_fwd_out": 0.0}
+            buckets[key] = {"invoice_total": 0.0,
+                            "credit_total": 0.0, "_fwd_out": 0.0}
         buckets[key]["credit_total"] = flt(
             buckets[key]["credit_total"] + flt(cn.credit_amount), 2)
 
     month_summaries = {}
     for key, b in buckets.items():
-        m_out  = flt(max(0.0, b["_fwd_out"]), 2)
+        m_out = flt(max(0.0, b["_fwd_out"]), 2)
         m_paid = flt(max(0.0, b["invoice_total"] - m_out), 2)
         month_summaries[key] = {
             "invoice_total":     b["invoice_total"],
@@ -633,10 +647,14 @@ def get_all_invoices_for_period(customer, company, from_date, to_date):
             "month_outstanding": m_out,
         }
 
-    total_inv  = flt(sum(ms["invoice_total"]     for ms in month_summaries.values()), 2)
-    total_cn   = flt(sum(ms["credit_total"]      for ms in month_summaries.values()), 2)
-    total_paid = flt(sum(ms["paid_cash"]         for ms in month_summaries.values()), 2)
-    total_out  = flt(sum(ms["month_outstanding"] for ms in month_summaries.values()), 2)
+    total_inv = flt(sum(ms["invoice_total"]
+                    for ms in month_summaries.values()), 2)
+    total_cn = flt(sum(ms["credit_total"]
+                   for ms in month_summaries.values()), 2)
+    total_paid = flt(sum(ms["paid_cash"]
+                     for ms in month_summaries.values()), 2)
+    total_out = flt(sum(ms["month_outstanding"]
+                    for ms in month_summaries.values()), 2)
 
     return {
         "opening_outstanding": opening_outstanding,
