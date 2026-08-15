@@ -91,6 +91,7 @@ class Company(NestedSet):
 		phone_no: DF.Data | None
 		print_format_dc: DF.Link | None
 		print_format_si: DF.Link | None
+		print_format_si_without_bg: DF.Link | None
 		reconcile_on_advance_payment_date: DF.Check
 		reconciliation_takes_effect_on: DF.Literal["Advance Payment Date", "Oldest Of Invoice Or Advance", "Reconciliation Date"]
 		registration_details: DF.Code | None

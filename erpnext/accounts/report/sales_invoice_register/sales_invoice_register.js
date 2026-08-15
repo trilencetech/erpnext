@@ -116,6 +116,11 @@ frappe.query_reports["Sales Invoice Register"] = {
 			_sir_export_all_pdfs();
 		});
 
+		// "Export All PDFs (No BG)" toolbar button
+		frappe.query_report.page.add_inner_button(__("🖨️ Export All PDFs (No BG)"), function () {
+			_sir_export_all_pdfs_no_bg();
+		});
+
 		// Per-row PDF button click
 		$(document)
 			.off("click.sir_pdf")
@@ -156,6 +161,44 @@ function _sir_open_blob(html) {
 
 
 // ── BULK PDF (ALL INVOICES) ───────────────────────────────────────────────────
+
+function _sir_export_all_pdfs_no_bg() {
+	var company   = frappe.query_report.get_filter_value("company");
+	var customer  = frappe.query_report.get_filter_value("customer");
+	var from_date = frappe.query_report.get_filter_value("from_date");
+	var to_date   = frappe.query_report.get_filter_value("to_date");
+
+	if (!company || !from_date || !to_date) {
+		frappe.msgprint(__("Please set Company, From Date and To Date, then run the report first."));
+		return;
+	}
+
+	var row_count = (frappe.query_report.data || []).filter(function (r) { return r._name; }).length;
+	if (row_count === 0) {
+		frappe.msgprint(__("No invoices to export. Run the report first.")); return;
+	}
+
+	frappe.confirm(
+		__("This will generate a combined PDF (no background) for {0} invoice(s). Continue?", [row_count]),
+		function () {
+			frappe.call({
+				method: "erpnext.accounts.report.sales_invoice_register.sales_invoice_register.get_bulk_invoice_html_no_bg",
+				args: { company, from_date, to_date, customer: customer || null },
+				freeze: true,
+				freeze_message: __("Generating PDF (no background) for {0} invoice(s)…", [row_count]),
+				callback: function (r) {
+					var res = r.message || {};
+					if (!res.html) { frappe.msgprint(__("No data returned.")); return; }
+					frappe.show_alert({
+						message: __("✅ {0} invoices rendered using \"{1}\" — opening in new tab.", [res.count, res.print_format]),
+						indicator: "green",
+					}, 6);
+					_sir_open_blob(res.html);
+				},
+			});
+		}
+	);
+}
 
 function _sir_export_all_pdfs() {
 	var company = frappe.query_report.get_filter_value("company");

@@ -164,14 +164,10 @@ def _data(filters):
 
 # ── BULK PDF API ──────────────────────────────────────────────────────────────
 
-@frappe.whitelist()
-def get_bulk_invoice_html(company, from_date, to_date, customer=None):
-    """
-    Return combined printable HTML for all submitted Sales Invoices in the period.
-    Uses the print format configured in Company.print_format_si.
-    """
+def _build_bulk_html(company, from_date, to_date, customer, pf_company_field):
+    """Shared bulk-render logic; pf_company_field is the Company field holding the print format name."""
     print_format = frappe.db.get_value(
-        "Company", company, "print_format_si") or "Standard"
+        "Company", company, pf_company_field) or "Standard"
 
     conditions = [
         "docstatus != 2",
@@ -210,6 +206,18 @@ def get_bulk_invoice_html(company, from_date, to_date, customer=None):
 
     combined = _wrap_pages_html(pages)
     return {"html": combined, "count": len(pages), "print_format": print_format}
+
+
+@frappe.whitelist()
+def get_bulk_invoice_html(company, from_date, to_date, customer=None):
+    """Combined printable HTML using Company.print_format_si (with letterhead background)."""
+    return _build_bulk_html(company, from_date, to_date, customer, "print_format_si")
+
+
+@frappe.whitelist()
+def get_bulk_invoice_html_no_bg(company, from_date, to_date, customer=None):
+    """Combined printable HTML using Company.print_format_si_without_bg (no background)."""
+    return _build_bulk_html(company, from_date, to_date, customer, "print_format_si_without_bg")
 
 
 @frappe.whitelist()
@@ -270,7 +278,8 @@ def _render_invoice_page(invoice_name, print_format_name):
 def _wrap_pages_html(pages):
     """Combine multiple rendered invoice HTML pages into one printable document."""
     styles = "\n".join(
-        re.findall(r'<style[^>]*>.*?</style>', pages[0], re.DOTALL | re.IGNORECASE)
+        re.findall(r'<style[^>]*>.*?</style>',
+                   pages[0], re.DOTALL | re.IGNORECASE)
     ) if pages else ""
 
     # Extract the letterhead background URL from the rendered template CSS so we
@@ -283,13 +292,15 @@ def _wrap_pages_html(pages):
         re.DOTALL | re.IGNORECASE,
     )
     bg_match = _bg_url_re.search(styles)
-    bg_url   = bg_match.group(1) if bg_match else None
+    bg_url = bg_match.group(1) if bg_match else None
 
     body_parts = []
     for p in pages:
-        m = re.search(r'<body[^>]*>(.*?)</body\s*>', p, re.DOTALL | re.IGNORECASE)
+        m = re.search(r'<body[^>]*>(.*?)</body\s*>',
+                      p, re.DOTALL | re.IGNORECASE)
         part = m.group(1).strip() if m else p
-        part = re.sub(r'<script\b[^>]*>.*?</script>', '', part, flags=re.DOTALL | re.IGNORECASE)
+        part = re.sub(r'<script\b[^>]*>.*?</script>',
+                      '', part, flags=re.DOTALL | re.IGNORECASE)
         body_parts.append(part)
 
     # Per-page background CSS — only injected when a URL was found in the template.
@@ -313,7 +324,7 @@ def _wrap_pages_html(pages):
         # height:297mm + page-break-after ensures every invoice starts on a fresh
         # physical page and has its own independent background image.
         + "  .si-page { height: 297mm; page-break-after: always; break-after: page; overflow: hidden; }\n"
-        + "  .si-page:last-of-type { page-break-after: avoid; break-after: avoid; }\n"
+        # + "  .si-page:last-of-type { page-break-after: avoid; break-after: avoid; }\n"
         # Suppress the body-level background — each .si-page carries its own.
         + "  body { background: none !important; }\n"
         + page_bg_css
@@ -324,6 +335,7 @@ def _wrap_pages_html(pages):
         + "  });\n"
         + "</script>\n"
         + "</head><body>\n"
-        + "".join('<div class="si-page">{}</div>\n'.format(b) for b in body_parts)
+        + "".join('<div class="si-page">{}</div>\n'.format(b)
+                  for b in body_parts)
         + "</body></html>"
     )

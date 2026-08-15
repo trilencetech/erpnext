@@ -25,6 +25,7 @@
   "parent_company",
   "print_format_dc",
   "print_format_si",
+  "print_format_si_without_bg",
   "company_info",
   "company_logo",
   "date_of_incorporation",
@@ -870,6 +871,12 @@
    "fieldtype": "Link",
    "label": "DC Print Format",
    "options": "Print Format"
+  },
+  {
+   "fieldname": "print_format_si_without_bg",
+   "fieldtype": "Link",
+   "label": "Sales Print Format Without Background",
+   "options": "Print Format"
   }
  ],
  "icon": "fa fa-building",
@@ -877,7 +884,7 @@
  "image_field": "company_logo",
  "is_tree": 1,
  "links": [],
- "modified": "2026-05-30 15:16:04.930731",
+ "modified": "2026-08-15 12:29:49.854563",
  "modified_by": "Administrator",
  "module": "Setup",
  "name": "Company",
