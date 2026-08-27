@@ -520,5 +520,20 @@
     "role": "Job Card Manager"
    }
   ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-07-26 16:37:47.309475",
+  "name": "BookPrintFlow Admin",
+  "role_profile": "BookPrintFlow Admin",
+  "roles": [
+   {
+    "parent": "BookPrintFlow Admin",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "BK Admin"
+   }
+  ]
  }
 ]
