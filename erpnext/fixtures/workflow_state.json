@@ -88,14 +88,5 @@
   "name": "Paper Cutting Completed",
   "style": "",
   "workflow_state_name": "Paper Cutting Completed"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2026-07-26 19:27:33.424580",
-  "name": "Roll Received",
-  "style": "",
-  "workflow_state_name": "Roll Received"
  }
 ]
