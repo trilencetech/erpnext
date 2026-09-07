@@ -535,5 +535,20 @@
     "role": "BK Admin"
    }
   ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-09-07 10:06:18.723181",
+  "name": "BookPrintFlow Accountant",
+  "role_profile": "BookPrintFlow Accountant",
+  "roles": [
+   {
+    "parent": "BookPrintFlow Accountant",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "BK Accountant"
+   }
+  ]
  }
 ]

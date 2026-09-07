@@ -30,15 +30,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-02-18 15:34:55.018467",
-  "name": "Delivery",
-  "style": "",
-  "workflow_state_name": "Delivery"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
   "modified": "2026-02-18 15:34:01.873388",
   "name": "Email Received",
   "style": "",
@@ -97,5 +88,14 @@
   "name": "Roll Received",
   "style": "",
   "workflow_state_name": "Roll Received"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-02-18 15:34:55.018467",
+  "name": "Delivery",
+  "style": "",
+  "workflow_state_name": "Delivery"
  }
 ]
