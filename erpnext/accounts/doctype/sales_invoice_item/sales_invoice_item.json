@@ -141,7 +141,6 @@
    "oldfieldname": "item_code",
    "oldfieldtype": "Link",
    "options": "Item",
-   "read_only": 1,
    "search_index": 1
   },
   {
@@ -1030,7 +1029,7 @@
  "idx": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-07-30 08:31:52.071287",
+ "modified": "2026-09-11 23:22:17.060141",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Sales Invoice Item",
