@@ -17,6 +17,7 @@
   "customer_type",
   "customer_group",
   "customer_abbr",
+  "context_name",
   "column_break0",
   "territory",
   "gender",
@@ -604,6 +605,11 @@
    "fieldname": "customer_abbr",
    "fieldtype": "Data",
    "label": "Customer Abbreviation"
+  },
+  {
+   "fieldname": "context_name",
+   "fieldtype": "Data",
+   "label": "Context Name"
   }
  ],
  "icon": "fa fa-user",
@@ -617,7 +623,7 @@
    "link_fieldname": "party"
   }
  ],
- "modified": "2026-02-19 22:12:59.097253",
+ "modified": "2026-09-13 15:01:23.930870",
  "modified_by": "Administrator",
  "module": "Selling",
  "name": "Customer",

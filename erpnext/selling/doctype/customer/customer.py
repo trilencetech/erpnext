@@ -44,6 +44,7 @@ class Customer(TransactionBase):
 		account_manager: DF.Link | None
 		accounts: DF.Table[PartyAccount]
 		companies: DF.Table[AllowedToTransactWith]
+		context_name: DF.Data | None
 		credit_limits: DF.Table[CustomerCreditLimit]
 		customer_abbr: DF.Data | None
 		customer_details: DF.Text | None
