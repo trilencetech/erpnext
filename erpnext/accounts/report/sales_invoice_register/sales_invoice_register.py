@@ -249,7 +249,13 @@ def _render_invoice_page(invoice_name, print_format_name):
         "Print Format", print_format_name, "html") or ""
     if template_html.strip():
         doc = frappe.get_doc("Sales Invoice", invoice_name)
-        return frappe.render_template(template_html, {"doc": doc})
+        rendered = frappe.render_template(template_html, {"doc": doc})
+        font_override = '<style>* { font-family: Arial, sans-serif !important; }</style>'
+        if "</head>" in rendered:
+            rendered = rendered.replace("</head>", font_override + "</head>", 1)
+        else:
+            rendered = font_override + rendered
+        return rendered
 
     # Fallback for non-HTML print formats (e.g. "Standard")
     # frappe.get_print returns the full Frappe printview page; extract only
@@ -320,12 +326,8 @@ def _wrap_pages_html(pages):
         '<!DOCTYPE html><html><head><meta charset="UTF-8">\n'
         + styles + "\n"
         + "<style>\n"
-        # Each .si-page is exactly one A4 page tall (matching @page{margin:0}).
-        # height:297mm + page-break-after ensures every invoice starts on a fresh
-        # physical page and has its own independent background image.
+        + "  * { font-family: Arial, sans-serif !important; }\n"
         + "  .si-page { height: 297mm; page-break-after: always; break-after: page; overflow: hidden; }\n"
-        # + "  .si-page:last-of-type { page-break-after: avoid; break-after: avoid; }\n"
-        # Suppress the body-level background — each .si-page carries its own.
         + "  body { background: none !important; }\n"
         + page_bg_css
         + "</style>\n"
