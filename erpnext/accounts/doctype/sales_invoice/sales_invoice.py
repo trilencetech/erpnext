@@ -3572,7 +3572,11 @@ def update_sales_invoice(si_name, posting_date, freight, item_rates, reason, add
             item.name = item_doc.name
         else:
             frappe.db.set_value("Sales Invoice Item", item.name,
-                                {"rate": item.rate, "amount": item.amount},
+                                {
+                                    "rate": item.rate,
+                                    "amount": item.amount,
+                                    "taxable_value": flt(getattr(item, "taxable_value", None) or item.amount, 2),
+                                },
                                 update_modified=False)
 
     # ── Step 2: Save updated tax amounts ─────────────────────
@@ -3594,7 +3598,9 @@ def update_sales_invoice(si_name, posting_date, freight, item_rates, reason, add
         "base_net_total":          flt(si.base_net_total, 2),
         "total_taxes_and_charges": flt(si.total_taxes_and_charges, 2),
         "rounded_total":           flt(si.rounded_total, 2),
+        "base_rounded_total":      flt(si.base_rounded_total, 2),
         "rounding_adjustment":     flt(si.rounding_adjustment, 2),
+        "base_rounding_adjustment": flt(si.base_rounding_adjustment, 2),
         "in_words":                si.in_words or "",
         "outstanding_amount":      new_outstanding,
         "paid_amount":             old_paid,      # ← never changed
