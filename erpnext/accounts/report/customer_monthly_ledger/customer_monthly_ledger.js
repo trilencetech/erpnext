@@ -54,6 +54,8 @@ frappe.query_reports["Customer Monthly Ledger"] = {
 				return `<span style="color:#d97706;font-weight:700;">${value}</span>`;
 			if (column.fieldname === "credit_note" && flt(data.credit_note) > 0)
 				return `<span style="color:#d97706;font-weight:700;">${value}</span>`;
+			if (column.fieldname === "tds_receivable" && flt(data.tds_receivable) > 0)
+				return `<span style="color:#7c3aed;font-weight:700;">${value}</span>`;
 			return `<span style="font-weight:700;color:#1a56db;">${value}</span>`;
 		}
 
@@ -75,6 +77,8 @@ frappe.query_reports["Customer Monthly Ledger"] = {
 			}
 			if (column.fieldname === "credit_note" && flt(data.credit_note) > 0)
 				return `<span style="color:#d97706;font-weight:600;">${value}</span>`;
+			if (column.fieldname === "tds_receivable" && flt(data.tds_receivable) > 0)
+				return `<span style="color:#7c3aed;font-weight:600;">${value}</span>`;
 		}
 
 		// ── Month rows ────────────────────────────────────────────────────
@@ -91,6 +95,9 @@ frappe.query_reports["Customer Monthly Ledger"] = {
 
 			if (column.fieldname === "credit_note" && flt(data.credit_note) > 0)
 				return `<span style="color:#d97706;font-weight:600;">${value}</span>`;
+
+			if (column.fieldname === "tds_receivable" && flt(data.tds_receivable) > 0)
+				return `<span style="color:#7c3aed;font-weight:600;">${value}</span>`;
 
 			if (column.fieldname === "outstanding") {
 				var clr2 = flt(data.outstanding) > 0 ? "#e65100" : "#16a34a";
@@ -258,8 +265,9 @@ function _show_customer_monthly_dialog(rows, customer_label, customer, company, 
 	// ── Monthly table ─────────────────────────────────────────────────────────
 	var tbody = month_rows.map(function (r) {
 		var out = flt(r.outstanding, 2);
+		var tds = flt(r.tds_receivable, 2);
 		var out_clr = out > 0 ? "#e65100" : "#16a34a";
-		var cn_clr = flt(r.credit_note, 2) > 0 ? "#d97706" : "#374151";
+		var cn_clr  = flt(r.credit_note, 2) > 0 ? "#d97706" : "#374151";
 		return `<tr style="border-bottom:1px solid #f3f4f6;"
 				onmouseover="this.style.background='#f9fafb'"
 				onmouseout="this.style.background=''">
@@ -278,6 +286,9 @@ function _show_customer_monthly_dialog(rows, customer_label, customer, company, 
 			<td style="padding:9px 12px;text-align:right;font-size:12.5px;color:${cn_clr};">
 				${flt(r.credit_note) > 0 ? _fmt(r.credit_note) : "—"}
 			</td>
+			<td style="padding:9px 12px;text-align:right;font-size:12.5px;color:${tds > 0 ? '#7c3aed' : '#374151'};">
+				${tds > 0 ? _fmt(tds) : "—"}
+			</td>
 			<td style="padding:9px 12px;text-align:right;font-size:12.5px;color:#16a34a;">${_fmt(r.paid_amount)}</td>
 			<td style="padding:9px 12px;text-align:right;font-size:12.5px;
 				color:${out_clr};font-weight:${out > 0 ? "600" : "normal"};">
@@ -294,6 +305,7 @@ function _show_customer_monthly_dialog(rows, customer_label, customer, company, 
 					<th style="padding:9px 12px;text-align:left;font-size:11px;font-weight:600;color:#374151;text-transform:uppercase;letter-spacing:.3px;">Period</th>
 					<th style="padding:9px 12px;text-align:right;font-size:11px;font-weight:600;color:#374151;text-transform:uppercase;letter-spacing:.3px;">Invoice Amount</th>
 					<th style="padding:9px 12px;text-align:right;font-size:11px;font-weight:600;color:#d97706;text-transform:uppercase;letter-spacing:.3px;">Credit Note</th>
+					<th style="padding:9px 12px;text-align:right;font-size:11px;font-weight:600;color:#7c3aed;text-transform:uppercase;letter-spacing:.3px;">TDS Receivable</th>
 					<th style="padding:9px 12px;text-align:right;font-size:11px;font-weight:600;color:#16a34a;text-transform:uppercase;letter-spacing:.3px;">Paid / Adjusted</th>
 					<th style="padding:9px 12px;text-align:right;font-size:11px;font-weight:600;color:#374151;text-transform:uppercase;letter-spacing:.3px;">Outstanding</th>
 				</tr>
@@ -356,11 +368,13 @@ function _generate_all_months_pdf_for(customer, company, from_date, to_date) {
 function _show_invoice_dialog(data, month_label, customer, company) {
 	var invoices = data.invoices || [];
 	var credit_notes = data.credit_notes || [];
+	var tds_entries = data.tds_entries || [];
 	var s = data.summary || {};
 
 	var invoice_total = flt(s.invoice_total || 0, 2);
 	var paid_cash = flt(s.paid_cash || 0, 2);
 	var credit_total = flt(s.credit_total || 0, 2);
+	var tds_total = flt(s.tds_total || 0, 2);
 	var month_outstanding = flt(s.month_outstanding || 0, 2);
 	var opening_outstanding = flt(s.opening_outstanding || 0, 2);
 	var total_outstanding = flt(s.total_outstanding || 0, 2);
@@ -459,6 +473,50 @@ function _show_invoice_dialog(data, month_label, customer, company) {
 		</div>`;
 	}
 
+	// ── TDS section ───────────────────────────────────────────────────────────
+	var tds_section = "";
+	if (tds_entries.length) {
+		var tds_tbody = tds_entries.map(function (t) {
+			var link = t.voucher_type === "Journal Entry"
+				? `/app/journal-entry/${t.voucher_no}`
+				: `/app/payment-entry/${t.voucher_no}`;
+			return `
+			<tr style="border-bottom:1px solid #ede9fe;background:#faf5ff;">
+				<td style="padding:8px 12px;">
+					<a href="${link}" target="_blank"
+					   style="color:#7c3aed;font-weight:600;text-decoration:none;font-size:12.5px;"
+					>${t.voucher_no}</a>
+					<span style="font-size:10px;color:#6d28d9;margin-left:6px;">(${t.voucher_type})</span>
+				</td>
+				<td style="padding:8px 12px;color:#5b21b6;font-size:12.5px;">
+					${frappe.datetime.str_to_user(t.posting_date)}
+				</td>
+				<td style="padding:8px 12px;text-align:right;color:#7c3aed;font-weight:600;font-size:12.5px;">
+					${_fmt(flt(t.tds_amount, 2))}
+				</td>
+			</tr>`;
+		}).join("");
+		tds_section = `
+		<div style="margin-top:12px;">
+			<div style="font-size:11px;font-weight:700;color:#5b21b6;text-transform:uppercase;
+				letter-spacing:.5px;padding:6px 12px;background:#ede9fe;border-radius:4px 4px 0 0;">
+				🏛️ TDS Receivable (Deducted by Customer)
+			</div>
+			<div style="border:1px solid #c4b5fd;border-top:none;border-radius:0 0 4px 4px;overflow:hidden;">
+				<table style="width:100%;border-collapse:collapse;font-family:var(--font-stack);">
+					<thead>
+						<tr style="background:#faf5ff;">
+							<th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:#5b21b6;text-transform:uppercase;letter-spacing:.3px;">Voucher No</th>
+							<th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:#5b21b6;text-transform:uppercase;letter-spacing:.3px;">Date</th>
+							<th style="padding:8px 12px;text-align:right;font-size:11px;font-weight:600;color:#5b21b6;text-transform:uppercase;letter-spacing:.3px;">TDS Amount</th>
+						</tr>
+					</thead>
+					<tbody>${tds_tbody}</tbody>
+				</table>
+			</div>
+		</div>`;
+	}
+
 	// ── Total / summary footer ────────────────────────────────────────────────
 	var all_clear = total_outstanding === 0;
 	var tot_bg = all_clear ? "linear-gradient(135deg,#d1fae5,#a7f3d0)" : "linear-gradient(135deg,#fef3c7,#fde68a)";
@@ -481,10 +539,18 @@ function _show_invoice_dialog(data, month_label, customer, company) {
 		</tr>`;
 	}
 
+	if (tds_total > 0) {
+		sum_rows += `
+		<tr>
+			<td style="padding:6px 12px;font-size:12.5px;color:#7c3aed;">(-) 🏛️ TDS Receivable (deducted by customer)</td>
+			<td style="padding:6px 12px;text-align:right;font-size:12.5px;color:#7c3aed;font-weight:600;">(${_fmt(tds_total)})</td>
+		</tr>`;
+	}
+
 	sum_rows += `
 		<tr style="border-top:1px solid #e5e7eb;">
 			<td style="padding:7px 12px;font-size:12.5px;font-weight:700;color:#374151;">Month Outstanding (${month_label})</td>
-			<td style="padding:7px 12px;text-align:right;font-size:12.5px;font-weight:700;color:#e65100;">${_fmt(month_outstanding)}</td>
+			<td style="padding:7px 12px;text-align:right;font-size:12.5px;font-weight:700;color:#e65100;">${_fmt(total_outstanding)}</td>
 		</tr>`;
 
 	if (opening_outstanding > 0) {
@@ -498,8 +564,8 @@ function _show_invoice_dialog(data, month_label, customer, company) {
 	if (credit_total > 0) {
 		sum_rows += `
 		<tr>
-			<td style="padding:6px 12px;font-size:12.5px;color:#7c3aed;">(-) Credit Notes</td>
-			<td style="padding:6px 12px;text-align:right;font-size:12.5px;color:#7c3aed;">(${_fmt(credit_total)})</td>
+			<td style="padding:6px 12px;font-size:12.5px;color:#d97706;">(-) Credit Notes</td>
+			<td style="padding:6px 12px;text-align:right;font-size:12.5px;color:#d97706;">(${_fmt(credit_total)})</td>
 		</tr>`;
 	}
 
@@ -551,7 +617,7 @@ function _show_invoice_dialog(data, month_label, customer, company) {
 	</div>`;
 
 	var full_html = `<div style="max-height:65vh;overflow-y:auto;padding-right:2px;">` +
-		header_bar + opening_html + inv_table + cn_section + total_section +
+		header_bar + opening_html + inv_table + cn_section + tds_section + total_section +
 		`</div>`;
 
 	var d = new frappe.ui.Dialog({
@@ -564,7 +630,7 @@ function _show_invoice_dialog(data, month_label, customer, company) {
 		},
 		secondary_action_label: "📥 Export CSV",
 		secondary_action: function () {
-			_export_csv(invoices, credit_notes, month_label);
+			_export_csv(invoices, credit_notes, month_label, tds_entries);
 		},
 	});
 	d.show();
@@ -738,9 +804,11 @@ function _pdf_summary_section(s, month_label) {
 	var rows = `<tr><td>Invoice Total</td><td>${_pdf_inr(s.invoice_total)}</td></tr>`;
 	if (s.paid_cash > 0)
 		rows += `<tr><td style="color:#16a34a;">(-) Paid / Adjusted <span style="font-size:10px;color:#6b7280;">(cash + credit applied)</span></td><td style="color:#16a34a;">(${_pdf_inr(s.paid_cash)})</td></tr>`;
+	if (s.tds_total > 0)
+		rows += `<tr><td style="color:#7c3aed;">(-) 🏛️ TDS Receivable (deducted by customer)</td><td style="color:#7c3aed;font-weight:600;">(${_pdf_inr(s.tds_total)})</td></tr>`;
 	rows += `<tr style="border-top:1px solid #e5e7eb;">
 		<td style="font-weight:700;color:#374151;">Month Outstanding (${month_label})</td>
-		<td style="font-weight:700;color:#e65100;">${_pdf_inr(s.month_outstanding)}</td>
+		<td style="font-weight:700;color:#e65100;">${_pdf_inr(s.total_outstanding || s.month_outstanding)}</td>
 	</tr>`;
 	if (s.opening_outstanding > 0)
 		rows += `<tr>
@@ -853,9 +921,9 @@ function _build_all_months_pdf_html(data, customer_name, company, from_date, to_
 		var ms = month_summaries[key] || {};
 
 		// Use figures from backend — accurate to the report date range
-		var m_inv = flt(ms.invoice_total || 0, 2);
-		var m_paid = flt(ms.paid_cash || 0, 2);
-		var m_out = flt(ms.month_outstanding || 0, 2);
+		var m_inv  = flt(ms.invoice_total     || 0, 2);
+		var m_paid = flt(ms.paid_cash         || 0, 2);
+		var m_tds  = flt(ms.tds_total         || 0, 2);
 
 		var inv_part = "";
 		if (g.invoices.length) {
@@ -874,8 +942,11 @@ function _build_all_months_pdf_html(data, customer_name, company, from_date, to_
 
 		var m_sum_rows = `<tr><td>Invoice Total</td><td>${_pdf_inr(m_inv)}</td></tr>`;
 		if (m_paid > 0) m_sum_rows += `<tr><td style="color:#16a34a;">(-) Paid / Adjusted <span style="font-size:10px;color:#6b7280;">(cash + credit applied)</span></td><td style="color:#16a34a;">(${_pdf_inr(m_paid)})</td></tr>`;
-		var cls = m_out === 0 ? "zero" : "neg";
-		m_sum_rows += `<tr class="tot-row"><td>Month Outstanding</td><td class="${cls}">${_pdf_inr(m_out)}</td></tr>`;
+		if (m_tds  > 0) m_sum_rows += `<tr><td style="color:#7c3aed;">(-) 🏛️ TDS Receivable (deducted by customer)</td><td style="color:#7c3aed;font-weight:600;">(${_pdf_inr(m_tds)})</td></tr>`;
+		// closing = invoice - paid - tds (TDS is now a real deduction)
+		var m_closing = flt(Math.max(0, m_inv - m_paid - m_tds), 2);
+		var cls = m_closing === 0 ? "zero" : "neg";
+		m_sum_rows += `<tr class="tot-row"><td>Month Outstanding</td><td class="${cls}">${_pdf_inr(m_closing)}</td></tr>`;
 
 		return `<div class="month-sec">
 			<div class="month-hdr">${g.label}</div>
@@ -937,24 +1008,31 @@ function _build_all_months_pdf_html(data, customer_name, company, from_date, to_
 
 // ── CSV EXPORT ────────────────────────────────────────────────────────────────
 
-function _export_csv(invoices, credit_notes, month_label) {
-	var headers = ["Type", "Invoice/CN No", "Date", "Invoice Amount", "Paid Amount", "Credit Amount", "Outstanding"];
+function _export_csv(invoices, credit_notes, month_label, tds_entries) {
+	tds_entries = tds_entries || [];
+	var headers = ["Type", "Invoice/CN/Voucher No", "Date", "Invoice Amount", "Paid Amount", "Credit Amount", "TDS Amount", "Outstanding"];
 
 	var rows = invoices.map(function (inv) {
 		return ["Invoice", inv.sales_invoice, inv.posting_date,
-			flt(inv.invoice_amount, 2), flt(inv.paid_amount, 2), 0, flt(inv.outstanding, 2)];
+			flt(inv.invoice_amount, 2), flt(inv.paid_amount, 2), 0, 0, flt(inv.outstanding, 2)];
 	});
 
 	credit_notes.forEach(function (cn) {
 		rows.push(["Credit Note", cn.sales_invoice, cn.posting_date,
-			0, 0, flt(cn.credit_amount, 2), 0]);
+			0, 0, flt(cn.credit_amount, 2), 0, 0]);
 	});
 
-	var t_inv = rows.reduce(function (s, r) { return s + r[3]; }, 0);
+	tds_entries.forEach(function (t) {
+		rows.push(["TDS Receivable", t.voucher_no, t.posting_date,
+			0, 0, 0, flt(t.tds_amount, 2), 0]);
+	});
+
+	var t_inv  = rows.reduce(function (s, r) { return s + r[3]; }, 0);
 	var t_paid = rows.reduce(function (s, r) { return s + r[4]; }, 0);
-	var t_cn = rows.reduce(function (s, r) { return s + r[5]; }, 0);
-	var t_out = rows.reduce(function (s, r) { return s + r[6]; }, 0);
-	rows.push(["TOTAL", "", "", flt(t_inv, 2), flt(t_paid, 2), flt(t_cn, 2), flt(t_out, 2)]);
+	var t_cn   = rows.reduce(function (s, r) { return s + r[5]; }, 0);
+	var t_tds  = rows.reduce(function (s, r) { return s + r[6]; }, 0);
+	var t_out  = rows.reduce(function (s, r) { return s + r[7]; }, 0);
+	rows.push(["TOTAL", "", "", flt(t_inv, 2), flt(t_paid, 2), flt(t_cn, 2), flt(t_tds, 2), flt(t_out, 2)]);
 
 	var csv = [headers].concat(rows).map(function (row) {
 		return row.map(function (c) {

@@ -72,6 +72,13 @@ def _customer_list_columns():
             "width": 140,
         },
         {
+            "label": _("TDS Receivable"),
+            "fieldname": "tds_receivable",
+            "fieldtype": "Currency",
+            "options": "currency",
+            "width": 145,
+        },
+        {
             "label": _("Paid / Adjusted"),
             "fieldname": "paid_amount",
             "fieldtype": "Currency",
@@ -113,6 +120,13 @@ def _monthly_columns():
             "fieldtype": "Currency",
             "options": "currency",
             "width": 140,
+        },
+        {
+            "label": _("TDS Receivable"),
+            "fieldname": "tds_receivable",
+            "fieldtype": "Currency",
+            "options": "currency",
+            "width": 145,
         },
         {
             "label": _("Paid / Adjusted"),
@@ -167,6 +181,70 @@ def _get_return_invoice_set(company, customers, from_date, to_date):
     return set(rows)
 
 
+# ── TDS HELPERS ───────────────────────────────────────────────────────────────
+#
+# TDS is identified from GL: vouchers that CREDIT the customer's debtor account
+# AND also DEBIT any account whose name contains "TDS" on the same voucher.
+# This covers both Journal Entry and Payment Entry TDS recording patterns.
+
+def _get_tds_by_month(company, customer, from_date, to_date):
+    """Return {YYYY-MM: tds_amount} for TDS entries in the period for one customer."""
+    rows = frappe.db.sql(
+        """
+        SELECT gc.posting_date, SUM(tds.debit) AS tds_amount
+        FROM   `tabGL Entry` gc
+        INNER JOIN `tabGL Entry` tds
+            ON  tds.voucher_no   = gc.voucher_no
+            AND tds.is_cancelled = 0
+            AND UPPER(tds.account) LIKE '%%TDS%%'
+            AND tds.debit > 0
+        WHERE  gc.company      = %(company)s
+          AND  gc.party_type   = 'Customer'
+          AND  gc.party        = %(customer)s
+          AND  gc.credit       > 0
+          AND  gc.is_cancelled = 0
+          AND  gc.posting_date BETWEEN %(from_date)s AND %(to_date)s
+        GROUP  BY gc.voucher_no, gc.posting_date
+        """,
+        {"company": company, "customer": customer,
+         "from_date": from_date, "to_date": to_date},
+        as_dict=True,
+    )
+    result = {}
+    for row in rows:
+        key = getdate(row.posting_date).strftime("%Y-%m")
+        result[key] = flt(result.get(key, 0) + row.tds_amount, 2)
+    return result
+
+
+def _get_tds_for_customers(company, customers, from_date, to_date):
+    """Return {customer: tds_amount} for TDS entries in the period across all customers."""
+    if not customers:
+        return {}
+    rows = frappe.db.sql(
+        """
+        SELECT gc.party AS customer, SUM(tds.debit) AS tds_amount
+        FROM   `tabGL Entry` gc
+        INNER JOIN `tabGL Entry` tds
+            ON  tds.voucher_no   = gc.voucher_no
+            AND tds.is_cancelled = 0
+            AND UPPER(tds.account) LIKE '%%TDS%%'
+            AND tds.debit > 0
+        WHERE  gc.company      = %(company)s
+          AND  gc.party_type   = 'Customer'
+          AND  gc.party        IN %(customers)s
+          AND  gc.credit       > 0
+          AND  gc.is_cancelled = 0
+          AND  gc.posting_date BETWEEN %(from_date)s AND %(to_date)s
+        GROUP  BY gc.party
+        """,
+        {"company": company, "customers": tuple(customers),
+         "from_date": from_date, "to_date": to_date},
+        as_dict=True,
+    )
+    return {row.customer: flt(row.tds_amount, 2) for row in rows}
+
+
 # ── CUSTOMER LIST (no customer filter) ────────────────────────────────────────
 #
 # Uses GL Entry debit/credit movements — same source-of-truth as
@@ -206,6 +284,7 @@ def _get_customer_list(filters):
     parties = list({g.party for g in gl_entries})
     return_invoices = _get_return_invoice_set(
         company, parties, from_date, to_date)
+    tds_by_cust = _get_tds_for_customers(company, parties, from_date, to_date)
 
     cust_name_map = {
         r.name: r.customer_name
@@ -233,7 +312,7 @@ def _get_customer_list(filters):
                 per_cust[p]["paid"] -= amount          # make positive
 
     rows = []
-    grand_opening = grand_inv = grand_cn = grand_paid = grand_out = 0.0
+    grand_opening = grand_inv = grand_cn = grand_tds = grand_paid = grand_out = 0.0
 
     for cust in sorted(per_cust.keys(), key=lambda c: cust_name_map.get(c, c)):
         d = per_cust[cust]
@@ -241,11 +320,13 @@ def _get_customer_list(filters):
         invoiced = flt(d["invoiced"],    2)
         cn = flt(d["credit_note"], 2)
         paid = flt(d["paid"],        2)
+        tds  = flt(tds_by_cust.get(cust, 0), 2)
         closing = flt(opening + invoiced - cn - paid, 2)
 
         grand_opening += opening
         grand_inv += invoiced
         grand_cn += cn
+        grand_tds += tds
         grand_paid += paid
         grand_out += closing
 
@@ -254,6 +335,7 @@ def _get_customer_list(filters):
             "opening_outstanding": opening,
             "invoice_amount":      invoiced,
             "credit_note":         cn,
+            "tds_receivable":      tds,
             "paid_amount":         paid,
             "outstanding":         closing,
             "_row_type":           "customer",
@@ -270,6 +352,7 @@ def _get_customer_list(filters):
         "opening_outstanding": flt(grand_opening, 2),
         "invoice_amount":      flt(grand_inv,     2),
         "credit_note":         flt(grand_cn,      2),
+        "tds_receivable":      flt(grand_tds,     2),
         "paid_amount":         flt(grand_paid,    2),
         "outstanding":         flt(grand_out,     2),
         "_row_type":           "total",
@@ -277,7 +360,8 @@ def _get_customer_list(filters):
         "currency":            company_currency,
     }, {
         "period": "", "opening_outstanding": None, "invoice_amount": None,
-        "credit_note": None, "paid_amount": None, "outstanding": None,
+        "credit_note": None, "tds_receivable": None, "paid_amount": None,
+        "outstanding": None,
         "_row_type": "blank", "_customer": "", "currency": company_currency,
     }]
 
@@ -368,6 +452,7 @@ def _get_monthly_data(filters):
                 "period":         dt.strftime("%B %Y"),
                 "invoice_amount": 0.0,
                 "credit_note":    0.0,
+                "tds_receivable": 0.0,
                 "paid_amount":    0.0,
                 "outstanding":    0.0,
                 "month_start":    get_first_day(dt).strftime("%Y-%m-%d"),
@@ -387,30 +472,42 @@ def _get_monthly_data(filters):
         key = _ensure_month(getdate(cn.posting_date))
         month_data[key]["credit_note"] += flt(cn.credit_amount)
 
+    # Populate TDS per month from GL entries
+    tds_by_month = _get_tds_by_month(company, customer, from_date, to_date)
+    for tds_key, tds_amt in tds_by_month.items():
+        if tds_key not in month_data:
+            # TDS paid in a month with no invoices — still create the month row
+            _ensure_month(getdate(tds_key + "-01"))
+        month_data[tds_key]["tds_receivable"] = flt(
+            month_data[tds_key]["tds_receivable"] + tds_amt, 2)
+
     if not month_data:
         return []
 
-    # Round monthly figures and compute closing balance as running total from opening
+    # Round monthly figures and compute closing balance as running total from opening.
+    # TDS reduces outstanding in the month it is received (GL date), just like a payment.
     running = opening_balance
     for key in sorted(month_data.keys()):
         m = month_data[key]
-        m["invoice_amount"] = flt(m["invoice_amount"], 2)
-        m["credit_note"] = flt(m["credit_note"],    2)
-        m["paid_amount"] = flt(m["paid_amount"],    2)
-        running += m["invoice_amount"] - m["credit_note"] - m["paid_amount"]
+        m["invoice_amount"]  = flt(m["invoice_amount"],  2)
+        m["credit_note"]     = flt(m["credit_note"],     2)
+        m["tds_receivable"]  = flt(m["tds_receivable"],  2)
+        m["paid_amount"]     = flt(m["paid_amount"],     2)
+        running += m["invoice_amount"] - m["credit_note"] - m["paid_amount"] - m["tds_receivable"]
         m["outstanding"] = flt(running, 2)
 
-    total_invoice = flt(sum(m["invoice_amount"]
-                        for m in month_data.values()), 2)
-    total_cn = flt(sum(m["credit_note"] for m in month_data.values()), 2)
-    total_paid = flt(sum(m["paid_amount"] for m in month_data.values()), 2)
-    total_out = flt(opening_balance + total_invoice - total_cn - total_paid, 2)
+    total_invoice = flt(sum(m["invoice_amount"]  for m in month_data.values()), 2)
+    total_cn      = flt(sum(m["credit_note"]     for m in month_data.values()), 2)
+    total_tds     = flt(sum(m["tds_receivable"]  for m in month_data.values()), 2)
+    total_paid    = flt(sum(m["paid_amount"]     for m in month_data.values()), 2)
+    total_out     = flt(opening_balance + total_invoice - total_cn - total_paid - total_tds, 2)
 
     rows = [{
         "period":         frappe.bold(
             "Outstanding Balance as on {}".format(formatdate(to_date))),
         "invoice_amount": total_invoice,
         "credit_note":    total_cn,
+        "tds_receivable": total_tds,
         "paid_amount":    total_paid,
         "outstanding":    total_out,
         "month_start":    "",
@@ -420,7 +517,7 @@ def _get_monthly_data(filters):
         "currency":       company_currency,
     }, {
         "period": "", "invoice_amount": None, "credit_note": None,
-        "paid_amount": None, "outstanding": None,
+        "tds_receivable": None, "paid_amount": None, "outstanding": None,
         "month_start": "", "month_end": "",
         "_row_type": "blank", "_customer": customer,
         "currency": company_currency,
@@ -528,6 +625,30 @@ def get_month_invoices(customer, company, month_start, month_end):
         params, as_dict=True,
     )
 
+    # TDS entries in this month
+    tds_entries = frappe.db.sql(
+        """
+        SELECT gc.posting_date, gc.voucher_no, gc.voucher_type,
+               SUM(tds.debit) AS tds_amount
+        FROM   `tabGL Entry` gc
+        INNER JOIN `tabGL Entry` tds
+            ON  tds.voucher_no   = gc.voucher_no
+            AND tds.is_cancelled = 0
+            AND UPPER(tds.account) LIKE '%%TDS%%'
+            AND tds.debit > 0
+        WHERE  gc.company      = %(company)s
+          AND  gc.party_type   = 'Customer'
+          AND  gc.party        = %(customer)s
+          AND  gc.credit       > 0
+          AND  gc.is_cancelled = 0
+          AND  gc.posting_date BETWEEN %(month_start)s AND %(month_end)s
+        GROUP  BY gc.voucher_no, gc.posting_date, gc.voucher_type
+        ORDER  BY gc.posting_date
+        """,
+        params, as_dict=True,
+    )
+    tds_total = flt(sum(flt(t.tds_amount) for t in tds_entries), 2)
+
     inv_total = flt(sum(flt(i.invoice_amount) for i in invoices), 2)
     # cn_deductible: only the unapplied portion (outstanding_amount < 0 means still open)
     # A fully-applied CN has outstanding_amount = 0, so it contributes nothing here —
@@ -538,15 +659,18 @@ def get_month_invoices(customer, company, month_start, month_end):
     month_out = flt(max(0.0, fwd_out), 2)
     paid_adj = flt(max(0.0, inv_total - month_out), 2)
     total_out = flt(
-        max(0.0, month_out + opening_outstanding - cn_deductible), 2)
+        max(0.0, month_out + opening_outstanding - cn_deductible - tds_total), 2)
 
     return {
         "opening_outstanding": opening_outstanding,
         "invoices":            invoices,
         "credit_notes":        credit_notes,
+        "tds_entries":         tds_entries,
+        "tds_total":           tds_total,
         "summary": {
             "invoice_total":       inv_total,
             "credit_total":        cn_deductible,   # unapplied portion only
+            "tds_total":           tds_total,
             "paid_cash":           paid_adj,
             "month_outstanding":   month_out,
             "opening_outstanding": opening_outstanding,
@@ -616,13 +740,19 @@ def get_all_invoices_for_period(customer, company, from_date, to_date):
         params, as_dict=True,
     )
 
+    # TDS for the full period, keyed by YYYY-MM
+    customer = params["customer"]
+    company  = params["company"]
+    tds_by_month_all = _get_tds_by_month(
+        company, customer, getdate(from_date), getdate(to_date))
+
     buckets = {}
 
     for inv in invoices:
         key = getdate(inv.posting_date).strftime("%Y-%m")
         if key not in buckets:
             buckets[key] = {"invoice_total": 0.0,
-                            "credit_total": 0.0, "_fwd_out": 0.0}
+                            "credit_total": 0.0, "tds_total": 0.0, "_fwd_out": 0.0}
         buckets[key]["invoice_total"] = flt(
             buckets[key]["invoice_total"] + flt(inv.invoice_amount), 2)
         buckets[key]["_fwd_out"] = flt(
@@ -632,29 +762,37 @@ def get_all_invoices_for_period(customer, company, from_date, to_date):
         key = getdate(cn.posting_date).strftime("%Y-%m")
         if key not in buckets:
             buckets[key] = {"invoice_total": 0.0,
-                            "credit_total": 0.0, "_fwd_out": 0.0}
+                            "credit_total": 0.0, "tds_total": 0.0, "_fwd_out": 0.0}
         buckets[key]["credit_total"] = flt(
             buckets[key]["credit_total"] + flt(cn.credit_amount), 2)
 
+    # Merge TDS into buckets (TDS months without invoices get their own bucket)
+    for tds_key, tds_amt in tds_by_month_all.items():
+        if tds_key not in buckets:
+            buckets[tds_key] = {"invoice_total": 0.0,
+                                "credit_total": 0.0, "tds_total": 0.0, "_fwd_out": 0.0}
+        buckets[tds_key]["tds_total"] = flt(
+            buckets[tds_key]["tds_total"] + tds_amt, 2)
+
     month_summaries = {}
     for key, b in buckets.items():
-        m_out = flt(max(0.0, b["_fwd_out"]), 2)
-        m_paid = flt(max(0.0, b["invoice_total"] - m_out), 2)
+        m_fwd  = flt(max(0.0, b["_fwd_out"]), 2)
+        m_paid = flt(max(0.0, b["invoice_total"] - m_fwd), 2)
+        m_tds  = flt(b["tds_total"], 2)
+        m_out  = flt(max(0.0, m_fwd - m_tds), 2)
         month_summaries[key] = {
             "invoice_total":     b["invoice_total"],
             "credit_total":      b["credit_total"],
+            "tds_total":         m_tds,
             "paid_cash":         m_paid,
             "month_outstanding": m_out,
         }
 
-    total_inv = flt(sum(ms["invoice_total"]
-                    for ms in month_summaries.values()), 2)
-    total_cn = flt(sum(ms["credit_total"]
-                   for ms in month_summaries.values()), 2)
-    total_paid = flt(sum(ms["paid_cash"]
-                     for ms in month_summaries.values()), 2)
-    total_out = flt(sum(ms["month_outstanding"]
-                    for ms in month_summaries.values()), 2)
+    total_inv  = flt(sum(ms["invoice_total"]     for ms in month_summaries.values()), 2)
+    total_cn   = flt(sum(ms["credit_total"]      for ms in month_summaries.values()), 2)
+    total_tds  = flt(sum(ms["tds_total"]         for ms in month_summaries.values()), 2)
+    total_paid = flt(sum(ms["paid_cash"]         for ms in month_summaries.values()), 2)
+    total_out  = flt(max(0.0, total_inv - total_paid - total_tds), 2)
 
     return {
         "opening_outstanding": opening_outstanding,
@@ -664,6 +802,7 @@ def get_all_invoices_for_period(customer, company, from_date, to_date):
         "total_summary": {
             "invoice_total":       total_inv,
             "credit_total":        total_cn,
+            "tds_total":           total_tds,
             "paid_cash":           total_paid,
             "outstanding":         total_out,
             "opening_outstanding": opening_outstanding,
