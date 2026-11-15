@@ -177,28 +177,30 @@ function _ic_build_pdf(company, account, rate, from_dt, to_dt, s, details) {
     var detail_rows_html = details.map(function (r) {
         var rt = r._row_type;
 
+        var pca = "-webkit-print-color-adjust:exact;print-color-adjust:exact;";
         if (rt === "event") {
             var is_dep = (r.description || "").startsWith("Deposit");
             var clr    = is_dep ? "#15803d" : "#dc2626";
-            return `<tr class="event-row" style="background:#f0fdf4;">
-                <td colspan="4" style="color:${clr};font-weight:600;padding:7px 14px;">
+            var bg     = is_dep ? "#f0fdf4" : "#fef2f2";
+            return `<tr class="event-row" style="background:${bg};${pca}">
+                <td colspan="4" style="color:${clr};font-weight:600;padding:7px 14px;${pca}">
                     ▶ ${r.description || ""}
                 </td>
-                <td style="text-align:right;color:${clr};font-weight:700;padding:7px 14px;" colspan="2">
+                <td style="text-align:right;color:${clr};font-weight:700;padding:7px 14px;${pca}" colspan="2">
                     New Working Principal: ${_ic_fmt(r.total_payable)}
                 </td>
             </tr>`;
         }
 
         if (rt === "year_end") {
-            return `<tr style="background:#f5f3ff;">
-                <td colspan="4" style="color:#7c3aed;font-weight:700;padding:8px 14px;">
+            return `<tr class="year-end-row" style="background:#f5f3ff;${pca}">
+                <td colspan="4" style="color:#7c3aed;font-weight:700;padding:8px 14px;${pca}">
                     ✦ ${r.description || ""}
                 </td>
-                <td style="text-align:right;color:#7c3aed;padding:8px 14px;">
+                <td style="text-align:right;color:#7c3aed;padding:8px 14px;${pca}">
                     Interest Added: ${_ic_fmt(r.interest_amount)}
                 </td>
-                <td style="text-align:right;color:#7c3aed;font-weight:700;padding:8px 14px;">
+                <td style="text-align:right;color:#7c3aed;font-weight:700;padding:8px 14px;${pca}">
                     New Principal: ${_ic_fmt(r.total_payable)}
                 </td>
             </tr>`;
@@ -219,18 +221,20 @@ function _ic_build_pdf(company, account, rate, from_dt, to_dt, s, details) {
 <meta charset="UTF-8">
 <title>Interest Calculator — ${account}</title>
 <style>
-  * { font-family: Arial, sans-serif; box-sizing: border-box; margin: 0; padding: 0; }
+  * { font-family: Arial, sans-serif; box-sizing: border-box; margin: 0; padding: 0;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important; }
   body { background: #f3f4f6; padding: 24px; }
   .page { max-width: 900px; margin: 0 auto; background: #fff;
           border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,.12); overflow: hidden; }
 
-  .hdr { background: #1e3a5f; color: #fff; padding: 20px 28px; }
+  .hdr { background: #1e3a5f !important; color: #fff !important; padding: 20px 28px; }
   .hdr-company { font-size: 20px; font-weight: 700; }
-  .hdr-title   { font-size: 13px; color: #93c5fd; margin-top: 2px;
+  .hdr-title   { font-size: 13px; color: #93c5fd !important; margin-top: 2px;
                  letter-spacing: 1px; text-transform: uppercase; }
   .hdr-meta    { display: flex; gap: 20px; margin-top: 10px; font-size: 12px;
-                 color: #cbd5e1; flex-wrap: wrap; }
-  .hdr-meta span strong { color: #fff; }
+                 color: #cbd5e1 !important; flex-wrap: wrap; }
+  .hdr-meta span strong { color: #fff !important; }
 
   .boxes { display: flex; border-bottom: 1px solid #e5e7eb; }
   .box   { flex: 1; padding: 16px 20px; border-right: 1px solid #e5e7eb; }
@@ -238,12 +242,12 @@ function _ic_build_pdf(company, account, rate, from_dt, to_dt, s, details) {
   .box-label { font-size: 10.5px; color: #6b7280; text-transform: uppercase; letter-spacing: .6px; }
   .box-value { font-size: 20px; font-weight: 700; margin-top: 3px; }
   .box-sub   { font-size: 10.5px; color: #9ca3af; margin-top: 2px; }
-  .box-p  .box-value { color: #1e3a5f; }
-  .box-d  .box-value { color: #6b7280; font-size: 17px; }
-  .box-i  .box-value { color: #b45309; }
-  .box-t  .box-value { color: #15803d; }
+  .box-p  .box-value { color: #1e3a5f !important; }
+  .box-d  .box-value { color: #6b7280 !important; font-size: 17px; }
+  .box-i  .box-value { color: #b45309 !important; }
+  .box-t  .box-value { color: #15803d !important; }
 
-  .formula-bar { background: #f8fafc; border-bottom: 1px solid #e5e7eb;
+  .formula-bar { background: #f8fafc !important; border-bottom: 1px solid #e5e7eb;
                  padding: 9px 20px; font-size: 11.5px; color: #6b7280; }
   .formula-bar strong { color: #374151; }
 
@@ -251,18 +255,19 @@ function _ic_build_pdf(company, account, rate, from_dt, to_dt, s, details) {
                    color: #374151; text-transform: uppercase; letter-spacing: .6px; }
 
   table { width: 100%; border-collapse: collapse; }
-  thead th { background: #1e3a5f; color: #fff; padding: 8px 14px;
+  thead th { background: #1e3a5f !important; color: #fff !important; padding: 8px 14px;
              font-size: 11px; text-align: left; }
   thead th.r { text-align: right; }
   thead th.c { text-align: center; }
-  tbody tr:nth-child(even):not(.event-row) { background: #f9fafb; }
+  tbody tr:nth-child(even):not(.event-row):not(.year-end-row) { background: #f9fafb !important; }
   tbody td { padding: 7px 14px; font-size: 12px; color: #374151;
              border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
-  tfoot td { background: #1e3a5f; color: #fff; font-weight: 700;
+  tfoot td { background: #1e3a5f !important; color: #fff !important; font-weight: 700;
              padding: 9px 14px; font-size: 12.5px; }
   tfoot td.r { text-align: right; }
 
-  .footer { padding: 10px 20px; background: #f9fafb; border-top: 1px solid #e5e7eb;
+  .footer { padding: 10px 20px; background: #f9fafb !important;
+            border-top: 1px solid #e5e7eb;
             display: flex; justify-content: space-between; font-size: 11px; color: #9ca3af; }
 
   .print-wrap { text-align: center; padding: 14px; }
@@ -270,9 +275,12 @@ function _ic_build_pdf(company, account, rate, from_dt, to_dt, s, details) {
                 padding: 9px 26px; font-size: 13px; cursor: pointer; }
 
   @media print {
-    body { background: none; padding: 0; }
-    .page { box-shadow: none; border-radius: 0; }
+    body { background: #fff !important; padding: 0; }
+    .page { box-shadow: none; border-radius: 0; max-width: 100%; }
     .print-wrap { display: none; }
+    .hdr { background: #1e3a5f !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    thead th { background: #1e3a5f !important; color: #fff !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    tfoot td { background: #1e3a5f !important; color: #fff !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   }
 </style>
 </head><body><div class="page">
@@ -292,22 +300,22 @@ function _ic_build_pdf(company, account, rate, from_dt, to_dt, s, details) {
   <div class="boxes">
     <div class="box box-p">
       <div class="box-label">Opening Principal</div>
-      <div class="box-value">${_ic_fmt(principal)}</div>
+      <div class="box-value" style="color:#1e3a5f;">${_ic_fmt(principal)}</div>
       <div class="box-sub">First credit on ${_ic_date(from_dt)}</div>
     </div>
     <div class="box box-d">
       <div class="box-label">Total Duration</div>
-      <div class="box-value">${days} days</div>
+      <div class="box-value" style="color:#6b7280;">${days} days</div>
       <div class="box-sub">${_ic_date(from_dt)} to ${_ic_date(to_dt)}</div>
     </div>
     <div class="box box-i">
       <div class="box-label">Total Interest</div>
-      <div class="box-value">${_ic_fmt(grand_int)}</div>
+      <div class="box-value" style="color:#b45309;">${_ic_fmt(grand_int)}</div>
       <div class="box-sub">@ ${rate}% p.a. simple interest</div>
     </div>
     <div class="box box-t">
       <div class="box-label">Total Payable</div>
-      <div class="box-value">${_ic_fmt(total_payable)}</div>
+      <div class="box-value" style="color:#15803d;">${_ic_fmt(total_payable)}</div>
       <div class="box-sub">Principal + All Interest</div>
     </div>
   </div>
